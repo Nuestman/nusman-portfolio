@@ -1,172 +1,205 @@
-# Numan Usman - Portfolio Website
+# Numan Usman - Portfolio
 
-> **Nurse & Web Developer** | Professional Healthcare & Technology Solutions
+A modern, responsive portfolio website built with React, TypeScript, and Tailwind CSS.
 
-[![GitHub](https://img.shields.io/github/license/Nuestman/numanusman)](https://github.com/Nuestman/numanusman/blob/main/LICENSE)
-[![Website](https://img.shields.io/website?url=https://github.com/Nuestman/numanusman)](https://github.com/Nuestman/numanusman)
-[![Last Updated](https://img.shields.io/github/last-commit/Nuestman/numanusman)](https://github.com/Nuestman/numanusman/commits/main)
+## 🚀 Live Demo
 
-## 🚀 Recent Updates (Phase 1 - Foundation & Code Quality)
+Visit the live site: [nusman.dev](https://nusman.dev)
 
-This portfolio has been completely modernized with the latest web development best practices:
+## 🛠️ Tech Stack
 
-### ✅ **What's New**
+- **Framework**: React 18 with TypeScript
+- **Build Tool**: Vite
+- **Styling**: Tailwind CSS
+- **UI Components**: Shadcn/UI & Radix UI
+- **Animations**: Framer Motion
+- **Icons**: Lucide React
+- **Routing**: React Router
+- **Fonts**: Google Fonts (Inter, Odibee Sans)
+- **Deployment**: Vercel
 
-- **Modern JavaScript Architecture**: ES6+ modules with proper error handling
-- **Enhanced CSS Architecture**: Component-based CSS with design system variables
-- **Improved SEO**: Meta tags, structured data, and social media optimization
-- **Form Validation**: Real-time validation with user feedback
-- **Accessibility**: ARIA labels, keyboard navigation, and screen reader support
-- **Responsive Design**: Mobile-first approach with modern CSS Grid/Flexbox
-- **Performance**: Optimized loading and modern browser features
+## ✨ Features
 
-### 🛠 **Technical Stack**
+- **Responsive Design**: Mobile-first approach with beautiful animations
+- **Modern UI**: Clean, professional design with gold accent colors
+- **Interactive Sections**:
+  - Hero section with dynamic role display
+  - Skills showcase with tool icons
+  - "What I Can Do" services section
+  - "My Process" workflow explanation
+  - Contact form with validation
+  - Portfolio project showcase
+  - About page with tabbed life story
+- **Performance**: Optimized with Vite for fast loading
+- **SEO Ready**: Meta tags, structured data, and semantic HTML
 
-- **Frontend**: HTML5, CSS3, JavaScript ES6+
-- **CSS Architecture**: Component-based with CSS Custom Properties
-- **JavaScript**: Modern ES6+ modules with backward compatibility
-- **Build Tools**: Ready for Vite, Webpack, or Parcel integration
-- **Deployment**: GitHub Pages ready with modern hosting options
+## 🎨 Design System
 
-## 📁 **Project Structure**
+- **Colors**: 
+  - Primary: `#150F00` (Dark Brown)
+  - Accent: `#B98C1B` (Gold)
+  - Background: White/Gold gradients
+- **Typography**: 
+  - Headings: Odibee Sans (Google Font)
+  - Body: Inter (Google Font)
+- **Components**: Modular, reusable React components
+
+## 📁 Project Structure
 
 ```
-numanusman/
-├── css/
-│   ├── base/
-│   │   ├── variables.css      # Design system variables
-│   │   └── reset.css          # Modern CSS reset
-│   ├── components/
-│   │   └── forms.css          # Form styling and validation
-│   └── style.css              # Main stylesheet
-├── js/
-│   ├── modules/
-│   │   ├── tabs.js            # Modern tab management
-│   │   └── forms.js           # Form validation system
-│   ├── main.js                # Main application entry point
-│   └── script.js              # Legacy compatibility
-├── images/                    # Optimized assets
-├── index.html                 # Homepage
-├── aboutusman.html           # About page
-├── contactusman.html         # Contact page
-└── package.json              # Project configuration
+src/
+├── components/          # Reusable UI components
+│   ├── ui/             # Base UI components (Button, Card)
+│   ├── Header.tsx      # Navigation header
+│   ├── Hero.tsx        # Hero section
+│   ├── Skills.tsx      # Skills showcase
+│   ├── WhatICanDo.tsx  # Services section
+│   ├── MyProcess.tsx   # Process explanation
+│   ├── Contact.tsx     # Contact form
+│   ├── Footer.tsx      # Site footer
+│   └── Layout.tsx      # Main layout wrapper
+├── pages/              # Page components
+│   ├── HomePage.tsx    # Landing page
+│   ├── AboutPage.tsx   # About with life story
+│   ├── ContactPage.tsx # Dedicated contact page
+│   └── PortfolioPage.tsx # Project showcase
+├── lib/                # Utility functions
+└── main.tsx           # App entry point
 ```
 
-## 🚀 **Getting Started**
+## 🚀 Getting Started
 
-### **Quick Start**
+### Prerequisites
+
+- Node.js 18+ 
+- npm or yarn
+
+### Installation
+
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/Nuestman/nusman-portfolio.git
+   cd nusman-portfolio
+   ```
+
+2. **Install dependencies**
+   ```bash
+   npm install
+   ```
+
+3. **Start development server**
+   ```bash
+   npm run dev
+   ```
+
+4. **Open in browser**
+   ```
+   http://localhost:5173
+   ```
+
+## 📜 Available Scripts
+
+- `npm run dev` - Start development server
+- `npm run build` - Build for production
+- `npm run preview` - Preview production build
+- `npm run lint` - Run ESLint
+- `npm run lint:fix` - Fix ESLint issues
+
+## 🎯 Pages & Routes
+
+- `/` - Homepage (Hero, Skills, Services, Process, Contact)
+- `/about` - About page with life story tabs
+- `/portfolio` - Project showcase with filtering
+- `/contact` - Dedicated contact page
+
+## 🚀 Deployment
+
+### Vercel (Recommended)
+
+1. Connect your GitHub repository to Vercel
+2. Set build command: `npm run build`
+3. Set output directory: `dist`
+4. Deploy!
+
+### Manual Build
+
 ```bash
-# Clone the repository
-git clone https://github.com/Nuestman/numanusman.git
-cd numanusman
-
-# Start local development server
-python -m http.server 3000
-# or
-npm run dev
-
-# Open in browser
-open http://localhost:3000
+npm run build
+# Upload the 'dist' folder to your hosting provider
 ```
 
-### **Development Commands**
-```bash
-npm run dev          # Start development server
-npm run build        # Build for production
-npm run test         # Run tests
-npm run lint         # Lint code
-npm run format       # Format code
+## 🎨 Customization
+
+### Adding New Projects
+
+Edit `src/pages/PortfolioPage.tsx` and add to the `projects` array:
+
+```typescript
+const projects = [
+  {
+    title: "Your Project",
+    description: "Project description",
+    image: "/path/to/image.png",
+    technologies: ["React", "TypeScript"],
+    liveUrl: "https://your-project.com",
+    githubUrl: "https://github.com/username/project"
+  }
+];
 ```
 
-## 🎯 **Features**
+### Updating Skills
 
-### **Modern JavaScript**
-- ✅ ES6+ modules with import/export
-- ✅ Proper error handling and logging
-- ✅ Event delegation and modern DOM manipulation
-- ✅ Backward compatibility with legacy browsers
-- ✅ Form validation with real-time feedback
+Edit `src/components/Skills.tsx` and modify the `skills` array with your tools and technologies.
 
-### **Enhanced CSS**
-- ✅ CSS Custom Properties (CSS Variables)
-- ✅ Component-based architecture
-- ✅ Modern CSS Grid and Flexbox
-- ✅ Responsive design patterns
-- ✅ Accessibility-focused styling
+### Changing Colors
 
-### **SEO & Performance**
-- ✅ Semantic HTML5 structure
-- ✅ Meta tags and Open Graph data
-- ✅ Structured data markup
-- ✅ Optimized images and assets
-- ✅ Modern browser features
+Update `tailwind.config.js` to modify the color scheme:
 
-### **Accessibility**
-- ✅ ARIA labels and roles
-- ✅ Keyboard navigation support
-- ✅ Screen reader compatibility
-- ✅ High contrast mode support
-- ✅ Reduced motion preferences
+```javascript
+colors: {
+  'dark-950': '#150F00',
+  'gold-500': '#B98C1B',
+  // ... other colors
+}
+```
 
-## 📱 **Responsive Design**
+## 📱 Responsive Design
 
-The website is fully responsive and optimized for:
-- 📱 Mobile devices (320px+)
-- 📱 Tablets (768px+)
-- 💻 Desktop (1024px+)
-- 🖥️ Large screens (1280px+)
+The portfolio is fully responsive with breakpoints:
+- Mobile: `< 768px`
+- Tablet: `768px - 1024px`
+- Desktop: `> 1024px`
 
-## 🔧 **Browser Support**
+## 🔧 Development
 
-- ✅ Chrome 80+
-- ✅ Firefox 75+
-- ✅ Safari 13+
-- ✅ Edge 80+
-- ✅ Mobile browsers (iOS Safari, Chrome Mobile)
+### Adding New Components
 
-## 📞 **Contact Information**
+1. Create component in `src/components/`
+2. Import and use in pages
+3. Follow existing patterns for consistency
 
-- **Email**: [nuestman@icloud.com](mailto:nuestman@icloud.com)
-- **Phone**: [+233206484034](https://wa.me/+233206484034)
-- **Location**: Obuasi, Ghana
-- **GitHub**: [@Nuestman](https://github.com/Nuestman)
+### Styling Guidelines
 
-## 🛠 **Services Offered**
+- Use Tailwind CSS utility classes
+- Follow the established color scheme
+- Use `font-heading` for headings (Odibee Sans)
+- Use `font-sans` for body text (Inter)
 
-- **Web Development**: Responsive websites and web applications
-- **Healthcare Technology**: Digital solutions for healthcare environments
-- **Freelance Consultation**: Professional development services
-- **Emergency Nursing**: Critical care and emergency response
+## 📄 License
 
-## 📈 **Future Roadmap**
+This project is open source and available under the [MIT License](LICENSE).
 
-### **Phase 2: Functionality & Content** (Planned)
-- [ ] Portfolio project showcase
-- [ ] Blog functionality
-- [ ] Advanced animations
-- [ ] Dark/light theme toggle
-
-### **Phase 3: Performance & Features** (Planned)
-- [ ] Progressive Web App (PWA)
-- [ ] Advanced performance optimization
-- [ ] Analytics integration
-- [ ] A/B testing capabilities
-
-## 🤝 **Contributing**
+## 🤝 Contributing
 
 Contributions are welcome! Please feel free to submit a Pull Request.
 
-## 📄 **License**
+## 📞 Contact
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## 🙏 **Acknowledgments**
-
-- Modern web development best practices
-- Accessibility guidelines (WCAG 2.1)
-- Performance optimization techniques
-- SEO best practices
+**Numan Usman**
+- Email: [your-email@example.com]
+- LinkedIn: [your-linkedin]
+- GitHub: [@Nuestman](https://github.com/Nuestman)
 
 ---
 
-**Built with ❤️ by Numan Usman** | *Nurse & Web Developer*
+Built with ❤️ by Numan Usman
