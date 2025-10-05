@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { ChevronLeft, ChevronRight, Star } from 'lucide-react'
+import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { Card, CardContent } from './ui/card'
 
 const Testimonials: React.FC = () => {
@@ -89,25 +89,23 @@ const Testimonials: React.FC = () => {
                       </blockquote>
 
                       {/* Author Info */}
-                      <div className="flex items-center justify-center gap-6">
+                      <div className="flex items-center justify-center">
                         {/* Avatar */}
-                        <div className="flex items-center gap-4">
-                          <div className="w-20 h-20 rounded-full overflow-hidden border-4 border-gold-500/20">
-                            <img 
-                              src={currentTestimonial.avatar} 
-                              alt={currentTestimonial.author}
-                              className="w-full h-full object-cover"
-                            />
-                          </div>
-                          
-                          {/* Company Logo */}
-                          <div className="w-16 h-16 rounded-full bg-gradient-to-br from-gold-50 to-gold-100 flex items-center justify-center shadow-lg">
-                            <img 
-                              src={currentTestimonial.company} 
-                              alt="Company Logo"
-                              className="w-10 h-10 object-contain"
-                            />
-                          </div>
+                        <div className="w-20 h-20 rounded-full overflow-hidden border-4 border-gold-500/20">
+                          <img 
+                            src={currentTestimonial.avatar} 
+                            alt={currentTestimonial.author}
+                            className="w-full h-full object-cover"
+                          />
+                        </div>
+                        
+                        {/* Company Logo with negative margin to overlap */}
+                        <div className="w-16 h-16 rounded-full bg-gradient-to-br from-gold-50 to-gold-100 flex items-center justify-center shadow-lg border-2 border-white -ml-6">
+                          <img 
+                            src={currentTestimonial.company} 
+                            alt="Company Logo"
+                            className="w-10 h-10 object-contain"
+                          />
                         </div>
 
                         {/* Author Details */}

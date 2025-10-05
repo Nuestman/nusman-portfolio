@@ -1,8 +1,8 @@
 import React from 'react'
 import { motion } from 'framer-motion'
 import Contact from '../components/Contact'
-import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card'
-import { Phone, Mail, MapPin, Clock } from 'lucide-react'
+import { Card, CardContent } from '../components/ui/card'
+import { Phone, Mail, MapPin } from 'lucide-react'
 
 const ContactPage: React.FC = () => {
   return (

@@ -4,18 +4,14 @@ import { Card, CardContent } from './ui/card'
 import { 
   Palette, 
   Code, 
-  MessageCircle, 
   Figma, 
   Globe, 
   Image, 
   FileCode,
   Github,
   Database,
-  Monitor,
   Zap,
-  Layers,
-  Smartphone,
-  Search
+  Layers
 } from 'lucide-react'
 
 const Skills: React.FC = () => {
