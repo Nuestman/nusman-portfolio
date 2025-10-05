@@ -5,10 +5,10 @@ import { Github, Linkedin, Instagram, Facebook, Twitter } from 'lucide-react'
 
 const Footer: React.FC = () => {
   const socialLinks = [
-    { name: 'GitHub', icon: Github, url: '#', color: 'hover:text-gray-800' },
-    { name: 'LinkedIn', icon: Linkedin, url: '#', color: 'hover:text-blue-600' },
+    { name: 'GitHub', icon: Github, url: 'https://www.github.com/Nuestman', color: 'hover:text-gray-800' },
+    { name: 'LinkedIn', icon: Linkedin, url: 'https://www.linkedin.com/in/numan-usman/', color: 'hover:text-blue-600' },
     { name: 'Instagram', icon: Instagram, url: '#', color: 'hover:text-pink-600' },
-    { name: 'Facebook', icon: Facebook, url: '#', color: 'hover:text-blue-500' },
+    { name: 'Facebook', icon: Facebook, url: 'https://www.facebook.com/nusman77g', color: 'hover:text-blue-500' },
     { name: 'Twitter', icon: Twitter, url: '#', color: 'hover:text-blue-400' }
   ]
 
@@ -46,19 +46,19 @@ const Footer: React.FC = () => {
         >
           <Link 
             to="/about"
-            className="text-white/80 hover:text-gold-400 transition-colors duration-300 font-medium font-heading"
+            className="text-white/80 hover:text-gold-400 transition-colors duration-300 font-medium font-heading text-lg"
           >
             About Me
           </Link>
           <Link 
-            to="/"
-            className="text-white/80 hover:text-gold-400 transition-colors duration-300 font-medium font-heading"
+            to="/portfolio"
+            className="text-white/80 hover:text-gold-400 transition-colors duration-300 font-medium font-heading text-lg"
           >
-            Skills
+            Portfolio
           </Link>
           <Link 
             to="/contact"
-            className="text-white/80 hover:text-gold-400 transition-colors duration-300 font-medium font-heading"
+            className="text-white/80 hover:text-gold-400 transition-colors duration-300 font-medium font-heading text-lg"
           >
             Contact
           </Link>
@@ -101,12 +101,12 @@ const Footer: React.FC = () => {
             viewport={{ once: true }}
             transition={{ duration: 0.6, delay: 0.4 }}
           >
-            <p className="mb-2">
+            {/* <p className="mb-2">
               Website designed and developed by{' '}
               <span className="text-gold-400 hover:text-gold-300 transition-colors duration-300 cursor-pointer">
                 Numan Usman
               </span>
-            </p>
+            </p> */}
             <p>&copy; {currentYear} All rights reserved.</p>
           </motion.div>
         </div>

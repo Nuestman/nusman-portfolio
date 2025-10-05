@@ -196,8 +196,8 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 ## 📞 Contact
 
 **Numan Usman**
-- Email: [your-email@example.com]
-- LinkedIn: [your-linkedin]
+- Email: [nusman@icloud.com]
+- LinkedIn: [https://www.linkedin.com/in/numan-usman/]
 - GitHub: [@Nuestman](https://github.com/Nuestman)
 
 ---

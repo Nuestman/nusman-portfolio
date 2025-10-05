@@ -100,7 +100,7 @@ const PortfolioPage: React.FC = () => {
             transition={{ duration: 0.8 }}
           >
             <h1 className="text-5xl md:text-6xl font-bold mb-6 text-white font-heading">
-              My Portfolio
+              My Portfolio - <span className="text-black">Under Construction</span>
             </h1>
             <p className="text-xl text-white/90 max-w-2xl mx-auto">
               A collection of projects that showcase my skills in web development, design, and problem-solving
@@ -110,7 +110,7 @@ const PortfolioPage: React.FC = () => {
       </section>
 
       {/* Featured Projects */}
-      <section className="py-16 bg-white">
+      <section className="hidden py-16 bg-white">
         <div className="container mx-auto px-4">
           <motion.div
             initial={{ opacity: 0, y: 50 }}
@@ -184,7 +184,7 @@ const PortfolioPage: React.FC = () => {
       </section>
 
       {/* All Projects with Filter */}
-      <section className="py-16 bg-gray-50">
+      <section className="hidden py-16 bg-gray-50">
         <div className="container mx-auto px-4">
           <motion.div
             initial={{ opacity: 0, y: 50 }}
@@ -321,7 +321,7 @@ const PortfolioPage: React.FC = () => {
               </div>
               <h3 className="text-3xl font-bold mb-4 text-dark-950 font-heading">Development</h3>
               <div className="flex flex-wrap justify-center gap-2">
-                {['React', 'TypeScript', 'Node.js', 'Python', 'Vue.js', 'Next.js'].map((tech) => (
+                {['React', 'TypeScript', 'Node.js', 'Express', 'Vite', 'Next.js'].map((tech) => (
                   <span key={tech} className="px-3 py-1 bg-blue-100 text-blue-800 text-sm rounded-full">
                     {tech}
                   </span>
@@ -341,7 +341,7 @@ const PortfolioPage: React.FC = () => {
               </div>
               <h3 className="text-3xl font-bold mb-4 text-dark-950 font-heading">Design</h3>
               <div className="flex flex-wrap justify-center gap-2">
-                {['Figma', 'Adobe XD', 'Photoshop', 'Illustrator', 'Sketch', 'InDesign'].map((tech) => (
+                {['Figma', 'Adobe XD', 'Photoshop', 'Illustrator'].map((tech) => (
                   <span key={tech} className="px-3 py-1 bg-purple-100 text-purple-800 text-sm rounded-full">
                     {tech}
                   </span>
@@ -361,7 +361,7 @@ const PortfolioPage: React.FC = () => {
               </div>
               <h3 className="text-3xl font-bold mb-4 text-dark-950 font-heading">Tools & More</h3>
               <div className="flex flex-wrap justify-center gap-2">
-                {['Git', 'Docker', 'AWS', 'MongoDB', 'Firebase', 'Vercel'].map((tech) => (
+                {['Git', 'Render', 'AWS', 'PostGRES', 'Vercel'].map((tech) => (
                   <span key={tech} className="px-3 py-1 bg-green-100 text-green-800 text-sm rounded-full">
                     {tech}
                   </span>

@@ -22,9 +22,8 @@ const Skills: React.FC = () => {
   const [activeCategory, setActiveCategory] = useState('design')
 
   const categories = [
-    { id: 'design', label: 'iDesign', icon: Palette },
-    { id: 'develop', label: 'iDevelop', icon: Code },
-    { id: 'speak', label: 'iSpeak', icon: MessageCircle }
+    { id: 'design', label: 'Design', icon: Palette },
+    { id: 'develop', label: 'Develop', icon: Code }
   ]
 
   const skills = {
@@ -38,12 +37,8 @@ const Skills: React.FC = () => {
     develop: [
       { name: 'VS Code', icon: Code, color: 'text-gold-600' },
       { name: 'GitHub', icon: Github, color: 'text-gold-800' },
-      { name: 'Webflow', icon: Globe, color: 'text-gold-600' },
-      { name: 'Cursor', icon: Code, color: 'text-gold-600' }
-    ],
-    speak: [
-      { name: 'HTML', icon: FileCode, color: 'text-gold-600' },
-      { name: 'CSS3', icon: FileCode, color: 'text-gold-600' },
+      { name: 'Cursor', icon: Code, color: 'text-gold-600' },
+      { name: 'HTML/CSS3', icon: FileCode, color: 'text-gold-600' },
       { name: 'Node.js', icon: Zap, color: 'text-gold-600' },
       { name: 'SQL', icon: Database, color: 'text-gold-500' }
     ]

@@ -26,15 +26,38 @@ const Contact: React.FC = () => {
     e.preventDefault()
     setIsSubmitting(true)
 
-    // Simulate form submission
-    await new Promise(resolve => setTimeout(resolve, 2000))
-    
-    setIsSubmitting(false)
-    setIsSuccess(true)
-    setFormData({ name: '', email: '', subject: '', message: '' })
+    try {
+      // Use Formspree (or any form backend) via environment variable
+      // Create Vite env var: VITE_FORMSPREE_ID in .env or Vercel Project Env
+      const formspreeId = import.meta.env.VITE_FORMSPREE_ID
 
-    // Hide success message after 5 seconds
-    setTimeout(() => setIsSuccess(false), 5000)
+      if (formspreeId) {
+        const response = await fetch(`https://formspree.io/f/${formspreeId}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(formData),
+        })
+
+        if (!response.ok) {
+          throw new Error('Failed to submit form')
+        }
+      } else {
+        // Fallback: open default mail client if no backend configured
+        const mailto = `mailto:nuestman@icloud.com?subject=${encodeURIComponent(formData.subject)}&body=${encodeURIComponent(
+          `Name: ${formData.name}\nEmail: ${formData.email}\n\n${formData.message}`
+        )}`
+        window.location.href = mailto
+      }
+
+      setIsSuccess(true)
+      setFormData({ name: '', email: '', subject: '', message: '' })
+    } catch (error) {
+      console.error(error)
+    } finally {
+      setIsSubmitting(false)
+      // Hide success after 5s
+      setTimeout(() => setIsSuccess(false), 5000)
+    }
   }
 
   return (
