@@ -14,7 +14,7 @@ const Collaborations: React.FC = () => {
       description: "Healthcare and community development"
     },
     {
-      name: "Emergency Nurses Society of Ghana (ENSOG)",
+      name: "EM Nurses Society of Ghana",
       logo: "/logos/collaborations/ensog-logo-green.png",
       description: "Professional body for emergency nurses in Ghana"
     }
@@ -34,7 +34,7 @@ const Collaborations: React.FC = () => {
           >
             I've Collaborated With...
           </motion.h2>
-          <motion.p 
+          {/* <motion.p 
             className="text-xl md:text-2xl text-white/80 font-medium"
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -42,7 +42,7 @@ const Collaborations: React.FC = () => {
             transition={{ duration: 0.6, delay: 0.2 }}
           >
             Trusted by leading organizations
-          </motion.p>
+          </motion.p> */}
         </div>
 
         {/* Collaboration Logos */}
@@ -75,9 +75,9 @@ const Collaborations: React.FC = () => {
                   <h3 className="text-2xl md:text-3xl font-bold text-white font-heading mb-2 group-hover:text-gold-400 transition-colors">
                     {collab.name}
                   </h3>
-                  <p className="text-white/70 text-lg">
+                  {/* <p className="text-white/70 text-lg">
                     {collab.description}
-                  </p>
+                  </p> */}
                 </div>
               </div>
             </motion.div>
