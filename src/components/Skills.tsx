@@ -41,23 +41,17 @@ const Skills: React.FC = () => {
   }
 
   return (
-    <section id="skills" className="py-32 bg-gradient-to-br from-gray-50 to-gold-50">
+    <section id="skills" className="py-32 bg-gray-50">
       <div className="container mx-auto px-4">
-        <motion.div 
-          className="text-center mb-16"
+        <motion.h2
+          className="text-4xl md:text-5xl lg:text-6xl font-bold mb-16 text-center text-dark-950 font-heading"
           initial={{ opacity: 0, y: 50 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.8 }}
         >
-          <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 text-dark-950 font-heading">
-            My Toolbox
-          </h2>
-          <p className="text-lg text-gray-700 max-w-2xl mx-auto">
-            I love to keep designs clean, simple and effective. I develop responsively and accessibly. 
-            I love watching code come to life in the browser.
-          </p>
-        </motion.div>
+          My Toolbox
+        </motion.h2>
         
         <motion.div 
           className="max-w-6xl mx-auto"

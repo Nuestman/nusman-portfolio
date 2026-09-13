@@ -6,9 +6,15 @@ import MyProcess from '../components/MyProcess'
 import Testimonials from '../components/Testimonials'
 import Collaborations from '../components/Collaborations'
 import FAQ from '../components/FAQ'
-import Contact from '../components/Contact'
+import { usePageMeta } from '../hooks/usePageMeta'
 
 const HomePage: React.FC = () => {
+  usePageMeta({
+    title: 'Numan Usman - Nurse & Web Developer | Portfolio',
+    description: 'Numan Usman is a professional nurse and web developer based in Obuasi, Ghana. Specializing in responsive web design, healthcare technology, and freelance development services.',
+    path: '/',
+  })
+
   return (
     <>
       <Hero />
@@ -18,7 +24,6 @@ const HomePage: React.FC = () => {
       <Testimonials />
       <Collaborations />
       <FAQ />
-      <Contact />
     </>
   )
 }

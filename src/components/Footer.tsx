@@ -1,15 +1,13 @@
 import React from 'react'
 import { motion } from 'framer-motion'
 import { Link } from 'react-router-dom'
-import { Github, Linkedin, Instagram, Facebook, Twitter } from 'lucide-react'
+import { Github, Linkedin, Facebook } from 'lucide-react'
 
 const Footer: React.FC = () => {
   const socialLinks = [
-    { name: 'GitHub', icon: Github, url: 'https://www.github.com/Nuestman', color: 'hover:text-gray-800' },
-    { name: 'LinkedIn', icon: Linkedin, url: 'https://www.linkedin.com/in/numan-usman/', color: 'hover:text-blue-600' },
-    { name: 'Instagram', icon: Instagram, url: '#', color: 'hover:text-pink-600' },
-    { name: 'Facebook', icon: Facebook, url: 'https://www.facebook.com/nusman77g', color: 'hover:text-blue-500' },
-    { name: 'Twitter', icon: Twitter, url: '#', color: 'hover:text-blue-400' }
+    { name: 'GitHub', icon: Github, url: 'https://www.github.com/Nuestman' },
+    { name: 'LinkedIn', icon: Linkedin, url: 'https://www.linkedin.com/in/numan-usman/' },
+    { name: 'Facebook', icon: Facebook, url: 'https://www.facebook.com/nusman77g' },
   ]
 
   const currentYear = new Date().getFullYear()
@@ -17,55 +15,56 @@ const Footer: React.FC = () => {
   return (
     <footer className="bg-dark-950 text-white py-12">
       <div className="container mx-auto px-4">
-        <motion.div 
+        <motion.div
           className="text-center mb-8"
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}
         >
-          <motion.div 
+          <motion.div
             className="w-24 h-24 mx-auto mb-4 bg-white rounded-lg flex items-center justify-center p-2 shadow-lg"
             whileHover={{ scale: 1.1, rotate: 5 }}
             transition={{ duration: 0.3 }}
           >
-            <img 
-              src="/logos/nusman-logo-square.png" 
-              alt="Numan's Logo" 
+            <img
+              src="/logos/nusman-logo-square.png"
+              alt="Numan Usman logo"
               className="w-full h-full object-contain"
             />
           </motion.div>
         </motion.div>
-        
-        <motion.nav 
+
+        <motion.nav
+          aria-label="Footer"
           className="flex justify-center space-x-8 mb-8"
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6, delay: 0.1 }}
         >
-          <Link 
+          <Link
             to="/about"
             className="text-white/80 hover:text-gold-400 transition-colors duration-300 font-medium font-heading text-lg"
           >
             About Me
           </Link>
-          <Link 
+          <Link
             to="/portfolio"
             className="text-white/80 hover:text-gold-400 transition-colors duration-300 font-medium font-heading text-lg"
           >
             Portfolio
           </Link>
-          <Link 
+          <Link
             to="/contact"
             className="text-white/80 hover:text-gold-400 transition-colors duration-300 font-medium font-heading text-lg"
           >
             Contact
           </Link>
         </motion.nav>
-        
+
         <div className="border-t border-white/20 pt-8">
-          <motion.div 
+          <motion.div
             className="flex justify-center space-x-6 mb-6"
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -80,7 +79,8 @@ const Footer: React.FC = () => {
                   href={link.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className={`text-white/60 ${link.color} transition-colors duration-300`}
+                  aria-label={link.name}
+                  className="text-white/60 hover:text-gold-400 transition-colors duration-300"
                   whileHover={{ scale: 1.2, y: -2 }}
                   whileTap={{ scale: 0.95 }}
                   initial={{ opacity: 0, y: 20 }}
@@ -93,21 +93,15 @@ const Footer: React.FC = () => {
               )
             })}
           </motion.div>
-          
-          <motion.div 
+
+          <motion.div
             className="text-center text-white/60"
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6, delay: 0.4 }}
           >
-            {/* <p className="mb-2">
-              Website designed and developed by{' '}
-              <span className="text-gold-400 hover:text-gold-300 transition-colors duration-300 cursor-pointer">
-                Numan Usman
-              </span>
-            </p> */}
-            <p>&copy; {currentYear} All rights reserved.</p>
+            <p>&copy; {currentYear} Numan Usman. All rights reserved.</p>
           </motion.div>
         </div>
       </div>
