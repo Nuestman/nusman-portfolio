@@ -21,6 +21,7 @@ const Header: React.FC = () => {
   const navItems = [
     { href: '/', label: 'Home' },
     { href: '/about', label: 'About' },
+    { href: '/portfolio', label: 'Portfolio' },
     { href: '/contact', label: 'Contact' },
   ]
 
@@ -71,16 +72,15 @@ const Header: React.FC = () => {
                 {item.label}
               </Link>
             ))}
-            <Button variant="outline" size="sm" className="font-heading text-base" asChild>
-              <Link to="/portfolio">Portfolio</Link>
-            </Button>
           </div>
 
-          {/* Mobile Menu Button */}
           <Button
             variant="ghost"
             size="icon"
             className="md:hidden"
+            aria-label={isMobileMenuOpen ? 'Close menu' : 'Open menu'}
+            aria-expanded={isMobileMenuOpen}
+            aria-controls="mobile-navigation"
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
           >
             {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
@@ -91,6 +91,7 @@ const Header: React.FC = () => {
         <AnimatePresence>
           {isMobileMenuOpen && (
             <motion.div
+              id="mobile-navigation"
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: 'auto' }}
               exit={{ opacity: 0, height: 0 }}
@@ -111,11 +112,6 @@ const Header: React.FC = () => {
                     {item.label}
                   </Link>
                 ))}
-                <Button variant="outline" size="sm" className="w-fit font-heading text-base" asChild>
-                  <Link to="/portfolio" onClick={() => setIsMobileMenuOpen(false)}>
-                    Portfolio
-                  </Link>
-                </Button>
               </div>
             </motion.div>
           )}

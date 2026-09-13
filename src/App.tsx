@@ -1,22 +1,35 @@
+import { lazy, Suspense } from 'react'
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
+import { MotionConfig } from 'framer-motion'
 import Layout from './components/Layout'
 import HomePage from './pages/HomePage'
-import AboutPage from './pages/AboutPage'
-import ContactPage from './pages/ContactPage'
-import PortfolioPage from './pages/PortfolioPage'
+
+const AboutPage = lazy(() => import('./pages/AboutPage'))
+const ContactPage = lazy(() => import('./pages/ContactPage'))
+const PortfolioPage = lazy(() => import('./pages/PortfolioPage'))
+const NotFoundPage = lazy(() => import('./pages/NotFoundPage'))
+
+function RouteFallback() {
+  return <div className="min-h-screen pt-20" aria-busy="true" aria-live="polite" />
+}
 
 function App() {
   return (
-    <Router>
-      <Routes>
-        <Route path="/" element={<Layout />}>
-          <Route index element={<HomePage />} />
-          <Route path="about" element={<AboutPage />} />
-          <Route path="portfolio" element={<PortfolioPage />} />
-          <Route path="contact" element={<ContactPage />} />
-        </Route>
-      </Routes>
-    </Router>
+    <MotionConfig reducedMotion="user">
+      <Router>
+        <Suspense fallback={<RouteFallback />}>
+          <Routes>
+            <Route path="/" element={<Layout />}>
+              <Route index element={<HomePage />} />
+              <Route path="about" element={<AboutPage />} />
+              <Route path="portfolio" element={<PortfolioPage />} />
+              <Route path="contact" element={<ContactPage />} />
+              <Route path="*" element={<NotFoundPage />} />
+            </Route>
+          </Routes>
+        </Suspense>
+      </Router>
+    </MotionConfig>
   )
 }
 

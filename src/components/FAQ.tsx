@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+import { Link } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Plus, Minus } from 'lucide-react'
 import { Card, CardContent } from './ui/card'
@@ -9,7 +10,7 @@ const FAQ: React.FC = () => {
   const faqs = [
     {
       question: "What services do you offer?",
-      answer: "I specialize in web development, mobile applications, healthcare management systems (HMS), e-commerce solutions, POS systems, and inventory management. I work with modern technologies like React, Node.js, TypeScript, and various databases."
+      answer: "I specialize in web development, healthcare management systems (HMS), e-commerce solutions, POS systems, and inventory management. I work with modern technologies like React, Node.js, TypeScript, and various databases."
     },
     {
       question: "How long does a typical project take?",
@@ -33,7 +34,7 @@ const FAQ: React.FC = () => {
     },
     {
       question: "How do you ensure quality and security?",
-      answer: "I follow best practices including code reviews, automated testing, security audits, and regular updates. All code is version controlled, documented, and follows industry security standards."
+      answer: "I follow best practices including code reviews, TypeScript and ESLint checks, unit tests, and regular updates. All code is version controlled and documented."
     },
     {
       question: "Can you help with digital transformation?",
@@ -46,7 +47,7 @@ const FAQ: React.FC = () => {
   }
 
   return (
-    <section className="py-20 bg-gradient-to-br from-gold-50 to-white">
+    <section className="py-20 bg-gray-50">
       <div className="container mx-auto px-4">
         {/* Header */}
         <div className="text-center mb-16">
@@ -81,10 +82,14 @@ const FAQ: React.FC = () => {
                 viewport={{ once: true }}
                 transition={{ duration: 0.6, delay: index * 0.1 }}
               >
-                <Card className="bg-white/80 backdrop-blur-sm border border-dark-950/10 hover:border-gold-500/30 transition-all duration-300 hover:shadow-lg hover:shadow-gold-500/10">
+                <Card className="bg-white/80 backdrop-blur-sm border-transparent hover:border-gold-500/30 transition-all duration-300 hover:shadow-lg hover:shadow-gold-500/10">
                   <CardContent className="p-0">
                     <button
+                      type="button"
                       onClick={() => toggleFAQ(index)}
+                      aria-expanded={openIndex === index}
+                      aria-controls={`faq-panel-${index}`}
+                      id={`faq-button-${index}`}
                       className="w-full p-6 text-left flex items-center justify-between group hover:bg-gold-50/50 transition-colors duration-300"
                     >
                       <h3 className="text-xl md:text-2xl font-bold text-dark-950 font-heading group-hover:text-gold-600 transition-colors pr-4">
@@ -112,7 +117,7 @@ const FAQ: React.FC = () => {
                           transition={{ duration: 0.3 }}
                           className="overflow-hidden"
                         >
-                          <div className="px-6 pb-6">
+                          <div id={`faq-panel-${index}`} role="region" aria-labelledby={`faq-button-${index}`} className="px-6 pb-6">
                             <p className="text-lg text-dark-950/80 leading-relaxed">
                               {faq.answer}
                             </p>
@@ -138,14 +143,14 @@ const FAQ: React.FC = () => {
           <p className="text-xl text-dark-950/80 mb-6">
             Still have questions? I'd love to hear from you!
           </p>
-          <motion.a
-            href="/contact"
-            className="inline-block bg-gradient-to-r from-gold-500 to-gold-600 text-white px-8 py-4 rounded-full font-bold text-lg font-heading hover:from-gold-600 hover:to-gold-700 transition-all duration-300 shadow-lg hover:shadow-xl hover:shadow-gold-500/25"
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-          >
-            Get In Touch
-          </motion.a>
+          <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+            <Link
+              to="/contact"
+              className="inline-block bg-gradient-to-r from-gold-500 to-gold-600 text-white px-8 py-4 rounded-full font-bold text-lg font-heading hover:from-gold-600 hover:to-gold-700 transition-all duration-300 shadow-lg hover:shadow-xl hover:shadow-gold-500/25"
+            >
+              Get In Touch
+            </Link>
+          </motion.div>
         </motion.div>
       </div>
     </section>

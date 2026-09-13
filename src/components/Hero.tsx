@@ -8,10 +8,11 @@ const Hero: React.FC = () => {
   const [currentText, setCurrentText] = useState(0)
   
   const texts = [
+    'Health Informatician',
     'Emergency Nurse & Web Developer',
     'Healthcare Technology Expert',
     'Freelancer',
-    'Award-winning EMNurse',
+    'Award-winning Emergency Nurse',
     'Road Safety & Accident Prevention Advocate'
   ]
 
@@ -62,6 +63,7 @@ const Hero: React.FC = () => {
               exit={{ opacity: 0, y: -20 }}
               transition={{ duration: 0.5 }}
               className="inline-block"
+              aria-live="polite"
             >
               {texts[currentText]}
             </motion.span>
@@ -74,7 +76,7 @@ const Hero: React.FC = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.6 }}
           >
-            I care for people and build websites. Based in{' '}
+            I care for people and build systems. Based in{' '}
             <span className="text-gold-500 font-semibold">Obuasi, Ghana</span>, 
             I help businesses grow by crafting intuitive &amp; amazing web experiences.
           </motion.p>

@@ -1,14 +1,23 @@
 import React, { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card'
+import { storyTabs, type StoryTabId } from '../data/story'
+import { usePageMeta } from '../hooks/usePageMeta'
 
 const AboutPage: React.FC = () => {
-  const [activeTab, setActiveTab] = useState('history')
+  const [activeTab, setActiveTab] = useState<StoryTabId>('history')
+  const activeStory = storyTabs.find((tab) => tab.id === activeTab) ?? storyTabs[0]
+
+  usePageMeta({
+    title: 'About Numan Usman | Nurse & Web Developer',
+    description: 'Learn about Numan Usman — emergency nurse, supervisor, and web developer based in Obuasi, Ghana.',
+    path: '/about',
+  })
 
   return (
     <div className="min-h-screen pt-20 bg-gradient-to-br from-white via-gray-50 to-gold-50">
       <div className="container mx-auto px-4 py-16">
-        <motion.div 
+        <motion.div
           className="text-center mb-16"
           initial={{ opacity: 0, y: 50 }}
           animate={{ opacity: 1, y: 0 }}
@@ -23,24 +32,23 @@ const AboutPage: React.FC = () => {
         </motion.div>
 
         <div className="max-w-4xl mx-auto grid md:grid-cols-2 gap-12">
-          {/* Profile Image */}
           <motion.div
             initial={{ opacity: 0, x: -50 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.8, delay: 0.2 }}
           >
             <Card className="overflow-hidden">
-              <div className="aspect-square bg-gradient-to-br from-gold-500 to-gold-600 flex items-center justify-center p-8">
-                <img 
-                  src="/logos/nusman-logo-square.png" 
-                  alt="Numan Usman" 
+              <div className="aspect-square flex items-center justify-center p-8">
+              {/* <div className="aspect-square bg-gradient-to-br from-gold-500 to-gold-600 flex items-center justify-center p-8"> */}
+                <img
+                  src="/logos/nusman-logo-square.png"
+                  alt="Numan Usman logo"
                   className="w-full h-full object-contain"
                 />
               </div>
             </Card>
           </motion.div>
 
-          {/* About Content */}
           <motion.div
             initial={{ opacity: 0, x: 50 }}
             animate={{ opacity: 1, x: 0 }}
@@ -55,11 +63,11 @@ const AboutPage: React.FC = () => {
               </CardHeader>
               <CardContent className="space-y-4">
                 <p className="text-gray-700 leading-relaxed">
-                  I'm a dedicated Emergency Nurse and Supervisor with extensive experience in healthcare, 
+                  I'm a dedicated Emergency Nurse and Supervisor with extensive experience in healthcare,
                   combined with a passion for web development and technology.
                 </p>
                 <p className="text-gray-700 leading-relaxed">
-                  Based in Obuasi, Ghana, I bring a unique perspective to web development, 
+                  Based in Obuasi, Ghana, I bring a unique perspective to web development,
                   combining my healthcare expertise with modern technology solutions.
                 </p>
               </CardContent>
@@ -73,15 +81,15 @@ const AboutPage: React.FC = () => {
               </CardHeader>
               <CardContent className="space-y-3">
                 <div className="border-l-4 border-gold-500 pl-4">
-                  <h4 className="font-semibold text-dark-950">BSc Emergency Nursing</h4>
+                  <h2 className="font-semibold text-dark-950">BSc Emergency Nursing</h2>
                   <p className="text-gray-600">KNUST</p>
                 </div>
                 <div className="border-l-4 border-gold-500 pl-4">
-                  <h4 className="font-semibold text-dark-950">Diploma in Registered General Nursing</h4>
+                  <h2 className="font-semibold text-dark-950">Diploma in Registered General Nursing</h2>
                   <p className="text-gray-600">Berekum Nursing & Midwifery Training College</p>
                 </div>
                 <div className="border-l-4 border-gold-500 pl-4">
-                  <h4 className="font-semibold text-dark-950">Self-Taught Web Development</h4>
+                  <h2 className="font-semibold text-dark-950">Self-Taught Web Development</h2>
                   <p className="text-gray-600">Independent learning and practice</p>
                 </div>
               </CardContent>
@@ -89,8 +97,7 @@ const AboutPage: React.FC = () => {
           </motion.div>
         </div>
 
-        {/* Story of My Life Section */}
-        <motion.div 
+        <motion.div
           className="mt-20"
           initial={{ opacity: 0, y: 50 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -99,87 +106,55 @@ const AboutPage: React.FC = () => {
         >
           <Card className="bg-gradient-to-br from-gold-500 to-gold-600 border-0 shadow-xl">
             <CardContent className="p-8 text-white">
-              <h3 className="text-3xl font-bold text-center mb-8 text-white font-heading">
+              <h2 className="text-3xl font-bold text-center mb-8 text-white font-heading">
                 Story Of My Life
-              </h3>
-              
-              {/* Tab Navigation */}
-              <div className="flex flex-wrap justify-center gap-2 mb-8">
-                <motion.button
-                  onClick={() => setActiveTab('history')}
-                 className={`px-6 py-3 rounded-full font-bold uppercase tracking-wider transition-all duration-300 font-heading ${
-                   activeTab === 'history' 
-                     ? 'bg-white text-gold-600 shadow-lg' 
-                     : 'bg-white/20 text-white hover:bg-white/30'
-                 }`}
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                >
-                  History
-                </motion.button>
-                <motion.button
-                  onClick={() => setActiveTab('education')}
-                 className={`px-6 py-3 rounded-full font-bold uppercase tracking-wider transition-all duration-300 font-heading ${
-                   activeTab === 'education' 
-                     ? 'bg-white text-gold-600 shadow-lg' 
-                     : 'bg-white/20 text-white hover:bg-white/30'
-                 }`}
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                >
-                  Education
-                </motion.button>
-                <motion.button
-                  onClick={() => setActiveTab('emnurse')}
-                 className={`px-6 py-3 rounded-full font-bold uppercase tracking-wider transition-all duration-300 font-heading ${
-                   activeTab === 'emnurse' 
-                     ? 'bg-white text-gold-600 shadow-lg' 
-                     : 'bg-white/20 text-white hover:bg-white/30'
-                 }`}
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                >
-                  EMNurse
-                </motion.button>
+              </h2>
+
+              <div className="flex flex-wrap justify-center gap-2 mb-8" role="tablist" aria-label="Life story">
+                {storyTabs.map((tab) => {
+                  const isActive = activeTab === tab.id
+                  return (
+                    <motion.button
+                      key={tab.id}
+                      type="button"
+                      role="tab"
+                      id={`story-tab-${tab.id}`}
+                      aria-selected={isActive}
+                      aria-controls={`story-panel-${tab.id}`}
+                      onClick={() => setActiveTab(tab.id)}
+                      className={`px-6 py-3 rounded-full font-bold uppercase tracking-wider transition-all duration-300 font-heading ${
+                        isActive
+                          ? 'bg-white text-gold-600 shadow-lg'
+                          : 'bg-white/20 text-white hover:bg-white/30'
+                      }`}
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                    >
+                      {tab.label}
+                    </motion.button>
+                  )
+                })}
               </div>
-              
-              {/* Tab Content */}
+
               <div className="max-w-3xl mx-auto">
                 <AnimatePresence mode="wait">
                   <motion.div
-                    key={activeTab}
+                    key={activeStory.id}
+                    id={`story-panel-${activeStory.id}`}
+                    role="tabpanel"
+                    aria-labelledby={`story-tab-${activeStory.id}`}
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -20 }}
                     transition={{ duration: 0.3 }}
-                    className="text-center"
+                    className="text-center space-y-6"
                   >
-                    {activeTab === 'history' && (
-                      <p className="text-lg leading-relaxed">
-                        I've always loved playing around with PCs since I got introduced to it as a teenager in High School. 
-                        I've been fixing PC software issues since. I've been doing freelance computer software repairs over a decade now. 
-                        I started dabbling in web design and development about a few years ago and improving by the day.
-                      </p>
-                    )}
-                    
-                    {activeTab === 'education' && (
-                      <p className="text-lg leading-relaxed">
-                        My journey in healthcare is built on a strong educational foundation, starting with a Diploma in Registered General Nursing 
-                        from the renowned Berekum Nursing & Midwifery Training College, followed by a BSc in Emergency Nursing from KNUST. 
-                        In addition to my formal nursing education, I'm a self-taught Web Developer. I've independently developed skills in IT, 
-                        particularly in web development, to bring digital solutions into healthcare environments. 
-                        This unique blend of medical and technical expertise enables me to drive efficiency and innovation within emergency care settings.
-                      </p>
-                    )}
-                    
-                    {activeTab === 'emnurse' && (
-                      <p className="text-lg leading-relaxed">
-                        As an experienced Emergency Nurse and Supervisor in the dynamic AGAHF Emergency Department, I'm dedicated to providing swift, 
-                        compassionate care during critical situations. My role involves managing first aid posts, 2IC assigning & supervising nursing duties, 
-                        conducting nursing research, coordinating training, and ensuring smooth operations to support both patients and healthcare staff. 
-                        With over a decade of experience, a focus on efficient emergency response and quality care, I aim to make a meaningful impact in every shift.
-                      </p>
-                    )}
+                    <img
+                      src={activeStory.image}
+                      alt={activeStory.imageAlt}
+                      className="hidden w-full max-h-80 object-cover rounded-xl"
+                    />
+                    <p className="text-lg leading-relaxed">{activeStory.body}</p>
                   </motion.div>
                 </AnimatePresence>
               </div>
