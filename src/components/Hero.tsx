@@ -10,9 +10,8 @@ const Hero: React.FC = () => {
   const texts = [
     'Health Informatician',
     'Emergency Nurse & Web Developer',
-    'Healthcare Technology Expert',
     'Freelancer',
-    'Award-winning Emergency Nurse',
+    'GRNMA Obuasi District Best Nurse 2025',
     'Road Safety & Accident Prevention Advocate',
   ]
 
