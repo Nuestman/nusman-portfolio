@@ -4,6 +4,13 @@ import { Menu, X } from 'lucide-react'
 import { Link, useLocation } from 'react-router-dom'
 import { Button } from './ui/button'
 
+export const headerNavItems = [
+  { href: '/', label: 'Home' },
+  { href: '/about', label: 'About' },
+  { href: '/portfolio', label: 'Portfolio' },
+  { href: '/contact', label: 'Contact' },
+] as const
+
 const Header: React.FC = () => {
   const [isScrolled, setIsScrolled] = useState(false)
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
@@ -17,13 +24,6 @@ const Header: React.FC = () => {
     window.addEventListener('scroll', handleScroll)
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
-
-  const navItems = [
-    { href: '/', label: 'Home' },
-    { href: '/about', label: 'About' },
-    { href: '/portfolio', label: 'Portfolio' },
-    { href: '/contact', label: 'Contact' },
-  ]
 
   const isActivePath = (path: string) => {
     if (path === '/' && location.pathname === '/') return true
@@ -59,7 +59,7 @@ const Header: React.FC = () => {
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-8">
-            {navItems.map((item) => (
+            {headerNavItems.map((item) => (
               <Link
                 key={item.href}
                 to={item.href}
@@ -98,7 +98,7 @@ const Header: React.FC = () => {
               className="md:hidden bg-white/95 backdrop-blur-md rounded-lg shadow-lg mt-2 p-4"
             >
               <div className="flex flex-col space-y-4">
-                {navItems.map((item) => (
+                {headerNavItems.map((item) => (
                   <Link
                     key={item.href}
                     to={item.href}

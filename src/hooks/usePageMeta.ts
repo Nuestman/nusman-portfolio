@@ -6,6 +6,7 @@ type PageMeta = {
   title: string
   description: string
   path: string
+  robots?: string
 }
 
 function setMeta(attr: 'name' | 'property', key: string, content: string) {
@@ -19,12 +20,13 @@ function setMeta(attr: 'name' | 'property', key: string, content: string) {
   element.setAttribute('content', content)
 }
 
-export function usePageMeta({ title, description, path }: PageMeta) {
+export function usePageMeta({ title, description, path, robots = 'index, follow' }: PageMeta) {
   useEffect(() => {
     const url = `${SITE_URL}${path}`
     document.title = title
 
     setMeta('name', 'description', description)
+    setMeta('name', 'robots', robots)
     setMeta('property', 'og:title', title)
     setMeta('property', 'og:description', description)
     setMeta('property', 'og:url', url)
@@ -39,5 +41,9 @@ export function usePageMeta({ title, description, path }: PageMeta) {
       document.head.appendChild(canonical)
     }
     canonical.setAttribute('href', url)
-  }, [title, description, path])
+
+    return () => {
+      setMeta('name', 'robots', 'index, follow')
+    }
+  }, [title, description, path, robots])
 }

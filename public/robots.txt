@@ -1,4 +1,5 @@
 User-agent: *
 Allow: /
+Disallow: /playbook
 
 Sitemap: https://nusman.dev/sitemap.xml
