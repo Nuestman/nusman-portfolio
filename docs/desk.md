@@ -205,9 +205,13 @@ Routes: `/clients`, `/clients/new`, `/clients/[id]`, `/clients/[id]/people/[pers
 
 Create a project, store the problem sentence, move gates, write notes. Gate UI matches the playbook labels.
 
+Routes: `/projects`, `/projects/new`, `/projects/[id]`. Today lists active projects and the current gate. Client detail lists that client's projects.
+
+Move one gate at a time. Build is blocked until Agree. Leaving Discover requires a daily-user person when the buyer is not the only person.
+
 ### Phase 5 — options and templates
 
-Light / recommended / later. Copy-to-clipboard for intake and follow-up.
+Done locally. Light / recommended / later on the project (one of each). Copy-to-clipboard for first reply, eight questions, and after-call.
 
 ### Phase 6 — activities
 
@@ -245,8 +249,8 @@ Do not add Desk links to `Header` / `Footer` / `sitemap.xml`.
 
 ---
 
-## Immediate next step (phase 4)
+## Immediate next step (phase 6)
 
-Phase 3 is clients and people: list, add, edit, delete clients; add people as buyer / daily user / other.
+Phase 5 is options (light / recommended / later) and copy-to-clipboard templates.
 
-Phase 4 is projects and gates: create a project on a client, store the problem sentence, move gates, write notes.
+Phase 6 is a project timeline plus an optional personal activity log. Only after 3–5 are in daily use.

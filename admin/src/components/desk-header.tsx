@@ -10,6 +10,7 @@ import { cn } from "@/lib/utils";
 const NAV = [
   { href: "/", label: "Today" },
   { href: "/clients", label: "Clients" },
+  { href: "/projects", label: "Projects" },
 ] as const;
 
 export function DeskHeader({ email }: { email: string | null }) {
