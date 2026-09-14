@@ -1,128 +1,84 @@
-import React, { useState } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
-import { Card, CardContent } from './ui/card'
-import { 
-  Palette, 
-  Code, 
-  Figma, 
-  Globe, 
-  Image, 
-  FileCode,
-  Github,
-  Database,
-  Zap,
-  Layers
-} from 'lucide-react'
+import React from 'react'
+import { motion } from 'framer-motion'
+import { Code, Palette, Wrench } from 'lucide-react'
+
+const toolboxGroups = [
+  {
+    id: 'development',
+    title: 'Development',
+    icon: Code,
+    tools: ['React', 'TypeScript', 'Node.js', 'Express', 'Vite', 'Next.js'],
+  },
+  {
+    id: 'design',
+    title: 'Design',
+    icon: Palette,
+    tools: ['Figma', 'Adobe XD', 'Photoshop', 'Illustrator'],
+  },
+  {
+    id: 'tools',
+    title: 'Tools & More',
+    icon: Wrench,
+    tools: ['Git', 'Render', 'Railway', 'PostgreSQL', 'Vercel'],
+  },
+] as const
+
+const iconStyles = [
+  { wrap: 'bg-dark-950', icon: 'text-gold-400' },
+  { wrap: 'bg-gray-400', icon: 'text-white' },
+  { wrap: 'bg-gray-200', icon: 'text-dark-950' },
+] as const
 
 const Skills: React.FC = () => {
-  const [activeCategory, setActiveCategory] = useState('design')
-
-  const categories = [
-    { id: 'design', label: 'Design', icon: Palette },
-    { id: 'develop', label: 'Develop', icon: Code }
-  ]
-
-  const skills = {
-    design: [
-      { name: 'Figma', icon: Figma, color: 'text-gold-600' },
-      { name: 'Webflow', icon: Globe, color: 'text-gold-600' },
-      { name: 'Photoshop', icon: Image, color: 'text-gold-500' },
-      { name: 'Adobe XD', icon: Layers, color: 'text-gold-600' },
-      { name: 'Illustrator', icon: Palette, color: 'text-gold-600' }
-    ],
-    develop: [
-      { name: 'VS Code', icon: Code, color: 'text-gold-600' },
-      { name: 'GitHub', icon: Github, color: 'text-gold-800' },
-      { name: 'Cursor', icon: Code, color: 'text-gold-600' },
-      { name: 'HTML/CSS3', icon: FileCode, color: 'text-gold-600' },
-      { name: 'Node.js', icon: Zap, color: 'text-gold-600' },
-      { name: 'SQL', icon: Database, color: 'text-gold-500' }
-    ]
-  }
-
   return (
-    <section id="skills" className="py-32 bg-gray-50">
+    <section id="skills" className="py-24 bg-gray-50">
       <div className="container mx-auto px-4">
-        <motion.h2
-          className="text-4xl md:text-5xl lg:text-6xl font-bold mb-16 text-center text-dark-950 font-heading"
-          initial={{ opacity: 0, y: 50 }}
+        <motion.div
+          className="text-center mb-14"
+          initial={{ opacity: 0, y: 40 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          transition={{ duration: 0.8 }}
+          transition={{ duration: 0.7 }}
         >
-          My Toolbox
-        </motion.h2>
-        
-        <motion.div 
-          className="max-w-6xl mx-auto"
-          initial={{ opacity: 0, y: 50 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.8, delay: 0.2 }}
-        >
-          <Card className="bg-white shadow-xl border-0">
-            <CardContent className="p-8">
-              {/* Skills Tab Navigation */}
-              <div className="flex flex-wrap justify-center gap-2 mb-8">
-                {categories.map((category) => {
-                  const IconComponent = category.icon
-                  return (
-                    <motion.button
-                      key={category.id}
-                      onClick={() => setActiveCategory(category.id)}
-                      className={`px-6 py-3 rounded-md font-bold uppercase tracking-wider transition-all duration-300 flex items-center gap-2 ${
-                        activeCategory === category.id 
-                          ? 'bg-gold-500 text-white shadow-lg' 
-                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                      }`}
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                    >
-                      <IconComponent size={20} />
-                      {category.label}
-                    </motion.button>
-                  )
-                })}
-              </div>
-              
-              {/* Skills Grid */}
-              <AnimatePresence mode="wait">
-                <motion.div
-                  key={activeCategory}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -20 }}
-                  transition={{ duration: 0.3 }}
-                  className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6"
-                >
-                  {skills[activeCategory as keyof typeof skills].map((skill, index) => {
-                    const IconComponent = skill.icon
-                    return (
-                      <motion.div
-                        key={skill.name}
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.3, delay: index * 0.1 }}
-                        className="text-center p-4 rounded-lg hover:bg-gray-50 transition-colors duration-300 group cursor-pointer"
-                        whileHover={{ y: -5 }}
-                      >
-                        <div className="w-16 h-16 mx-auto mb-3 bg-gray-100 rounded-lg flex items-center justify-center group-hover:bg-gold-50 transition-colors duration-300">
-                          <IconComponent 
-                            size={32} 
-                            className={`${skill.color} group-hover:text-gold-500 transition-colors duration-300`}
-                          />
-                        </div>
-                        <h4 className="font-bold text-sm text-gray-700 group-hover:text-gold-500 transition-colors duration-300">
-                          {skill.name}
-                        </h4>
-                      </motion.div>
-                    )
-                  })}
-                </motion.div>
-              </AnimatePresence>
-            </CardContent>
-          </Card>
+          <h2 className="section-heading mb-6 text-dark-950">What I Work With</h2>
+          <p className="text-lg md:text-xl text-gray-700 max-w-2xl mx-auto">
+            Technologies I use to design, build, and ship websites and web apps
+          </p>
         </motion.div>
+
+        <div className="grid md:grid-cols-3 gap-10 lg:gap-12 max-w-6xl mx-auto">
+          {toolboxGroups.map((group, groupIndex) => {
+            const Icon = group.icon
+            const style = iconStyles[groupIndex % iconStyles.length]
+            return (
+              <motion.div
+                key={group.id}
+                initial={{ opacity: 0, y: 28 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.55, delay: groupIndex * 0.1 }}
+                className="text-center"
+              >
+                <div className={`w-14 h-14 mx-auto mb-5 rounded-2xl flex items-center justify-center ${style.wrap}`}>
+                  <Icon className={`w-7 h-7 ${style.icon}`} aria-hidden="true" />
+                </div>
+                <h3 className="text-2xl md:text-3xl font-bold mb-5 text-dark-950 font-heading">
+                  {group.title}
+                </h3>
+                <ul className="flex flex-wrap justify-center gap-2">
+                  {group.tools.map((tool) => (
+                    <li
+                      key={tool}
+                      className="px-3.5 py-1.5 text-sm font-medium rounded-md border border-gold-200 bg-white text-dark-950"
+                    >
+                      {tool}
+                    </li>
+                  ))}
+                </ul>
+              </motion.div>
+            )
+          })}
+        </div>
       </div>
     </section>
   )

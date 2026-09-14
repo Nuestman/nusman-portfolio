@@ -1,7 +1,6 @@
 import React from 'react'
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { Card, CardContent } from './ui/card'
 import {
   MessageCircle,
   Clock,
@@ -10,6 +9,7 @@ import {
   RefreshCw,
   Rocket,
   CalendarCheck,
+  ArrowRightCircle,
 } from 'lucide-react'
 
 const perks = [
@@ -24,24 +24,16 @@ const perks = [
 
 const processSteps = [
   {
-    step: '01',
-    title: 'Discovery & Planning',
-    description: 'We start by understanding your vision, goals, and requirements. I analyze your needs and create a detailed project plan with clear milestones.',
+    title: 'Discover & Plan',
+    description: 'Align on the goal, constraints, and a clear plan.',
   },
   {
-    step: '02',
-    title: 'Design & Prototyping',
-    description: 'I create wireframes and prototypes to visualize your project. This ensures we\'re aligned before development begins, saving time and resources.',
+    title: 'Build & Test',
+    description: 'Develop, test, and share progress as we go.',
   },
   {
-    step: '03',
-    title: 'Development & Testing',
-    description: 'Using best practices and modern technologies, I build your solution with regular updates and testing to ensure quality at every step.',
-  },
-  {
-    step: '04',
     title: 'Launch & Support',
-    description: 'I handle deployment and provide ongoing support. You\'ll receive training and documentation to help you make the most of your new solution.',
+    description: 'Ship it, walk you through it, and stay available.',
   },
 ]
 
@@ -54,7 +46,7 @@ const MyProcess: React.FC = () => {
       <section id="what-you-get" className="py-24 bg-dark-950">
         <div className="container mx-auto px-4">
           <motion.h2
-            className="text-5xl md:text-6xl lg:text-7xl font-bold text-center text-white font-heading mb-16"
+            className="section-heading text-center text-white mb-16"
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
@@ -118,53 +110,77 @@ const MyProcess: React.FC = () => {
         </div>
       </section>
 
-      <section id="my-process" className="py-20 bg-gray-50">
+      <section id="how-i-work" className="py-24 bg-gray-50">
         <div className="container mx-auto px-4">
-          <motion.h2
-            className="text-4xl md:text-5xl lg:text-6xl font-bold mb-16 text-center text-dark-950 font-heading"
-            initial={{ opacity: 0, y: 50 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.8 }}
-          >
-            My Process
-          </motion.h2>
+          <div className="max-w-5xl mx-auto">
+            <div className="grid md:grid-cols-[1.35fr_0.65fr] gap-6 md:gap-8 items-center">
+              <motion.div
+                initial={{ opacity: 0, y: 24 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5 }}
+                className="text-center md:text-left"
+              >
+                <h2 className="section-heading text-dark-950 mb-6">
+                  How I Work
+                </h2>
+                <p className="text-lg md:text-xl text-dark-950/75 leading-relaxed max-w-xl md:max-w-none mx-auto md:mx-0">
+                  Every project follows a simple path: discover what matters,
+                  build with clear checkpoints, then launch with support so you
+                  are never left guessing.
+                </p>
+              </motion.div>
 
-          <div className="max-w-4xl mx-auto">
-            <div className="relative">
-              <div className="hidden md:block absolute top-16 left-0 right-0 h-0.5 bg-gold-200 z-0"></div>
+              <motion.div
+                initial={{ opacity: 0, y: 24 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5, delay: 0.1 }}
+                className="flex justify-center items-center"
+              >
+                <img
+                  src="/images/portraits/numan-caricature-how-i-work.png"
+                  alt="Caricature of Numan Usman working on a laptop"
+                  className="w-80 sm:w-96 md:w-[28rem] lg:w-[30rem] h-auto"
+                />
+              </motion.div>
+            </div>
 
-              <div className="grid md:grid-cols-2 gap-8 relative z-10">
+            <motion.div
+              initial={{ opacity: 0, y: 24 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5, delay: 0.15 }}
+              className="relative flex justify-center py-10 md:py-12"
+            >
+              <div
+                className="absolute left-[10%] right-[10%] md:left-[14%] md:right-[14%] top-0 bottom-0 rounded-3xl bg-gray-200"
+                aria-hidden="true"
+              />
+
+              <ol className="relative z-10 w-full max-w-6xl flex flex-col md:flex-row items-stretch md:items-center justify-center gap-4 md:gap-3 px-0">
                 {processSteps.map((step, index) => (
-                  <motion.div
-                    key={step.step}
-                    initial={{ opacity: 0, y: 50 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true }}
-                    transition={{ duration: 0.6, delay: index * 0.1 }}
-                    className={`flex ${index % 2 === 0 ? 'md:justify-start' : 'md:justify-end'}`}
-                  >
-                    <Card className="w-full max-w-sm hover:shadow-xl transition-all duration-300 border-0 shadow-lg">
-                      <CardContent className="p-6">
-                        <div className="flex items-center mb-4">
-                          <div className="w-12 h-12 bg-gold-500 text-white rounded-full flex items-center justify-center mr-4 font-bold text-lg">
-                            {step.step}
-                          </div>
-                          <h3 className="text-3xl font-bold text-dark-950 font-heading">
-                            {step.title}
-                          </h3>
-                        </div>
-                        <p className="text-gray-600 leading-relaxed">
+                  <React.Fragment key={step.title}>
+                    <li className="flex-1 min-w-0">
+                      <div className="rounded-2xl bg-dark-950 px-5 py-6 md:px-6 md:py-7 text-center shadow-lg">
+                        <h3 className="font-heading text-2xl md:text-3xl font-bold bg-gradient-to-r from-gold-300 to-gold-500 bg-clip-text text-transparent mb-2">
+                          {step.title}
+                        </h3>
+                        <p className="text-sm md:text-base text-white/75 leading-snug">
                           {step.description}
                         </p>
-                      </CardContent>
-                    </Card>
-                  </motion.div>
+                      </div>
+                    </li>
+                    {index < processSteps.length - 1 && (
+                      <li className="hidden md:flex items-center justify-center shrink-0" aria-hidden="true">
+                        <ArrowRightCircle className="w-8 h-8 md:w-10 md:h-10 text-dark-950/45" />
+                      </li>
+                    )}
+                  </React.Fragment>
                 ))}
-              </div>
-            </div>
+              </ol>
+            </motion.div>
           </div>
-
         </div>
       </section>
     </>

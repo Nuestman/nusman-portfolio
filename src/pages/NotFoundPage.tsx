@@ -14,7 +14,7 @@ const NotFoundPage: React.FC = () => {
     <div className="min-h-screen pt-20 flex items-center justify-center px-4">
       <div className="text-center max-w-xl">
         <p className="text-gold-500 font-heading text-2xl mb-4">404</p>
-        <h1 className="text-4xl md:text-5xl font-bold text-dark-950 font-heading mb-6">
+        <h1 className="section-heading text-dark-950 mb-6">
           This page does not exist
         </h1>
         <p className="text-gray-600 mb-8">

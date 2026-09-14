@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
-import { Card, CardContent } from './ui/card'
 
 type Testimonial = {
   quote: string
@@ -63,7 +62,7 @@ const Testimonials: React.FC = () => {
         <div className="text-center mb-16">
           <motion.h2
             id="testimonials-heading"
-            className="text-4xl md:text-5xl lg:text-6xl font-bold text-dark-950 font-heading"
+            className="section-heading text-dark-950"
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
@@ -103,26 +102,25 @@ const Testimonials: React.FC = () => {
                       style={{ pointerEvents: isActive ? 'auto' : 'none' }}
                       aria-hidden={!isActive}
                     >
-                      <Card className="bg-white border-0 shadow-xl h-full">
-                        <CardContent className="p-8 text-center">
+                      <div className="h-full p-4 md:p-8 text-center">
                           <blockquote className="text-xl md:text-2xl text-dark-950 mb-8 leading-relaxed">
                             "{testimonial.quote}"
                           </blockquote>
 
                           <div className="flex items-center justify-center">
                             <div
-                              className="w-20 h-20 rounded-full border-4 border-gold-500/20 bg-gold-500 text-white flex items-center justify-center text-xl font-bold font-heading"
+                              className="w-16 h-16 md:w-20 md:h-20 rounded-full border-4 border-gold-500/20 bg-gold-500 text-white flex items-center justify-center text-lg md:text-xl font-bold font-heading"
                               aria-hidden="true"
                             >
                               {testimonial.initials}
                             </div>
 
-                            <div className="w-16 h-16 rounded-full bg-dark-950 flex items-center justify-center shadow-lg border-2 border-white -ml-6 overflow-hidden">
+                            <div className="w-12 h-12 md:w-16 md:h-16 rounded-full bg-dark-950 flex items-center justify-center border-2 border-white -ml-5 md:-ml-6 overflow-hidden">
                               {testimonial.companyLogo ? (
                                 <img
                                   src={testimonial.companyLogo}
                                   alt=""
-                                  className="w-10 h-10 object-contain"
+                                  className="w-8 h-8 md:w-10 md:h-10 object-contain"
                                 />
                               ) : (
                                 <span className="text-[10px] font-bold text-white px-1 text-center">
@@ -132,16 +130,15 @@ const Testimonials: React.FC = () => {
                             </div>
 
                             <div className="text-left ml-3">
-                              <h3 className="text-2xl font-bold text-dark-950 font-heading">
+                              <h3 className="text-xl md:text-2xl font-bold text-dark-950 font-heading">
                                 {testimonial.author}
                               </h3>
-                              <p className="text-lg text-dark-950/70">
+                              <p className="text-sm md:text-lg text-dark-950/70">
                                 {testimonial.position}
                               </p>
                             </div>
                           </div>
-                        </CardContent>
-                      </Card>
+                      </div>
                     </motion.div>
                   )
                 })}

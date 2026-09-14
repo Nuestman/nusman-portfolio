@@ -23,7 +23,7 @@ const AboutPage: React.FC = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8 }}
         >
-          <h1 className="text-5xl md:text-6xl font-bold mb-6 text-dark-950 font-heading">
+          <h1 className="section-heading mb-6 text-dark-950">
             About Me
           </h1>
           <p className="text-xl text-gray-700 max-w-3xl mx-auto">
