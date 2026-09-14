@@ -65,6 +65,7 @@ jspm_packages/
 
 # next.js build output
 .next
+.neon
 
 # nuxt.js build output
 .nuxt
