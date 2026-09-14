@@ -3,6 +3,12 @@ import { motion } from 'framer-motion'
 import { Link } from 'react-router-dom'
 import { Github, Linkedin, Facebook } from 'lucide-react'
 
+export const footerNavItems = [
+  { href: '/about', label: 'About Me' },
+  { href: '/portfolio', label: 'Portfolio' },
+  { href: '/contact', label: 'Contact' },
+] as const
+
 const Footer: React.FC = () => {
   const socialLinks = [
     { name: 'GitHub', icon: Github, url: 'https://www.github.com/Nuestman' },
@@ -43,24 +49,15 @@ const Footer: React.FC = () => {
           viewport={{ once: true }}
           transition={{ duration: 0.6, delay: 0.1 }}
         >
-          <Link
-            to="/about"
-            className="text-white/80 hover:text-gold-400 transition-colors duration-300 font-medium font-heading text-lg"
-          >
-            About Me
-          </Link>
-          <Link
-            to="/portfolio"
-            className="text-white/80 hover:text-gold-400 transition-colors duration-300 font-medium font-heading text-lg"
-          >
-            Portfolio
-          </Link>
-          <Link
-            to="/contact"
-            className="text-white/80 hover:text-gold-400 transition-colors duration-300 font-medium font-heading text-lg"
-          >
-            Contact
-          </Link>
+          {footerNavItems.map((item) => (
+            <Link
+              key={item.href}
+              to={item.href}
+              className="text-white/80 hover:text-gold-400 transition-colors duration-300 font-medium font-heading text-lg"
+            >
+              {item.label}
+            </Link>
+          ))}
         </motion.nav>
 
         <div className="border-t border-white/20 pt-8">

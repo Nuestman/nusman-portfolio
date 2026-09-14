@@ -1,6 +1,8 @@
-import { readFileSync } from 'node:fs'
-import { fileURLToPath } from 'node:url'
 import { describe, expect, it } from 'vitest'
+import { footerNavItems } from '../components/Footer'
+import { headerNavItems } from '../components/Header'
+import robotsTxt from '../../public/robots.txt?raw'
+import sitemapXml from '../../public/sitemap.xml?raw'
 import {
   PLAYBOOK_PATH,
   playbookGates,
@@ -31,15 +33,9 @@ describe('playbook', () => {
   })
 
   it('stays off public navigation, footer, and sitemap', () => {
-    const header = readFileSync(fileURLToPath(new URL('../components/Header.tsx', import.meta.url)), 'utf8')
-    const footer = readFileSync(fileURLToPath(new URL('../components/Footer.tsx', import.meta.url)), 'utf8')
-    const sitemap = readFileSync(fileURLToPath(new URL('../../public/sitemap.xml', import.meta.url)), 'utf8')
-
-    const robots = readFileSync(fileURLToPath(new URL('../../public/robots.txt', import.meta.url)), 'utf8')
-
-    expect(header).not.toContain(PLAYBOOK_PATH)
-    expect(footer).not.toContain(PLAYBOOK_PATH)
-    expect(sitemap).not.toContain(PLAYBOOK_PATH)
-    expect(robots).toContain(`Disallow: ${PLAYBOOK_PATH}`)
+    expect(headerNavItems.map((item) => item.href)).not.toContain(PLAYBOOK_PATH)
+    expect(footerNavItems.map((item) => item.href)).not.toContain(PLAYBOOK_PATH)
+    expect(sitemapXml).not.toContain(PLAYBOOK_PATH)
+    expect(robotsTxt).toContain(`Disallow: ${PLAYBOOK_PATH}`)
   })
 })
