@@ -25,20 +25,33 @@ const Hero: React.FC = () => {
   }, [texts.length])
 
   return (
-    <section className="min-h-screen flex flex-col md:block relative overflow-hidden hero-pattern">
-      <div className="absolute inset-0 bg-gradient-to-br from-gold-500/10 to-transparent"></div>
+    <section className="min-h-screen flex items-center justify-center relative overflow-hidden hero-pattern pt-20 pb-16">
+      <div className="absolute inset-0 bg-gradient-to-br from-gold-500/10 to-transparent" />
 
-      <div className="relative z-10 shrink-0 pt-24 pb-2 md:absolute md:inset-0 md:flex md:items-center md:justify-center md:pt-0 md:pb-0">
-        <div className="container mx-auto px-4 text-center">
+      <div className="container mx-auto px-4 relative z-10">
+        <div className="mx-auto grid max-w-6xl md:grid-cols-[auto_minmax(0,1fr)] gap-0 items-center justify-items-center">
           <motion.div
-            initial={{ opacity: 0, y: 50 }}
+            initial={{ opacity: 0, x: -24 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.8, delay: 0.2 }}
+            className="order-2 md:order-1 flex justify-center w-[18rem] sm:w-[22rem] md:w-[24rem] lg:w-[28rem] shrink-0 overflow-visible"
+          >
+            <img
+              src="/images/portraits/numan-caricature-hero-wave.png"
+              alt="Caricature of Numan Usman waving"
+              className="w-[26rem] sm:w-[30rem] md:w-[34rem] lg:w-[38rem] max-w-none h-auto object-contain"
+            />
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 40 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
-            className="max-w-4xl mx-auto"
+            className="order-1 md:order-2 w-full max-w-2xl text-center md:text-left md:-ml-6 lg:-ml-10"
           >
             <motion.h1
-              className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-bold mb-4 md:mb-6 font-heading"
-              initial={{ opacity: 0, y: 100 }}
+              className="section-heading mb-4 md:mb-6 text-dark-950"
+              initial={{ opacity: 0, y: 60 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 1, delay: 0.2 }}
             >
@@ -47,8 +60,8 @@ const Hero: React.FC = () => {
             </motion.h1>
 
             <motion.div
-              className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-medium mb-4 md:mb-8 text-dark-950 font-heading"
-              initial={{ opacity: 0, y: 50 }}
+              className="text-2xl sm:text-3xl md:text-4xl font-medium mb-4 md:mb-6 text-dark-950 font-heading"
+              initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.4 }}
             >
@@ -66,19 +79,20 @@ const Hero: React.FC = () => {
             </motion.div>
 
             <motion.p
-              className="text-base sm:text-lg md:text-xl mb-6 md:mb-12 max-w-2xl mx-auto leading-relaxed text-gray-700"
-              initial={{ opacity: 0, y: 30 }}
+              className="text-lg sm:text-xl md:text-2xl mb-6 md:mb-8 leading-relaxed text-gray-700 max-w-xl mx-auto md:mx-0"
+              initial={{ opacity: 0, y: 24 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.6 }}
             >
-              I care for people and build systems. Based in{' '}
-              <span className="text-gold-500 font-semibold">Obuasi, Ghana</span>,
-              I help businesses grow by crafting intuitive &amp; amazing web experiences.
+              Based in{' '}
+              <span className="text-gold-500 font-semibold">Obuasi, Ghana</span>, I turn
+              emergency-care experience and health informatics into digital systems and tools
+              that help hospitals and businesses work faster and safer.
             </motion.p>
 
             <motion.div
-              className="flex flex-col sm:flex-row gap-3 md:gap-4 justify-center items-center"
-              initial={{ opacity: 0, y: 30 }}
+              className="flex flex-col sm:flex-row gap-3 md:gap-4 justify-center md:justify-start items-center"
+              initial={{ opacity: 0, y: 24 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.8 }}
             >
@@ -94,20 +108,7 @@ const Hero: React.FC = () => {
       </div>
 
       <motion.div
-        initial={{ opacity: 0, y: 24 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.8, delay: 0.3 }}
-        className="relative z-[5] flex-1 min-h-0 flex items-end justify-center pointer-events-none md:absolute md:inset-y-0 md:right-0 md:left-auto md:w-auto md:block md:flex-none"
-      >
-        <img
-          src="/images/portraits/numan-caricature-hero-wave.png"
-          alt="Caricature of Numan Usman waving"
-          className="h-full w-auto max-w-[90vw] object-contain object-bottom md:h-full md:max-w-none md:absolute md:right-0 md:bottom-0"
-        />
-      </motion.div>
-
-      <motion.div
-        className="absolute bottom-8 left-1/2 transform -translate-x-1/2 z-20 hidden md:block"
+        className="absolute bottom-8 left-1/2 -translate-x-1/2 z-20 hidden md:block"
         animate={{ y: [0, -10, 0] }}
         transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
       >

@@ -1,8 +1,11 @@
+import { Monitor, GraduationCap, Briefcase, HeartPulse, type LucideIcon } from 'lucide-react'
+
 export type StoryTabId = 'history' | 'education' | 'experience' | 'emnurse'
 
 export type StoryTab = {
   id: StoryTabId
   label: string
+  icon: LucideIcon
   image: string
   imageAlt: string
   body: string
@@ -12,29 +15,33 @@ export const storyTabs: StoryTab[] = [
   {
     id: 'history',
     label: 'History',
-    image: '/images/story/story-history.jpg',
-    imageAlt: 'Numan working on a computer',
-    body: "I've always loved playing around with PCs since I got introduced to it as a teenager in High School. I've been fixing PC software issues since. I've been doing freelance computer software repairs over a decade now. I started dabbling in web design and development about a few years ago and improving by the day.",
+    icon: Monitor,
+    image: '/images/story/story-history.png',
+    imageAlt: 'Caricature of Numan tinkering with a computer',
+    body: "Computers caught my attention early — as a teenager in high school I was already opening machines, fixing software problems, and helping anyone who asked. That curiosity turned into over a decade of freelance PC and software repair. When I began building websites and web apps, something clicked: the same instinct to diagnose a broken system could improve how clinics and emergency teams share information. That thread — from tinkering to tools that serve care — is what pulled me into health informatics.",
   },
   {
     id: 'education',
     label: 'Education',
-    image: '/images/story/story-education.jpg',
-    imageAlt: 'Graduation and nursing education',
-    body: "My journey in healthcare is built on a strong educational foundation, starting with a Diploma in Registered General Nursing from the renowned Berekum Nursing & Midwifery Training College, followed by a BSc in Emergency Nursing from KNUST. In addition to my formal nursing education, I'm a self-taught Web Developer. I've independently developed skills in IT, particularly in web development, to bring digital solutions into healthcare environments. This unique blend of medical and technical expertise enables me to drive efficiency and innovation within emergency care settings.",
+    icon: GraduationCap,
+    image: '/images/story/story-education.png',
+    imageAlt: 'Caricature of Numan reading books',
+    body: "I trained first as a nurse: a Diploma in Registered General Nursing at Holy Family NMTC, Berekum, then a BSc in Emergency Nursing at KNUST — grounding me in trauma care, triage, and calm decision-making when minutes matter. Today I'm deepening that path with an MSc in Health Informatics at KNUST (in progress, 2026), learning how to design and strengthen the information systems behind safer care. In parallel I've taught myself modern web development, so classroom theory and real products stay connected.",
   },
   {
     id: 'experience',
     label: 'Experience',
-    image: '/images/story/story-experience.jpg',
-    imageAlt: 'Clinical and professional experience',
-    body: "As an experienced Emergency Nurse and Supervisor in the dynamic AGAHF Emergency Department, I'm dedicated to providing swift, compassionate care during critical situations. My role involves managing first aid posts, 2IC assigning & supervising nursing duties, conducting nursing research, coordinating training, and ensuring smooth operations to support both patients and healthcare staff.",
+    icon: Briefcase,
+    image: '/images/story/story-experience.png',
+    imageAlt: 'Caricature of Numan in safety helmet and reflective emergency gear with radio and first aid kit',
+    body: "My career grew from the casualty floor upward. At Sampa Government Hospital I helped build and run emergency services with limited resources — establishing triage, training staff for mass-casualty roles, and shaping day-to-day protocols. At AGAHF in Obuasi I moved from emergency nurse to Senior Nursing Officer and Supervisor of the Emergency Response Unit, overseeing first aid posts, inventory, patient data, and incident reporting for the mine and community. I've modernized response workflows with digital tools, facilitated BLS training, completed underground familiarization, and was named the 2025 GRNMA District Best Nurse for Obuasi. Through the Usmaniyya Foundation I also take bystander CPR and basic emergency care into the community.",
   },
   {
     id: 'emnurse',
-    label: 'EMNurse',
-    image: '/images/story/story-emnurse.jpg',
-    imageAlt: 'Emergency nursing work',
-    body: 'With over a decade of experience and a focus on efficient emergency response and quality care, I aim to make a meaningful impact in every shift. I bring that same urgency and attention to detail to the websites and tools I build for clinics, teams, and small businesses.',
+    label: 'Purpose',
+    icon: HeartPulse,
+    image: '/images/story/story-purpose.png',
+    imageAlt: 'Caricature of Numan demonstrating CPR on a training manikin',
+    body: "Emergency nursing taught me to stay steady when everything is urgent. Health informatics and web development let me scale that care beyond a single shift — clearer reporting, better workflows, and tools people can actually use. Whether I'm responding underground, teaching CPR, advocating for road safety, or shipping a website for a clinic or small business, the goal is the same: prompt, reliable help when it counts.",
   },
 ]

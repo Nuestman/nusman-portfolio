@@ -5,6 +5,7 @@ import WhatICanDo from '../components/WhatICanDo'
 import MyProcess from '../components/MyProcess'
 import Testimonials from '../components/Testimonials'
 import Collaborations from '../components/Collaborations'
+import ReadyToBuild from '../components/ReadyToBuild'
 import FAQ from '../components/FAQ'
 import { usePageMeta } from '../hooks/usePageMeta'
 
@@ -19,10 +20,11 @@ const HomePage: React.FC = () => {
     <>
       <Hero />
       <WhatICanDo />
-      <Skills />
       <MyProcess />
+      <Skills />
       <Testimonials />
       <Collaborations />
+      <ReadyToBuild />
       <FAQ />
     </>
   )

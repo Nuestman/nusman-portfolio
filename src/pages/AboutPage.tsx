@@ -1,16 +1,24 @@
 import React, { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card'
+import { Download } from 'lucide-react'
+import { Button } from '../components/ui/button'
 import { storyTabs, type StoryTabId } from '../data/story'
 import { usePageMeta } from '../hooks/usePageMeta'
+
+const RESUME_HREF = '/docs/Numan-Usman-Resume-June-2026.pdf'
 
 const AboutPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<StoryTabId>('history')
   const activeStory = storyTabs.find((tab) => tab.id === activeTab) ?? storyTabs[0]
+  const ActiveIcon = activeStory.icon
+  const chapterIndex = storyTabs.findIndex((tab) => tab.id === activeStory.id)
+  const chapterNumber = String(chapterIndex + 1).padStart(2, '0')
+  const isDarkChapter = chapterIndex % 2 === 1
 
   usePageMeta({
-    title: 'About Numan Usman | Nurse & Web Developer',
-    description: 'Learn about Numan Usman — emergency nurse, supervisor, and web developer based in Obuasi, Ghana.',
+    title: 'About Numan Usman | Health Informatician & Emergency Nurse',
+    description:
+      'Numan Usman is a health informatician, emergency nurse, and web developer based in Obuasi, Ghana — currently pursuing an MSc in Health Informatics at KNUST.',
     path: '/about',
   })
 
@@ -23,144 +31,143 @@ const AboutPage: React.FC = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8 }}
         >
-          <h1 className="section-heading mb-6 text-dark-950">
-            About Me
-          </h1>
-          <p className="text-xl text-gray-700 max-w-3xl mx-auto">
-            Learn more about my journey as a nurse and web developer
+          <h1 className="section-heading mb-6 text-dark-950">About Me</h1>
+          <p className="text-xl text-gray-700 max-w-3xl mx-auto mb-8">
+            Health informatician, emergency nurse, and web developer — building safer care with people and systems
           </p>
+          <Button asChild size="lg" className="px-8">
+            <a href={RESUME_HREF} download>
+              <Download className="w-5 h-5 mr-2" aria-hidden="true" />
+              Download Resume
+            </a>
+          </Button>
         </motion.div>
 
-        <div className="max-w-4xl mx-auto grid md:grid-cols-2 gap-12">
-          <motion.div
-            initial={{ opacity: 0, x: -50 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.8, delay: 0.2 }}
-          >
-            <Card className="overflow-hidden">
-              <div className="aspect-square flex items-center justify-center p-8">
-              {/* <div className="aspect-square bg-gradient-to-br from-gold-500 to-gold-600 flex items-center justify-center p-8"> */}
-                <img
-                  src="/logos/nusman-logo-square.png"
-                  alt="Numan Usman logo"
-                  className="w-full h-full object-contain"
-                />
-              </div>
-            </Card>
-          </motion.div>
-
-          <motion.div
-            initial={{ opacity: 0, x: 50 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.8, delay: 0.4 }}
-            className="space-y-6"
-          >
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-2xl font-bold text-gold-600 font-heading">
-                  Professional Background
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <p className="text-gray-700 leading-relaxed">
-                  I'm a dedicated Emergency Nurse and Supervisor with extensive experience in healthcare,
-                  combined with a passion for web development and technology.
-                </p>
-                <p className="text-gray-700 leading-relaxed">
-                  Based in Obuasi, Ghana, I bring a unique perspective to web development,
-                  combining my healthcare expertise with modern technology solutions.
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-2xl font-bold text-gold-600 font-heading">
-                  Education & Training
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <div className="border-l-4 border-gold-500 pl-4">
-                  <h2 className="font-semibold text-dark-950">BSc Emergency Nursing</h2>
-                  <p className="text-gray-600">KNUST</p>
-                </div>
-                <div className="border-l-4 border-gold-500 pl-4">
-                  <h2 className="font-semibold text-dark-950">Diploma in Registered General Nursing</h2>
-                  <p className="text-gray-600">Berekum Nursing & Midwifery Training College</p>
-                </div>
-                <div className="border-l-4 border-gold-500 pl-4">
-                  <h2 className="font-semibold text-dark-950">Self-Taught Web Development</h2>
-                  <p className="text-gray-600">Independent learning and practice</p>
-                </div>
-              </CardContent>
-            </Card>
-          </motion.div>
-        </div>
-
         <motion.div
-          className="mt-20"
+          className="mx-auto mb-16 flex max-w-xs justify-center"
+          initial={{ opacity: 0, y: 24 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.7, delay: 0.15 }}
+        >
+          <img
+            src="/images/portraits/numan-caricature.png"
+            alt="Caricature portrait of Numan Usman"
+            className="w-full h-auto object-contain"
+          />
+        </motion.div>
+
+        <motion.section
+          className="mt-8 max-w-5xl mx-auto"
           initial={{ opacity: 0, y: 50 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.8 }}
+          aria-labelledby="my-story-heading"
         >
-          <Card className="bg-gradient-to-br from-gold-500 to-gold-600 border-0 shadow-xl">
-            <CardContent className="p-8 text-white">
-              <h2 className="text-3xl font-bold text-center mb-8 text-white font-heading">
-                Story Of My Life
-              </h2>
+          <div className="text-center mb-12">
+            <h2 id="my-story-heading" className="section-heading text-dark-950 mb-4">
+              My Story
+            </h2>
+            <p className="text-lg text-gray-700 max-w-2xl mx-auto">
+              Four chapters from tinkering with PCs to emergency care, informatics, and building for people
+            </p>
+          </div>
 
-              <div className="flex flex-wrap justify-center gap-2 mb-8" role="tablist" aria-label="Life story">
-                {storyTabs.map((tab) => {
-                  const isActive = activeTab === tab.id
-                  return (
-                    <motion.button
-                      key={tab.id}
-                      type="button"
-                      role="tab"
-                      id={`story-tab-${tab.id}`}
-                      aria-selected={isActive}
-                      aria-controls={`story-panel-${tab.id}`}
-                      onClick={() => setActiveTab(tab.id)}
-                      className={`px-6 py-3 rounded-full font-bold uppercase tracking-wider transition-all duration-300 font-heading ${
-                        isActive
-                          ? 'bg-white text-gold-600 shadow-lg'
-                          : 'bg-white/20 text-white hover:bg-white/30'
-                      }`}
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                    >
-                      {tab.label}
-                    </motion.button>
-                  )
-                })}
-              </div>
-
-              <div className="max-w-3xl mx-auto">
-                <AnimatePresence mode="wait">
-                  <motion.div
-                    key={activeStory.id}
-                    id={`story-panel-${activeStory.id}`}
-                    role="tabpanel"
-                    aria-labelledby={`story-tab-${activeStory.id}`}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -20 }}
-                    transition={{ duration: 0.3 }}
-                    className="text-center space-y-6"
-                  >
-                    <img
-                      src={activeStory.image}
-                      alt={activeStory.imageAlt}
-                      className="hidden w-full max-h-80 object-cover rounded-xl"
+          <div
+            className="flex flex-wrap justify-center gap-x-2 gap-y-2 mb-10 border-b border-gray-200"
+            role="tablist"
+            aria-label="My story chapters"
+          >
+            {storyTabs.map((tab, index) => {
+              const isActive = activeTab === tab.id
+              const Icon = tab.icon
+              return (
+                <motion.button
+                  key={tab.id}
+                  type="button"
+                  role="tab"
+                  id={`story-tab-${tab.id}`}
+                  aria-selected={isActive}
+                  aria-controls={`story-panel-${tab.id}`}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`relative px-4 py-3 font-heading text-sm md:text-base font-bold tracking-wide transition-colors duration-300 flex items-center gap-2 ${
+                    isActive ? 'text-gold-600' : 'text-gray-500 hover:text-dark-950'
+                  }`}
+                  whileTap={{ scale: 0.98 }}
+                >
+                  <span className="text-xs font-medium text-gray-400 tabular-nums">{String(index + 1).padStart(2, '0')}</span>
+                  <Icon className="w-4 h-4" aria-hidden="true" />
+                  {tab.label}
+                  {isActive && (
+                    <motion.span
+                      layoutId="story-tab-underline"
+                      className="absolute inset-x-2 -bottom-px h-0.5 bg-gold-500"
                     />
-                    <p className="text-lg leading-relaxed">{activeStory.body}</p>
-                  </motion.div>
-                </AnimatePresence>
+                  )}
+                </motion.button>
+              )
+            })}
+          </div>
+
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={activeStory.id}
+              id={`story-panel-${activeStory.id}`}
+              role="tabpanel"
+              aria-labelledby={`story-tab-${activeStory.id}`}
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -12 }}
+              transition={{ duration: 0.3 }}
+              className={`rounded-3xl p-5 md:p-8 ${isDarkChapter ? 'bg-dark-950' : 'bg-gray-100'}`}
+            >
+              <div className="grid md:grid-cols-3 gap-6 md:gap-8 items-center">
+                <div className="md:col-span-1">
+                  <img
+                    src={activeStory.image}
+                    alt={activeStory.imageAlt}
+                    className="w-full h-auto max-h-[22rem] md:max-h-none object-cover object-center rounded-2xl"
+                  />
+                </div>
+
+                <div className="md:col-span-2">
+                  <div className="flex items-center gap-4 mb-5">
+                    <div
+                      className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl ${
+                        isDarkChapter ? 'bg-gold-500/15' : 'bg-dark-950'
+                      }`}
+                    >
+                      <ActiveIcon className="h-6 w-6 text-gold-400" aria-hidden="true" />
+                    </div>
+                    <div>
+                      <p
+                        className={`text-sm font-medium uppercase tracking-[0.2em] ${
+                          isDarkChapter ? 'text-gold-400/80' : 'text-gold-600'
+                        }`}
+                      >
+                        Chapter {chapterNumber}
+                      </p>
+                      <h3
+                        className={`font-heading text-2xl md:text-3xl font-bold ${
+                          isDarkChapter ? 'text-white' : 'text-dark-950'
+                        }`}
+                      >
+                        {activeStory.label}
+                      </h3>
+                    </div>
+                  </div>
+                  <p
+                    className={`text-base md:text-lg leading-relaxed ${
+                      isDarkChapter ? 'text-white/85' : 'text-gray-700'
+                    }`}
+                  >
+                    {activeStory.body}
+                  </p>
+                </div>
               </div>
-            </CardContent>
-          </Card>
-        </motion.div>
+            </motion.div>
+          </AnimatePresence>
+        </motion.section>
       </div>
     </div>
   )
