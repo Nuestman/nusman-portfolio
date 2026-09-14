@@ -1,0 +1,87 @@
+"use client";
+
+import { useActionState } from "react";
+import { Button } from "@/components/ui/button";
+import { createProjectAction, type FormState } from "@/app/projects/actions";
+import { fieldClassName, labelClassName } from "@/lib/forms";
+
+const initialState: FormState = { error: null };
+
+export function NewProjectForm({
+  clients,
+  selectedClientId,
+}: {
+  clients: Array<{ id: string; name: string }>;
+  selectedClientId?: string;
+}) {
+  const [state, action, pending] = useActionState(
+    createProjectAction,
+    initialState,
+  );
+
+  return (
+    <form action={action} className="space-y-5">
+      <div>
+        <label htmlFor="clientId" className={labelClassName}>
+          Client
+        </label>
+        <select
+          id="clientId"
+          name="clientId"
+          required
+          defaultValue={selectedClientId ?? ""}
+          className={fieldClassName}
+        >
+          <option value="">Pick a client</option>
+          {clients.map((client) => (
+            <option key={client.id} value={client.id}>
+              {client.name}
+            </option>
+          ))}
+        </select>
+      </div>
+      <div>
+        <label htmlFor="title" className={labelClassName}>
+          Title
+        </label>
+        <input
+          id="title"
+          name="title"
+          required
+          className={fieldClassName}
+        />
+      </div>
+      <div>
+        <label htmlFor="problemSentence" className={labelClassName}>
+          Problem sentence
+        </label>
+        <textarea
+          id="problemSentence"
+          name="problemSentence"
+          rows={3}
+          className={fieldClassName}
+          placeholder="The one sentence both sides can repeat."
+        />
+      </div>
+      <div>
+        <label htmlFor="successLooksLike" className={labelClassName}>
+          Success looks like
+        </label>
+        <textarea
+          id="successLooksLike"
+          name="successLooksLike"
+          rows={3}
+          className={fieldClassName}
+        />
+      </div>
+      {state.error ? (
+        <p className="rounded-lg bg-red-100 px-4 py-3 text-sm text-red-700" role="alert">
+          {state.error}
+        </p>
+      ) : null}
+      <Button type="submit" disabled={pending}>
+        {pending ? "Saving…" : "Create project"}
+      </Button>
+    </form>
+  );
+}

@@ -1,10 +1,18 @@
 import Link from "next/link";
 import { getSessionEmail } from "@/lib/auth";
 import { databaseConfigured } from "@/db";
-import { countClients, countProjects, getOperator } from "@/db/queries";
+import {
+  countClients,
+  countProjects,
+  getOperator,
+  listActiveProjects,
+} from "@/db/queries";
 import { buttonClassName } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { DeskHeader } from "@/components/desk-header";
+import { gateGuide } from "@/lib/gates";
+import { deskCopyTemplates } from "@/lib/templates";
+import { CopyTemplates } from "@/app/projects/copy-templates";
 
 export const dynamic = "force-dynamic";
 
@@ -30,6 +38,7 @@ type DeskStats =
       projectCount: number;
       clientCount: number;
       operatorName: string | null;
+      active: Awaited<ReturnType<typeof listActiveProjects>>;
     }
   | { kind: "error" };
 
@@ -39,75 +48,22 @@ async function loadDeskStats(): Promise<DeskStats> {
   }
 
   try {
-    const [projectCount, clientCount, operator] = await Promise.all([
+    const [projectCount, clientCount, operator, active] = await Promise.all([
       countProjects(),
       countClients(),
       getOperator(),
+      listActiveProjects(),
     ]);
     return {
       kind: "ok",
       projectCount,
       clientCount,
       operatorName: operator?.name ?? null,
+      active,
     };
   } catch (error) {
     console.error("Desk database query failed", error);
     return { kind: "error" };
-  }
-}
-
-function DeskStatusCopy({ stats }: { stats: DeskStats }) {
-  switch (stats.kind) {
-    case "missing":
-      return (
-        <>
-          <p>Neon is not linked in this environment yet.</p>
-          <p className="text-sm text-gray-500">
-            Set DATABASE_URL for this environment, then apply migrations.
-          </p>
-        </>
-      );
-    case "error":
-      return (
-        <>
-          <p>Could not read the database.</p>
-          <p className="text-sm text-gray-500">
-            Check DATABASE_URL and that the first migration has been applied.
-          </p>
-        </>
-      );
-    case "ok":
-      return (
-        <>
-          <p>
-            {stats.clientCount === 0
-              ? "No clients yet. Add the hiring party first."
-              : `${stats.clientCount} client${stats.clientCount === 1 ? "" : "s"}, ${stats.projectCount} project${stats.projectCount === 1 ? "" : "s"}.`}
-          </p>
-          <p className="text-sm text-gray-500">
-            {stats.operatorName
-              ? `Operator: ${stats.operatorName}.`
-              : "Database connected. Seed the operator next."}
-          </p>
-          {stats.clientCount === 0 ? (
-            <div className="pt-2">
-              <Link href="/clients/new" className={buttonClassName()}>
-                Add client
-              </Link>
-            </div>
-          ) : (
-            <div className="pt-2">
-              <Link href="/clients" className={buttonClassName("outline")}>
-                Open clients
-              </Link>
-            </div>
-          )}
-        </>
-      );
-    default: {
-      const _exhaustive: never = stats;
-      return _exhaustive;
-    }
   }
 }
 
@@ -122,8 +78,7 @@ export default async function HomePage() {
         <div>
           <h1 className="font-heading text-3xl text-dark-950 md:text-4xl">Today</h1>
           <p className="mt-2 max-w-2xl text-gray-700">
-            This is the workbench. Name the client and the people before a
-            project starts. Nothing starts from a chat message.
+            Active work and the current gate. Nothing starts from a chat message.
           </p>
         </div>
 
@@ -146,12 +101,104 @@ export default async function HomePage() {
           </div>
         </div>
 
+        {stats.kind === "ok" && stats.active.length > 0 ? (
+          <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
+            <table className="w-full text-left text-sm">
+              <thead className="bg-gray-50 text-gray-600">
+                <tr>
+                  <th className="px-4 py-3 font-medium">Active project</th>
+                  <th className="px-4 py-3 font-medium">Client</th>
+                  <th className="px-4 py-3 font-medium">Gate</th>
+                  <th className="px-4 py-3 font-medium">This gate</th>
+                </tr>
+              </thead>
+              <tbody>
+                {stats.active.map((project) => {
+                  const guide = gateGuide(project.currentGate);
+                  return (
+                    <tr key={project.id} className="border-t border-gray-100">
+                      <td className="px-4 py-3">
+                        <Link
+                          href={`/projects/${project.id}`}
+                          className="font-medium text-dark-950 hover:text-gold-500"
+                        >
+                          {project.title}
+                        </Link>
+                      </td>
+                      <td className="px-4 py-3 text-gray-700">
+                        {project.clientName}
+                      </td>
+                      <td className="px-4 py-3 text-gray-700">{guide.label}</td>
+                      <td className="px-4 py-3 text-gray-600">{guide.youDo}</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        ) : null}
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Templates</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="mb-6 text-sm text-gray-600">
+              Copy into WhatsApp or email. Fill the brackets before you send.
+            </p>
+            <CopyTemplates templates={deskCopyTemplates()} />
+          </CardContent>
+        </Card>
+
         <Card>
           <CardHeader>
             <CardTitle>Desk</CardTitle>
           </CardHeader>
           <CardContent className="space-y-2 text-gray-700">
-            <DeskStatusCopy stats={stats} />
+            {stats.kind === "missing" ? (
+              <>
+                <p>Neon is not linked in this environment yet.</p>
+                <p className="text-sm text-gray-500">
+                  Set DATABASE_URL for this environment, then apply migrations.
+                </p>
+              </>
+            ) : null}
+            {stats.kind === "error" ? (
+              <>
+                <p>Could not read the database.</p>
+                <p className="text-sm text-gray-500">
+                  Check DATABASE_URL and that the first migration has been applied.
+                </p>
+              </>
+            ) : null}
+            {stats.kind === "ok" ? (
+              <>
+                <p>
+                  {stats.clientCount} client{stats.clientCount === 1 ? "" : "s"},{" "}
+                  {stats.projectCount} project
+                  {stats.projectCount === 1 ? "" : "s"}.
+                </p>
+                <p className="text-sm text-gray-500">
+                  {stats.operatorName
+                    ? `Operator: ${stats.operatorName}.`
+                    : "Database connected. Seed the operator next."}
+                </p>
+                <div className="flex flex-wrap gap-3 pt-2">
+                  {stats.clientCount === 0 ? (
+                    <Link href="/clients/new" className={buttonClassName()}>
+                      Add client
+                    </Link>
+                  ) : (
+                    <Link href="/projects/new" className={buttonClassName()}>
+                      Add project
+                    </Link>
+                  )}
+                  <Link href="/projects" className={buttonClassName("outline")}>
+                    Open projects
+                  </Link>
+                </div>
+              </>
+            ) : null}
           </CardContent>
         </Card>
       </main>

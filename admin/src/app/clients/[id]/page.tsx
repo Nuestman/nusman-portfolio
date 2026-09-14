@@ -5,12 +5,15 @@ import {
   countProjectsForClient,
   getClient,
   listPeople,
+  listProjectsForClient,
 } from "@/db/queries";
 import { DeskHeader } from "@/components/desk-header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { buttonClassName } from "@/components/ui/button";
 import { ConfirmSubmit } from "@/components/confirm-submit";
 import { isUuid } from "@/lib/ids";
 import { personRoleLabel } from "@/lib/labels";
+import { gateGuide } from "@/lib/gates";
 import { ClientForm } from "../client-form";
 import { PersonForm } from "../person-form";
 import { deleteClientAction, deletePersonAction } from "../actions";
@@ -36,10 +39,11 @@ export default async function ClientDetailPage({
     notFound();
   }
 
-  const [email, people, projectCount, query] = await Promise.all([
+  const [email, people, projectCount, clientProjects, query] = await Promise.all([
     getSessionEmail(),
     listPeople(id),
     countProjectsForClient(id),
+    listProjectsForClient(id),
     searchParams,
   ]);
 
@@ -61,7 +65,8 @@ export default async function ClientDetailPage({
             {client.name}
           </h1>
           <p className="mt-2 text-gray-700">
-            People attached here: buyer vs daily user. Projects come next.
+            People, then a project with a problem sentence. Nothing starts from a
+            chat message.
           </p>
         </div>
 
@@ -82,6 +87,43 @@ export default async function ClientDetailPage({
                 notes: client.notes ?? "",
               }}
             />
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <CardTitle>Projects</CardTitle>
+              <Link
+                href={`/projects/new?clientId=${client.id}`}
+                className={buttonClassName("outline", "sm")}
+              >
+                Add project
+              </Link>
+            </div>
+          </CardHeader>
+          <CardContent>
+            {clientProjects.length === 0 ? (
+              <p className="text-sm text-gray-600">
+                No projects yet. Open one after you know who is hiring.
+              </p>
+            ) : (
+              <ul className="space-y-3">
+                {clientProjects.map((item) => (
+                  <li key={item.id} className="flex items-center justify-between gap-3">
+                    <Link
+                      href={`/projects/${item.id}`}
+                      className="font-medium text-dark-950 hover:text-gold-500"
+                    >
+                      {item.title}
+                    </Link>
+                    <span className="text-sm text-gray-500">
+                      {gateGuide(item.currentGate).label}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            )}
           </CardContent>
         </Card>
 
