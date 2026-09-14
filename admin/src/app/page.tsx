@@ -1,10 +1,10 @@
-import Image from "next/image";
+import Link from "next/link";
 import { getSessionEmail } from "@/lib/auth";
 import { databaseConfigured } from "@/db";
-import { countProjects, getOperator } from "@/db/queries";
-import { Button } from "@/components/ui/button";
+import { countClients, countProjects, getOperator } from "@/db/queries";
+import { buttonClassName } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { logout } from "./login/actions";
+import { DeskHeader } from "@/components/desk-header";
 
 export const dynamic = "force-dynamic";
 
@@ -25,7 +25,12 @@ const PROCESS_STEPS = [
 
 type DeskStats =
   | { kind: "missing" }
-  | { kind: "ok"; projectCount: number; operatorName: string | null }
+  | {
+      kind: "ok";
+      projectCount: number;
+      clientCount: number;
+      operatorName: string | null;
+    }
   | { kind: "error" };
 
 async function loadDeskStats(): Promise<DeskStats> {
@@ -34,13 +39,15 @@ async function loadDeskStats(): Promise<DeskStats> {
   }
 
   try {
-    const [projectCount, operator] = await Promise.all([
+    const [projectCount, clientCount, operator] = await Promise.all([
       countProjects(),
+      countClients(),
       getOperator(),
     ]);
     return {
       kind: "ok",
       projectCount,
+      clientCount,
       operatorName: operator?.name ?? null,
     };
   } catch (error) {
@@ -73,15 +80,28 @@ function DeskStatusCopy({ stats }: { stats: DeskStats }) {
       return (
         <>
           <p>
-            {stats.projectCount === 0
-              ? "No clients or projects yet. That is expected."
-              : `${stats.projectCount} project${stats.projectCount === 1 ? "" : "s"} on the books.`}
+            {stats.clientCount === 0
+              ? "No clients yet. Add the hiring party first."
+              : `${stats.clientCount} client${stats.clientCount === 1 ? "" : "s"}, ${stats.projectCount} project${stats.projectCount === 1 ? "" : "s"}.`}
           </p>
           <p className="text-sm text-gray-500">
             {stats.operatorName
-              ? `Operator: ${stats.operatorName}. Next: add a client.`
-              : "Database connected. Seed the operator, then add a client."}
+              ? `Operator: ${stats.operatorName}.`
+              : "Database connected. Seed the operator next."}
           </p>
+          {stats.clientCount === 0 ? (
+            <div className="pt-2">
+              <Link href="/clients/new" className={buttonClassName()}>
+                Add client
+              </Link>
+            </div>
+          ) : (
+            <div className="pt-2">
+              <Link href="/clients" className={buttonClassName("outline")}>
+                Open clients
+              </Link>
+            </div>
+          )}
         </>
       );
     default: {
@@ -97,38 +117,13 @@ export default async function HomePage() {
 
   return (
     <div className="min-h-full">
-      <header className="border-b border-gray-200 bg-white">
-        <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-4">
-          <div className="flex items-center gap-3">
-            <Image
-              src="/logos/nusman-logo-wide.png"
-              alt="Numan Usman"
-              width={160}
-              height={40}
-              className="h-10 w-auto"
-              style={{ width: "auto", height: "auto" }}
-            />
-            <span className="font-heading text-2xl text-gold-500">Desk</span>
-          </div>
-          <div className="flex items-center gap-3">
-            {email ? (
-              <p className="hidden text-sm text-gray-500 sm:block">{email}</p>
-            ) : null}
-            <form action={logout}>
-              <Button variant="secondary" type="submit">
-                Sign out
-              </Button>
-            </form>
-          </div>
-        </div>
-      </header>
-
+      <DeskHeader email={email} />
       <main className="mx-auto max-w-6xl px-4 py-10 space-y-8">
         <div>
           <h1 className="font-heading text-3xl text-dark-950 md:text-4xl">Today</h1>
           <p className="mt-2 max-w-2xl text-gray-700">
-            This is the workbench. Clients, projects, and the seven gates land in
-            the next phases. Nothing starts from a chat message.
+            This is the workbench. Name the client and the people before a
+            project starts. Nothing starts from a chat message.
           </p>
         </div>
 
@@ -153,7 +148,7 @@ export default async function HomePage() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Empty desk</CardTitle>
+            <CardTitle>Desk</CardTitle>
           </CardHeader>
           <CardContent className="space-y-2 text-gray-700">
             <DeskStatusCopy stats={stats} />

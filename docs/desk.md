@@ -199,6 +199,8 @@ Done locally. From `admin/`, **nusmandotdev** is linked via `DATABASE_URL`. Driz
 
 CRUD for clients; add people with buyer/user roles. Use any current job (including colleague-and-dad) to prove the flow.
 
+Routes: `/clients`, `/clients/new`, `/clients/[id]`, `/clients/[id]/people/[personId]/edit`.
+
 ### Phase 4 — projects and gates
 
 Create a project, store the problem sentence, move gates, write notes. Gate UI matches the playbook labels.
@@ -243,10 +245,8 @@ Do not add Desk links to `Header` / `Footer` / `sitemap.xml`.
 
 ---
 
-## Immediate next step (phase 3)
+## Immediate next step (phase 4)
 
-Phase 2 is in `admin/`: Drizzle schema + `drizzle/0000_init.sql` on Neon **nusmandotdev**, operator row seeded, home page reads project count. Login is still env (`ADMIN_EMAIL` / `ADMIN_PASSWORD`); the `users` table is the operator record, not a second password store yet.
+Phase 3 is clients and people: list, add, edit, delete clients; add people as buyer / daily user / other.
 
-Create a **second** Vercel project (do not change the public Vite project): Root Directory `admin`, domain `desk.nusman.dev`, env `ADMIN_EMAIL`, `ADMIN_PASSWORD`, `AUTH_SECRET`, `DATABASE_URL`, `DATABASE_URL_UNPOOLED`.
-
-Phase 3 is clients and people CRUD.
+Phase 4 is projects and gates: create a project on a client, store the problem sentence, move gates, write notes.
