@@ -1,28 +1,72 @@
 import React from 'react'
 import { motion } from 'framer-motion'
 
-const collaborations = [
+type Collaboration = {
+  name: string
+  logo?: string
+  logoOnDark?: boolean
+  initials: string
+}
+
+const collaborations: Collaboration[] = [
   {
     name: 'AngloGold Ashanti Ghana',
     logo: '/logos/collaborations/aga-logo-white.png',
+    logoOnDark: true,
+    initials: 'AGA',
   },
   {
     name: 'AGA Health Foundation',
     logo: '/logos/collaborations/agahf-logo.png',
+    initials: 'AHF',
   },
   {
     name: 'EM Nurses Society of Ghana',
     logo: '/logos/collaborations/ensog-logo-green.png',
+    initials: 'ENSOG',
+  },
+  {
+    name: 'SDA Church, Kwabrafoso',
+    logo: '/logos/collaborations/sda-kwabrafoso.png',
+    initials: 'SDA',
+  },
+  {
+    name: 'My Joy Medical',
+    initials: 'MJM',
   },
 ]
 
+const LOOP_COPIES = 4
+
+const CollaborationCard: React.FC<{ collab: Collaboration }> = ({ collab }) => (
+  <div className="w-max shrink-0 rounded-2xl border border-white/10 bg-white/[0.06] px-5 py-4 text-center">
+    <div
+      className={`${collab.logoOnDark ? 'bg-dark-950' : 'bg-white'} mx-auto mb-3 flex h-16 w-40 items-center justify-center rounded-xl p-2`}
+    >
+      {collab.logo ? (
+        <img
+          src={collab.logo}
+          alt=""
+          className="h-full w-full object-contain"
+        />
+      ) : (
+        <span className="font-heading text-lg font-bold text-gold-600">{collab.initials}</span>
+      )}
+    </div>
+    <h3 className="whitespace-nowrap font-heading text-sm font-bold text-white md:text-base">
+      {collab.name}
+    </h3>
+  </div>
+)
+
 const Collaborations: React.FC = () => {
   return (
-    <section className="py-20 bg-dark-950">
+    <section className="bg-dark-950 py-20" aria-labelledby="collaborations-heading">
       <div className="container mx-auto px-4">
-        <div className="text-center mb-12">
+        <div className="mb-12 text-center">
           <motion.h2
-            className="text-4xl md:text-5xl lg:text-6xl font-bold text-white font-heading"
+            id="collaborations-heading"
+            className="section-heading text-white"
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
@@ -31,36 +75,29 @@ const Collaborations: React.FC = () => {
             I've Collaborated With...
           </motion.h2>
         </div>
+      </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-5 max-w-3xl mx-auto">
-          {collaborations.map((collab, index) => (
-            <motion.div
-              key={collab.name}
-              className="group"
-              initial={{ opacity: 0, y: 50 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6, delay: index * 0.2 }}
-            >
-              <div className="bg-white/5 backdrop-blur-sm rounded-2xl p-5 text-center hover:bg-white/10 transition-all duration-300 border border-white/10 hover:border-gold-500/30 group-hover:shadow-xl group-hover:shadow-gold-500/10">
-                <motion.div
-                  className={`${collab.logo.includes('aga-logo-white') ? 'bg-dark-950' : 'bg-white'} w-36 h-20 mx-auto mb-4 rounded-xl flex items-center justify-center p-2 shadow-lg ring-1 ring-black/5 group-hover:shadow-gold-500/20 transition-all duration-300`}
-                  whileHover={{ scale: 1.05, rotate: 2 }}
-                  transition={{ duration: 0.3 }}
-                >
-                  <img
-                    src={collab.logo}
-                    alt={`${collab.name} Logo`}
-                    className="w-[85%] h-[85%] object-contain"
+      <div className="container mx-auto px-4">
+        <div
+          className="collab-marquee"
+          aria-label="Organizations I have collaborated with"
+        >
+          <div className="collab-track">
+            {Array.from({ length: LOOP_COPIES }, (_, copyIndex) => (
+              <div
+                key={copyIndex}
+                className="collab-group"
+                aria-hidden={copyIndex > 0}
+              >
+                {collaborations.map((collab) => (
+                  <CollaborationCard
+                    key={`${collab.name}-${copyIndex}`}
+                    collab={collab}
                   />
-                </motion.div>
-
-                <h3 className="text-base md:text-lg font-bold text-white font-heading group-hover:text-gold-400 transition-colors">
-                  {collab.name}
-                </h3>
+                ))}
               </div>
-            </motion.div>
-          ))}
+            ))}
+          </div>
         </div>
       </div>
     </section>

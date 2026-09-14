@@ -1,0 +1,51 @@
+name: Sync development with main
+
+on:
+  push:
+    branches:
+      - main
+
+concurrency:
+  group: sync-development-with-main
+  cancel-in-progress: false
+
+jobs:
+  sync-development:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Fast-forward development to main
+        run: |
+          set -euo pipefail
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git fetch origin main development
+
+          main_sha="$(git rev-parse origin/main)"
+          dev_sha="$(git rev-parse origin/development)"
+
+          if [ "$main_sha" = "$dev_sha" ]; then
+            echo "development already matches main ($main_sha)"
+            exit 0
+          fi
+
+          git checkout -B development origin/development
+
+          if git merge-base --is-ancestor origin/development origin/main; then
+            echo "Fast-forwarding development to main"
+            git merge --ff-only origin/main
+          else
+            echo "Merging main into development"
+            git merge origin/main -m "chore: Sync development with main after merge"
+          fi
+
+          git push origin development
+          echo "Synced development to $(git rev-parse HEAD)"

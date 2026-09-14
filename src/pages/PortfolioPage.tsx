@@ -21,7 +21,7 @@ const PortfolioPage: React.FC = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
           >
-            <h1 className="text-5xl md:text-6xl font-bold mb-6 text-white font-heading">
+            <h1 className="section-heading mb-6 text-white">
               Portfolio
             </h1>
             <p className="text-xl text-white/90 max-w-2xl mx-auto mb-8">
@@ -44,7 +44,7 @@ const PortfolioPage: React.FC = () => {
             transition={{ duration: 0.8 }}
             className="text-center mb-16"
           >
-            <h2 className="text-4xl md:text-5xl font-bold mb-6 text-dark-950 font-heading">
+            <h2 className="section-heading mb-6 text-dark-950">
               Technologies I Work With
             </h2>
             <p className="text-lg text-gray-600 max-w-2xl mx-auto">
@@ -60,13 +60,13 @@ const PortfolioPage: React.FC = () => {
               transition={{ duration: 0.6, delay: 0.1 }}
               className="text-center"
             >
-              <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Code className="w-8 h-8 text-blue-600" />
+              <div className="w-16 h-16 bg-gold-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                <Code className="w-8 h-8 text-gold-600" />
               </div>
               <h3 className="text-3xl font-bold mb-4 text-dark-950 font-heading">Development</h3>
               <div className="flex flex-wrap justify-center gap-2">
                 {['React', 'TypeScript', 'Node.js', 'Express', 'Vite', 'Next.js'].map((tech) => (
-                  <span key={tech} className="px-3 py-1 bg-blue-100 text-blue-800 text-sm rounded-full">
+                  <span key={tech} className="px-3.5 py-1.5 bg-white border border-gold-200 text-dark-950 text-sm rounded-md font-medium">
                     {tech}
                   </span>
                 ))}
@@ -80,13 +80,13 @@ const PortfolioPage: React.FC = () => {
               transition={{ duration: 0.6, delay: 0.2 }}
               className="text-center"
             >
-              <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Palette className="w-8 h-8 text-purple-600" />
+              <div className="w-16 h-16 bg-gold-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                <Palette className="w-8 h-8 text-gold-600" />
               </div>
               <h3 className="text-3xl font-bold mb-4 text-dark-950 font-heading">Design</h3>
               <div className="flex flex-wrap justify-center gap-2">
                 {['Figma', 'Adobe XD', 'Photoshop', 'Illustrator'].map((tech) => (
-                  <span key={tech} className="px-3 py-1 bg-purple-100 text-purple-800 text-sm rounded-full">
+                  <span key={tech} className="px-3.5 py-1.5 bg-white border border-gold-200 text-dark-950 text-sm rounded-md font-medium">
                     {tech}
                   </span>
                 ))}
@@ -100,13 +100,13 @@ const PortfolioPage: React.FC = () => {
               transition={{ duration: 0.6, delay: 0.3 }}
               className="text-center"
             >
-              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Globe className="w-8 h-8 text-green-600" />
+              <div className="w-16 h-16 bg-gold-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                <Globe className="w-8 h-8 text-gold-600" />
               </div>
               <h3 className="text-3xl font-bold mb-4 text-dark-950 font-heading">Tools & More</h3>
               <div className="flex flex-wrap justify-center gap-2">
-                {['Git', 'Render', 'AWS', 'PostgreSQL', 'Vercel'].map((tech) => (
-                  <span key={tech} className="px-3 py-1 bg-green-100 text-green-800 text-sm rounded-full">
+                {['Git', 'Render', 'Railway', 'PostgreSQL', 'Vercel'].map((tech) => (
+                  <span key={tech} className="px-3.5 py-1.5 bg-white border border-gold-200 text-dark-950 text-sm rounded-md font-medium">
                     {tech}
                   </span>
                 ))}

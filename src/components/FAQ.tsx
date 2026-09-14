@@ -30,7 +30,7 @@ const FAQ: React.FC = () => {
     },
     {
       question: "What technologies do you use?",
-      answer: "I use modern, industry-standard technologies including React, TypeScript, Node.js, Python, various databases (MySQL, PostgreSQL, MongoDB), cloud platforms (AWS, Vercel), and development tools like Git, Docker, and CI/CD pipelines."
+      answer: "I use modern, industry-standard technologies including React, TypeScript, Node.js, Python, various databases (MySQL, PostgreSQL, MongoDB), cloud platforms (Railway, Vercel), and development tools like Git, Docker, and CI/CD pipelines."
     },
     {
       question: "How do you ensure quality and security?",
@@ -47,12 +47,19 @@ const FAQ: React.FC = () => {
   }
 
   return (
-    <section className="py-20 bg-gray-50">
-      <div className="container mx-auto px-4">
+    <section className="relative py-20 bg-gray-50 overflow-hidden">
+      <img
+        src="/images/portraits/numan-caricature-faq.png"
+        alt=""
+        aria-hidden="true"
+        className="pointer-events-none absolute left-0 bottom-0 z-0 h-4/5 w-auto object-contain object-left-bottom"
+      />
+
+      <div className="container mx-auto px-4 relative z-10">
         {/* Header */}
         <div className="text-center mb-16">
-          <motion.h2 
-            className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 text-dark-950 font-heading"
+          <motion.h2
+            className="section-heading mb-6 text-dark-950"
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
@@ -60,7 +67,7 @@ const FAQ: React.FC = () => {
           >
             Frequently Asked Questions
           </motion.h2>
-          <motion.p 
+          <motion.p
             className="text-xl md:text-2xl text-dark-950/80 font-medium max-w-3xl mx-auto"
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}

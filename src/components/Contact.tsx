@@ -1,10 +1,30 @@
 import React, { useState } from 'react'
 import { motion } from 'framer-motion'
-import { Card, CardContent, CardHeader, CardTitle } from './ui/card'
+import { Card, CardContent } from './ui/card'
 import { Button } from './ui/button'
-import { MessageCircle } from 'lucide-react'
+import { Phone, Mail, MapPin } from 'lucide-react'
 
 const CONTACT_EMAIL = 'nuestman@icloud.com'
+
+const contactLinks = [
+  {
+    icon: Phone,
+    label: 'Phone',
+    value: '+233 206 484 034',
+    href: 'tel:+233206484034',
+  },
+  {
+    icon: Mail,
+    label: 'Email',
+    value: CONTACT_EMAIL,
+    href: `mailto:${CONTACT_EMAIL}`,
+  },
+  {
+    icon: MapPin,
+    label: 'Location',
+    value: 'Obuasi, Ghana',
+  },
+]
 
 type FormStatus = 'idle' | 'success' | 'mailto' | 'error'
 
@@ -12,6 +32,7 @@ const Contact: React.FC = () => {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
+    phone: '',
     subject: '',
     message: '',
   })
@@ -46,10 +67,10 @@ const Contact: React.FC = () => {
         }
 
         setStatus('success')
-        setFormData({ name: '', email: '', subject: '', message: '' })
+        setFormData({ name: '', email: '', phone: '', subject: '', message: '' })
       } else {
         const mailto = `mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent(formData.subject)}&body=${encodeURIComponent(
-          `Name: ${formData.name}\nEmail: ${formData.email}\n\n${formData.message}`,
+          `Name: ${formData.name}\nEmail: ${formData.email}\nPhone: ${formData.phone}\n\n${formData.message}`,
         )}`
         window.location.href = mailto
         setStatus('mailto')
@@ -63,23 +84,70 @@ const Contact: React.FC = () => {
   }
 
   return (
-    <section id="contact" className="pb-24 bg-gray-50">
+    <section id="contact" className="py-20 pb-24 bg-gray-50">
       <div className="container mx-auto px-4">
-        <div className="max-w-2xl mx-auto">
+        <motion.div
+          className="text-center mb-10"
+          initial={{ opacity: 0, y: 50 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.8 }}
+        >
+          <h1 className="section-heading mb-6 text-dark-950">Get In Touch</h1>
+          <p className="text-xl text-gray-700 max-w-2xl mx-auto">
+            Let's discuss your project and how I can help bring your ideas to life
+          </p>
+        </motion.div>
+
+        <div className="grid lg:grid-cols-[auto_minmax(0,1fr)] gap-4 lg:gap-4 items-center">
           <motion.div
+            initial={{ opacity: 0, x: -24 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+            className="flex justify-center lg:justify-start shrink-0"
+          >
+            <img
+              src="/images/portraits/numan-caricature-contact.png"
+              alt="Caricature of Numan Usman presenting the contact form"
+              className="w-[26rem] sm:w-[30rem] md:w-[34rem] lg:w-[38rem] h-auto max-w-full object-contain"
+            />
+          </motion.div>
+
+          <motion.div
+            className="w-full max-w-2xl mx-auto lg:mx-0 space-y-6"
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            transition={{ duration: 0.6 }}
+            transition={{ duration: 0.6, delay: 0.1 }}
           >
+            <div className="grid sm:grid-cols-3 gap-4">
+              {contactLinks.map((item) => {
+                const Icon = item.icon
+                const content = (
+                  <Card className="text-center h-full transition-shadow duration-300 hover:shadow-lg">
+                    <CardContent className="p-5">
+                      <Icon className="w-7 h-7 text-gold-500 mx-auto mb-2" aria-hidden="true" />
+                      <h2 className="text-base font-bold text-dark-950 mb-1 font-heading">{item.label}</h2>
+                      <p className="text-gray-600 text-sm break-words">{item.value}</p>
+                    </CardContent>
+                  </Card>
+                )
+
+                if (!item.href) {
+                  return <div key={item.label}>{content}</div>
+                }
+
+                return (
+                  <a key={item.label} href={item.href} className="block">
+                    {content}
+                  </a>
+                )
+              })}
+            </div>
+
             <Card className="border-0 shadow-xl">
-              <CardHeader>
-                <CardTitle className="text-2xl font-bold text-dark-950 flex items-center gap-2 font-heading">
-                  <MessageCircle className="text-gold-500" />
-                  Contact Me
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
+              <CardContent className="p-6 md:p-8">
                 <form onSubmit={handleSubmit} className="space-y-6" noValidate={false}>
                   <div className="grid md:grid-cols-2 gap-4">
                     <div>
@@ -114,22 +182,37 @@ const Contact: React.FC = () => {
                         className="w-full px-4 py-3 bg-white/90 border border-gray-200 rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-gold-500 transition-colors duration-200 placeholder:text-gray-500"
                       />
                     </div>
-                  </div>
-
-                  <div>
-                    <label htmlFor="contact-subject" className="block text-sm font-medium text-dark-950 mb-2">
-                      Subject
-                    </label>
-                    <input
-                      id="contact-subject"
-                      type="text"
-                      name="subject"
-                      placeholder="Subject"
-                      value={formData.subject}
-                      onChange={handleInputChange}
-                      required
-                      className="w-full px-4 py-3 bg-white/90 border border-gray-200 rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-gold-500 transition-colors duration-200 placeholder:text-gray-500"
-                    />
+                    <div>
+                      <label htmlFor="contact-phone" className="block text-sm font-medium text-dark-950 mb-2">
+                        Phone Number
+                      </label>
+                      <input
+                        id="contact-phone"
+                        type="tel"
+                        name="phone"
+                        placeholder="Phone Number"
+                        value={formData.phone}
+                        onChange={handleInputChange}
+                        required
+                        autoComplete="tel"
+                        className="w-full px-4 py-3 bg-white/90 border border-gray-200 rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-gold-500 transition-colors duration-200 placeholder:text-gray-500"
+                      />
+                    </div>
+                    <div>
+                      <label htmlFor="contact-subject" className="block text-sm font-medium text-dark-950 mb-2">
+                        Subject
+                      </label>
+                      <input
+                        id="contact-subject"
+                        type="text"
+                        name="subject"
+                        placeholder="Subject"
+                        value={formData.subject}
+                        onChange={handleInputChange}
+                        required
+                        className="w-full px-4 py-3 bg-white/90 border border-gray-200 rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-gold-500 transition-colors duration-200 placeholder:text-gray-500"
+                      />
+                    </div>
                   </div>
 
                   <div>

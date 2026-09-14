@@ -17,7 +17,7 @@ const WhatICanDo: React.FC = () => {
     <section id="what-i-can-do" className="py-24 bg-dark-950">
       <div className="container mx-auto px-4">
         <motion.h2
-          className="text-5xl md:text-6xl lg:text-7xl font-bold text-center text-white font-heading mb-16"
+          className="section-heading text-center text-white mb-16"
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
@@ -46,18 +46,27 @@ const WhatICanDo: React.FC = () => {
         </div>
 
         <motion.div
-          className="text-center mt-14"
-          initial={{ opacity: 0, y: 16 }}
+          className="text-center mt-16"
+          initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          transition={{ duration: 0.4, delay: 0.3 }}
+          transition={{ duration: 0.6, delay: 0.3 }}
         >
-          <Link
-            to="/contact"
-            className="inline-flex items-center rounded-full bg-gold-500 px-8 py-3 text-sm font-bold text-dark-950 hover:bg-gold-400 transition-colors duration-300"
-          >
-            Let's talk
-          </Link>
+          <div className="bg-gradient-to-br from-gold-500 to-gold-600 rounded-2xl p-8 text-white max-w-3xl mx-auto">
+            <h3 className="text-2xl md:text-3xl font-bold mb-4 font-heading">
+              Ready to Bring Your Ideas to Life?
+            </h3>
+            <p className="text-lg mb-6 opacity-90 max-w-2xl mx-auto">
+              Let's discuss your project and create a solution that exceeds your expectations.
+              I'm here to help you succeed.
+            </p>
+            <Link
+              to="/contact"
+              className="inline-block bg-white text-gold-600 px-8 py-3 rounded-full font-bold hover:bg-gray-100 transition-colors duration-300 font-heading"
+            >
+              Let's Talk About Your Project
+            </Link>
+          </div>
         </motion.div>
       </div>
     </section>
