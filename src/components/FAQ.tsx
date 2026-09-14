@@ -22,7 +22,7 @@ const FAQ: React.FC = () => {
     },
     {
       question: "What is your development process?",
-      answer: "My process includes: 1) Discovery & Planning, 2) Design & Prototyping, 3) Development & Testing, 4) Deployment, and 5) Support & Maintenance. I keep you involved at every step with regular updates and demos."
+      answer: "Every project follows three steps: 1) Discover & Plan — we align on the goal, constraints, and a clear plan; 2) Build & Test — I develop, test, and share progress as we go; 3) Launch & Support — we ship it, I walk you through it, and I stay available. You are never left guessing."
     },
     {
       question: "Do you work with existing systems?",
