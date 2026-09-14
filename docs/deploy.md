@@ -38,9 +38,13 @@ Vercel only lists Root Directory folders that already exist on the GitHub branch
 
 1. Push `admin/` (and the Desk docs) to GitHub. Do **not** commit `admin/.env.local`.
 2. In Vercel: **Add New Project** → same GitHub repo (`Nuestman/nusman-portfolio`). Do **not** change Root Directory on the existing Vite project.
-3. Framework: Next.js. **Root Directory:** `admin`.
-4. If the picker is empty, set the new project’s Git branch to `development` (or merge `admin/` into `main` if production watches `main`), then refresh.
-5. Environment variables (same names as `admin/.env.example`): `ADMIN_EMAIL`, `ADMIN_PASSWORD`, `AUTH_SECRET`, `DATABASE_URL`, `DATABASE_URL_UNPOOLED`.
-6. Domain: `desk.nusman.dev` on this new project only.
+3. **Root Directory:** `admin`. Framework preset: **Next.js**.
+4. In Build & Development Settings, leave overrides **off**. Do not set Output Directory to `dist` (that belongs to the public Vite app). Desk uses `admin/vercel.json` (`framework: nextjs`).
+5. If this project was created from the Vite import, it may still have Output Directory `dist`. Clear that override, set Framework to Next.js, and redeploy.
+6. If the picker is empty, set the new project’s Git branch to `development` (or merge `admin/` into `main` if production watches `main`), then refresh.
+7. Environment variables (same names as `admin/.env.example`): `ADMIN_EMAIL`, `ADMIN_PASSWORD`, `AUTH_SECRET`, `DATABASE_URL`, `DATABASE_URL_UNPOOLED`.
+8. Domain: `desk.nusman.dev` on this new project only.
+
+If you pointed the **existing** nusman.dev project at `admin/`, put it back: Root Directory empty, Framework Vite, Output Directory `dist`. Desk must be its own Vercel project.
 
 Local: `cd admin && npm run dev` → http://localhost:3000. Plan: [desk.md](./desk.md).
