@@ -39,9 +39,9 @@ const collaborations: Collaboration[] = [
 const LOOP_COPIES = 4
 
 const CollaborationCard: React.FC<{ collab: Collaboration }> = ({ collab }) => (
-  <div className="w-max shrink-0 rounded-2xl border border-white/10 bg-white/[0.06] px-5 py-4 text-center">
+  <div className="w-max shrink-0 rounded-2xl border border-gray-200 bg-white px-5 py-4 text-center">
     <div
-      className={`${collab.logoOnDark ? 'bg-dark-950' : 'bg-white'} mx-auto mb-3 flex h-16 w-40 items-center justify-center rounded-xl p-2`}
+      className={`${collab.logoOnDark ? 'bg-dark-950' : 'bg-gray-50'} mx-auto mb-3 flex h-16 w-40 items-center justify-center rounded-xl p-2`}
     >
       {collab.logo ? (
         <img
@@ -53,7 +53,7 @@ const CollaborationCard: React.FC<{ collab: Collaboration }> = ({ collab }) => (
         <span className="font-heading text-lg font-bold text-gold-600">{collab.initials}</span>
       )}
     </div>
-    <h3 className="whitespace-nowrap font-heading text-sm font-bold text-white md:text-base">
+    <h3 className="whitespace-nowrap font-heading text-sm font-bold text-dark-950 md:text-base">
       {collab.name}
     </h3>
   </div>
@@ -61,12 +61,12 @@ const CollaborationCard: React.FC<{ collab: Collaboration }> = ({ collab }) => (
 
 const Collaborations: React.FC = () => {
   return (
-    <section className="bg-dark-950 py-20" aria-labelledby="collaborations-heading">
+    <section className="bg-gray-100 py-20" aria-labelledby="collaborations-heading">
       <div className="container mx-auto px-4">
         <div className="mb-12 text-center">
           <motion.h2
             id="collaborations-heading"
-            className="section-heading text-white"
+            className="section-heading text-dark-950"
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}

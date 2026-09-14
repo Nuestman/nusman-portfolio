@@ -43,73 +43,6 @@ const MyProcess: React.FC = () => {
 
   return (
     <>
-      <section id="what-you-get" className="py-24 bg-dark-950">
-        <div className="container mx-auto px-4">
-          <motion.h2
-            className="section-heading text-center text-white mb-16"
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6 }}
-          >
-            What You Get
-          </motion.h2>
-
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 max-w-5xl mx-auto">
-            {firstRow.map((perk, index) => {
-              const Icon = perk.icon
-              return (
-                <motion.div
-                  key={perk.label}
-                  initial={{ opacity: 0, y: 24 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.4, delay: index * 0.05 }}
-                  className="rounded-2xl bg-white/[0.06] px-5 py-8 text-center"
-                >
-                  <Icon className="w-14 h-14 text-gold-400 mx-auto mb-4" aria-hidden="true" />
-                  <p className="text-white text-sm md:text-base leading-snug">{perk.label}</p>
-                </motion.div>
-              )
-            })}
-          </div>
-
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-4 max-w-3xl mx-auto mt-4">
-            {secondRow.map((perk, index) => {
-              const Icon = perk.icon
-              return (
-                <motion.div
-                  key={perk.label}
-                  initial={{ opacity: 0, y: 24 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.4, delay: 0.2 + index * 0.05 }}
-                  className="rounded-2xl bg-white/[0.06] px-5 py-8 text-center"
-                >
-                  <Icon className="w-14 h-14 text-gold-400 mx-auto mb-4" aria-hidden="true" />
-                  <p className="text-white text-sm md:text-base leading-snug">{perk.label}</p>
-                </motion.div>
-              )
-            })}
-          </div>
-
-          <motion.div
-            className="text-center mt-14"
-            initial={{ opacity: 0, y: 16 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.4, delay: 0.3 }}
-          >
-            <Link
-              to="/contact"
-              className="inline-flex items-center rounded-full bg-gold-500 px-8 py-3 text-sm font-bold text-dark-950 hover:bg-gold-400 transition-colors duration-300"
-            >
-              Let's talk
-            </Link>
-          </motion.div>
-        </div>
-      </section>
-
       <section id="how-i-work" className="py-24 bg-gray-50">
         <div className="container mx-auto px-4">
           <div className="max-w-5xl mx-auto">
@@ -181,6 +114,73 @@ const MyProcess: React.FC = () => {
               </ol>
             </motion.div>
           </div>
+        </div>
+      </section>
+
+      <section id="what-you-get" className="py-24 bg-dark-950">
+        <div className="container mx-auto px-4">
+          <motion.h2
+            className="section-heading text-center text-white mb-16"
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+          >
+            What You Get
+          </motion.h2>
+
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 max-w-5xl mx-auto">
+            {firstRow.map((perk, index) => {
+              const Icon = perk.icon
+              return (
+                <motion.div
+                  key={perk.label}
+                  initial={{ opacity: 0, y: 24 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.4, delay: index * 0.05 }}
+                  className="rounded-tl-[1.75rem] rounded-tr-md rounded-bl-md rounded-br-[1.75rem] bg-white/[0.06] px-5 py-8 text-center"
+                >
+                  <Icon className="w-14 h-14 text-gold-400 mx-auto mb-4" aria-hidden="true" />
+                  <p className="text-white text-sm md:text-base leading-snug">{perk.label}</p>
+                </motion.div>
+              )
+            })}
+          </div>
+
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-4 max-w-3xl mx-auto mt-4">
+            {secondRow.map((perk, index) => {
+              const Icon = perk.icon
+              return (
+                <motion.div
+                  key={perk.label}
+                  initial={{ opacity: 0, y: 24 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.4, delay: 0.2 + index * 0.05 }}
+                  className="rounded-tl-[1.75rem] rounded-tr-md rounded-bl-md rounded-br-[1.75rem] bg-white/[0.06] px-5 py-8 text-center"
+                >
+                  <Icon className="w-14 h-14 text-gold-400 mx-auto mb-4" aria-hidden="true" />
+                  <p className="text-white text-sm md:text-base leading-snug">{perk.label}</p>
+                </motion.div>
+              )
+            })}
+          </div>
+
+          <motion.div
+            className="text-center mt-14"
+            initial={{ opacity: 0, y: 16 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.4, delay: 0.3 }}
+          >
+            <Link
+              to="/contact"
+              className="inline-flex items-center rounded-full bg-gold-500 px-8 py-4 text-lg font-bold text-white font-heading hover:bg-gold-600 transition-colors duration-300"
+            >
+              Let's talk
+            </Link>
+          </motion.div>
         </div>
       </section>
     </>
