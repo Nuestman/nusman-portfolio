@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { getSessionEmail } from "@/lib/auth";
 import {
   countProjectsForClient,
@@ -7,16 +7,25 @@ import {
   listPeople,
   listProjectsForClient,
 } from "@/db/queries";
-import { DeskHeader } from "@/components/desk-header";
+import { DeskShell } from "@/components/desk-shell";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { buttonClassName } from "@/components/ui/button";
-import { ConfirmSubmit } from "@/components/confirm-submit";
+import { ConfirmDelete } from "@/components/confirm-submit";
+import {
+  EditLink,
+  TableActionsCell,
+  TableActionsHeader,
+} from "@/components/table-actions";
+import { QueryNotice } from "@/components/query-notice";
 import { isUuid } from "@/lib/ids";
-import { personRoleLabel } from "@/lib/labels";
-import { gateGuide } from "@/lib/gates";
+import { personRoleLabel, projectStatusLabel } from "@/lib/labels";
+import { dailyUserRecordedWhenNeeded, gateGuide } from "@/lib/gates";
+import { linkClassName } from "@/lib/links";
+import { tableClassName, tableFrameClassName } from "@/lib/tables";
 import { ClientForm } from "../client-form";
 import { PersonForm } from "../person-form";
 import { deleteClientAction, deletePersonAction } from "../actions";
+import { deleteProjectAction } from "@/app/projects/actions";
 
 export const dynamic = "force-dynamic";
 
@@ -38,6 +47,9 @@ export default async function ClientDetailPage({
   if (!client) {
     notFound();
   }
+  if (client.kind === "practice") {
+    redirect("/products");
+  }
 
   const [email, people, projectCount, clientProjects, query] = await Promise.all([
     getSessionEmail(),
@@ -48,20 +60,20 @@ export default async function ClientDetailPage({
   ]);
 
   const noticeRaw = Array.isArray(query.notice) ? query.notice[0] : query.notice;
-  const blockedByProjects = noticeRaw === "has-projects";
+  const blockedByProjects =
+    noticeRaw === "has-projects" || projectCount > 0;
+  const missingDailyUser = !dailyUserRecordedWhenNeeded(people);
 
   return (
-    <div className="min-h-full">
-      <DeskHeader email={email} />
-      <main className="mx-auto max-w-3xl px-4 py-10 space-y-8">
+    <DeskShell email={email} width="3xl">
         <div>
           <Link
             href="/clients"
-            className="text-sm text-dark-950 hover:text-gold-500"
+            className={linkClassName("back")}
           >
             ← Clients
           </Link>
-          <h1 className="mt-3 font-heading text-3xl text-dark-950 md:text-4xl">
+          <h1 className="mt-3 section-heading">
             {client.name}
           </h1>
           <p className="mt-2 text-gray-700">
@@ -69,6 +81,10 @@ export default async function ClientDetailPage({
             chat message.
           </p>
         </div>
+
+        {noticeRaw === "has-projects" ? (
+          <QueryNotice message="This client has a project. Finish or move that work before deleting the client." />
+        ) : null}
 
         <Card>
           <CardHeader>
@@ -92,95 +108,76 @@ export default async function ClientDetailPage({
 
         <Card>
           <CardHeader>
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <CardTitle>Projects</CardTitle>
-              <Link
-                href={`/projects/new?clientId=${client.id}`}
-                className={buttonClassName("outline", "sm")}
-              >
-                Add project
-              </Link>
-            </div>
-          </CardHeader>
-          <CardContent>
-            {clientProjects.length === 0 ? (
-              <p className="text-sm text-gray-600">
-                No projects yet. Open one after you know who is hiring.
-              </p>
-            ) : (
-              <ul className="space-y-3">
-                {clientProjects.map((item) => (
-                  <li key={item.id} className="flex items-center justify-between gap-3">
-                    <Link
-                      href={`/projects/${item.id}`}
-                      className="font-medium text-dark-950 hover:text-gold-500"
-                    >
-                      {item.title}
-                    </Link>
-                    <span className="text-sm text-gray-500">
-                      {gateGuide(item.currentGate).label}
-                    </span>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
             <CardTitle>People</CardTitle>
           </CardHeader>
           <CardContent className="space-y-8">
+            {missingDailyUser ? (
+              <p className="rounded-lg bg-amber-100 px-4 py-3 text-sm text-amber-950">
+                This client has more than one person and no daily user. You
+                cannot leave Discover until you add one.
+              </p>
+            ) : null}
             {people.length === 0 ? (
               <p className="text-sm text-gray-600">
                 No people yet. If the daily user is not the buyer, add both.
               </p>
             ) : (
-              <div className="overflow-hidden rounded-xl border border-gray-200">
-                <table className="w-full text-left text-sm">
+              <div className={tableFrameClassName}>
+                <table className={tableClassName}>
                   <thead className="bg-gray-50 text-gray-600">
                     <tr>
                       <th className="px-4 py-3 font-medium">Name</th>
                       <th className="px-4 py-3 font-medium">Role</th>
-                      <th className="px-4 py-3 font-medium">Decision</th>
-                      <th className="px-4 py-3 font-medium">
-                        <span className="sr-only">Actions</span>
+                      <th className="hidden px-4 py-3 font-medium sm:table-cell">
+                        Email
                       </th>
+                      <th className="hidden px-4 py-3 font-medium md:table-cell">
+                        Phone
+                      </th>
+                      <th className="px-4 py-3 font-medium">Decision</th>
+                      <TableActionsHeader />
                     </tr>
                   </thead>
                   <tbody>
                     {people.map((person) => (
                       <tr key={person.id} className="border-t border-gray-100">
-                        <td className="px-4 py-3 text-dark-950">{person.name}</td>
+                        <td className="px-4 py-3">
+                          <Link
+                            href={`/clients/${client.id}/people/${person.id}/edit`}
+                            className={linkClassName("table")}
+                          >
+                            {person.name}
+                          </Link>
+                        </td>
                         <td className="px-4 py-3 text-gray-700">
                           {personRoleLabel(person.role)}
+                        </td>
+                        <td className="hidden px-4 py-3 text-gray-700 sm:table-cell">
+                          {person.email ?? "—"}
+                        </td>
+                        <td className="hidden px-4 py-3 text-gray-700 md:table-cell">
+                          {person.phone ?? "—"}
                         </td>
                         <td className="px-4 py-3 text-gray-700">
                           {person.isDecisionMaker ? "Yes" : "—"}
                         </td>
-                        <td className="px-4 py-3 text-right">
-                          <div className="flex justify-end gap-3">
-                            <Link
-                              href={`/clients/${client.id}/people/${person.id}/edit`}
-                              className="text-sm text-dark-950 hover:text-gold-500"
-                            >
-                              Edit
-                            </Link>
-                            <form action={deletePersonAction}>
-                              <input type="hidden" name="id" value={person.id} />
-                              <input
-                                type="hidden"
-                                name="clientId"
-                                value={client.id}
-                              />
-                              <ConfirmSubmit
-                                label="Remove"
-                                message={`Remove ${person.name}?`}
-                              />
-                            </form>
-                          </div>
-                        </td>
+                        <TableActionsCell>
+                          <EditLink
+                            href={`/clients/${client.id}/people/${person.id}/edit`}
+                          />
+                          <form action={deletePersonAction}>
+                            <input type="hidden" name="id" value={person.id} />
+                            <input
+                              type="hidden"
+                              name="clientId"
+                              value={client.id}
+                            />
+                            <ConfirmDelete
+                              label="Remove"
+                              message={`Remove ${person.name}?`}
+                            />
+                          </form>
+                        </TableActionsCell>
                       </tr>
                     ))}
                   </tbody>
@@ -209,10 +206,80 @@ export default async function ClientDetailPage({
 
         <Card>
           <CardHeader>
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <CardTitle>Projects</CardTitle>
+              <Link
+                href={`/projects/new?clientId=${client.id}`}
+                className={buttonClassName("outline", "sm")}
+              >
+                Add project
+              </Link>
+            </div>
+          </CardHeader>
+          <CardContent>
+            {clientProjects.length === 0 ? (
+              <p className="text-sm text-gray-600">
+                No projects yet. Open one after you know who is hiring.
+              </p>
+            ) : (
+              <div className={tableFrameClassName}>
+                <table className={tableClassName}>
+                  <thead className="bg-gray-50 text-gray-600">
+                    <tr>
+                      <th className="px-4 py-3 font-medium">Project</th>
+                      <th className="px-4 py-3 font-medium">Gate</th>
+                      <th className="px-4 py-3 font-medium">Status</th>
+                      <TableActionsHeader />
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {clientProjects.map((item) => (
+                      <tr key={item.id} className="border-t border-gray-100">
+                        <td className="px-4 py-3">
+                          <Link
+                            href={`/projects/${item.id}`}
+                            className={linkClassName("table")}
+                          >
+                            {item.title}
+                          </Link>
+                        </td>
+                        <td className="px-4 py-3 text-gray-700">
+                          {gateGuide(item.currentGate).label}
+                        </td>
+                        <td className="px-4 py-3 text-gray-700">
+                          {projectStatusLabel(item.status)}
+                        </td>
+                        <TableActionsCell>
+                          <EditLink href={`/projects/${item.id}`} />
+                          <form action={deleteProjectAction}>
+                            <input type="hidden" name="id" value={item.id} />
+                            <input
+                              type="hidden"
+                              name="next"
+                              value={`/clients/${client.id}`}
+                            />
+                            <ConfirmDelete
+                              label="Remove"
+                              confirmValue={item.title}
+                              message={`Deletes “${item.title}” and everything on it. Type the title to confirm.`}
+                            />
+                          </form>
+                        </TableActionsCell>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
             <CardTitle>Remove client</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3 text-gray-700">
-            {projectCount > 0 || blockedByProjects ? (
+            {blockedByProjects ? (
               <p className="text-sm">
                 This client has a project. Finish or move that work before
                 deleting the client.
@@ -224,7 +291,7 @@ export default async function ClientDetailPage({
                 </p>
                 <form action={deleteClientAction}>
                   <input type="hidden" name="id" value={client.id} />
-                  <ConfirmSubmit
+                  <ConfirmDelete
                     label="Delete client"
                     size="default"
                     message={`Delete ${client.name} and their people?`}
@@ -234,7 +301,6 @@ export default async function ClientDetailPage({
             )}
           </CardContent>
         </Card>
-      </main>
-    </div>
+    </DeskShell>
   );
 }

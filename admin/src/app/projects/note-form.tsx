@@ -2,37 +2,51 @@
 
 import { useActionState } from "react";
 import { Button } from "@/components/ui/button";
-import { addNoteAction, type FormState } from "@/app/projects/actions";
+import {
+  addNoteAction,
+  updateNoteAction,
+  type FormState,
+} from "@/app/projects/actions";
+import { FormError } from "@/components/form-error";
 import { fieldClassName, labelClassName } from "@/lib/forms";
 
 const initialState: FormState = { error: null };
 
-export function NoteForm({ projectId }: { projectId: string }) {
-  const [state, action, pending] = useActionState(addNoteAction, initialState);
+export function NoteForm({
+  projectId,
+  note,
+  submitLabel = "Add note",
+}: {
+  projectId: string;
+  note?: { id: string; body: string };
+  submitLabel?: string;
+}) {
+  const action = note ? updateNoteAction : addNoteAction;
+  const [state, formAction, pending] = useActionState(action, initialState);
+
+  const bodyId = note ? "edit-note-body" : "note-body";
 
   return (
-    <form action={action} className="space-y-4">
+    <form action={formAction} className="space-y-4">
       <input type="hidden" name="projectId" value={projectId} />
+      {note ? <input type="hidden" name="id" value={note.id} /> : null}
       <div>
-        <label htmlFor="body" className={labelClassName}>
-          New note
+        <label htmlFor={bodyId} className={labelClassName}>
+          {note ? "Note" : "New note"}
         </label>
         <textarea
-          id="body"
+          id={bodyId}
           name="body"
           required
           rows={4}
+          defaultValue={note?.body ?? ""}
           className={fieldClassName}
           placeholder="Call, WhatsApp decision, scope change…"
         />
       </div>
-      {state.error ? (
-        <p className="rounded-lg bg-red-100 px-4 py-3 text-sm text-red-700" role="alert">
-          {state.error}
-        </p>
-      ) : null}
+      <FormError>{state.error}</FormError>
       <Button type="submit" disabled={pending}>
-        {pending ? "Saving…" : "Add note"}
+        {pending ? "Saving…" : submitLabel}
       </Button>
     </form>
   );

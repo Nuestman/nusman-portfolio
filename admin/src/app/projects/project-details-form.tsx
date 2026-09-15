@@ -5,6 +5,7 @@ import { PROJECT_STATUSES } from "@/db/schema";
 import type { ProjectStatus } from "@/db/schema";
 import { Button } from "@/components/ui/button";
 import { updateProjectAction, type FormState } from "@/app/projects/actions";
+import { FormError } from "@/components/form-error";
 import { fieldClassName, labelClassName } from "@/lib/forms";
 import { projectStatusLabel } from "@/lib/labels";
 
@@ -12,6 +13,7 @@ const initialState: FormState = { error: null };
 
 export function ProjectDetailsForm({
   project,
+  problemHint,
 }: {
   project: {
     id: string;
@@ -22,6 +24,7 @@ export function ProjectDetailsForm({
     deadlineNote: string;
     status: ProjectStatus;
   };
+  problemHint?: string;
 }) {
   const [state, action, pending] = useActionState(
     updateProjectAction,
@@ -32,11 +35,11 @@ export function ProjectDetailsForm({
     <form action={action} className="space-y-5">
       <input type="hidden" name="id" value={project.id} />
       <div>
-        <label htmlFor="title" className={labelClassName}>
+        <label htmlFor="project-title" className={labelClassName}>
           Title
         </label>
         <input
-          id="title"
+          id="project-title"
           name="title"
           required
           defaultValue={project.title}
@@ -44,23 +47,26 @@ export function ProjectDetailsForm({
         />
       </div>
       <div>
-        <label htmlFor="problemSentence" className={labelClassName}>
+        <label htmlFor="project-problemSentence" className={labelClassName}>
           Problem sentence
         </label>
         <textarea
-          id="problemSentence"
+          id="project-problemSentence"
           name="problemSentence"
           rows={3}
           defaultValue={project.problemSentence}
           className={fieldClassName}
         />
+        {problemHint ? (
+          <p className="mt-2 text-sm text-gray-500">{problemHint}</p>
+        ) : null}
       </div>
       <div>
-        <label htmlFor="successLooksLike" className={labelClassName}>
+        <label htmlFor="project-successLooksLike" className={labelClassName}>
           Success looks like
         </label>
         <textarea
-          id="successLooksLike"
+          id="project-successLooksLike"
           name="successLooksLike"
           rows={3}
           defaultValue={project.successLooksLike}
@@ -69,22 +75,22 @@ export function ProjectDetailsForm({
       </div>
       <div className="grid gap-5 sm:grid-cols-2">
         <div>
-          <label htmlFor="budgetNote" className={labelClassName}>
+          <label htmlFor="project-budgetNote" className={labelClassName}>
             Budget note
           </label>
           <input
-            id="budgetNote"
+            id="project-budgetNote"
             name="budgetNote"
             defaultValue={project.budgetNote}
             className={fieldClassName}
           />
         </div>
         <div>
-          <label htmlFor="deadlineNote" className={labelClassName}>
+          <label htmlFor="project-deadlineNote" className={labelClassName}>
             Deadline note
           </label>
           <input
-            id="deadlineNote"
+            id="project-deadlineNote"
             name="deadlineNote"
             defaultValue={project.deadlineNote}
             className={fieldClassName}
@@ -92,11 +98,11 @@ export function ProjectDetailsForm({
         </div>
       </div>
       <div>
-        <label htmlFor="status" className={labelClassName}>
+        <label htmlFor="project-status" className={labelClassName}>
           Status
         </label>
         <select
-          id="status"
+          id="project-status"
           name="status"
           defaultValue={project.status}
           className={fieldClassName}
@@ -108,11 +114,7 @@ export function ProjectDetailsForm({
           ))}
         </select>
       </div>
-      {state.error ? (
-        <p className="rounded-lg bg-red-100 px-4 py-3 text-sm text-red-700" role="alert">
-          {state.error}
-        </p>
-      ) : null}
+      <FormError>{state.error}</FormError>
       <Button type="submit" disabled={pending}>
         {pending ? "Saving…" : "Save project"}
       </Button>

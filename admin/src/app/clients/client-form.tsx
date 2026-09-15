@@ -10,6 +10,7 @@ import {
   type FormState,
 } from "@/app/clients/actions";
 import { clientSourceLabel } from "@/lib/labels";
+import { FormError } from "@/components/form-error";
 import { fieldClassName, labelClassName } from "@/lib/forms";
 
 const initialState: FormState = { error: null };
@@ -45,6 +46,7 @@ export function ClientForm({
           id="name"
           name="name"
           required
+          autoComplete="name"
           defaultValue={client?.name ?? ""}
           className={fieldClassName}
         />
@@ -56,6 +58,7 @@ export function ClientForm({
         <input
           id="organisation"
           name="organisation"
+          autoComplete="organization"
           defaultValue={client?.organisation ?? ""}
           className={fieldClassName}
         />
@@ -69,6 +72,7 @@ export function ClientForm({
             id="email"
             name="email"
             type="email"
+            autoComplete="email"
             defaultValue={client?.email ?? ""}
             className={fieldClassName}
           />
@@ -80,6 +84,8 @@ export function ClientForm({
           <input
             id="phone"
             name="phone"
+            type="tel"
+            autoComplete="tel"
             defaultValue={client?.phone ?? ""}
             className={fieldClassName}
           />
@@ -115,11 +121,7 @@ export function ClientForm({
           className={fieldClassName}
         />
       </div>
-      {state.error ? (
-        <p className="rounded-lg bg-red-100 px-4 py-3 text-sm text-red-700" role="alert">
-          {state.error}
-        </p>
-      ) : null}
+      <FormError>{state.error}</FormError>
       <Button type="submit" disabled={pending}>
         {pending ? "Saving…" : submitLabel}
       </Button>

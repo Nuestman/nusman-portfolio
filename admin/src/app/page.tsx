@@ -1,18 +1,31 @@
 import Link from "next/link";
 import { getSessionEmail } from "@/lib/auth";
-import { databaseConfigured } from "@/db";
+import { loadFromDb } from "@/db";
 import {
   countClients,
   countProjects,
   getOperator,
   listActiveProjects,
+  listActivities,
 } from "@/db/queries";
 import { buttonClassName } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { DeskHeader } from "@/components/desk-header";
+import { DatabaseNotice } from "@/components/database-notice";
+import { DeskShell } from "@/components/desk-shell";
+import { ConfirmDelete } from "@/components/confirm-submit";
+import {
+  EditLink,
+  TableActionsCell,
+  TableActionsHeader,
+} from "@/components/table-actions";
 import { gateGuide } from "@/lib/gates";
+import { linkClassName } from "@/lib/links";
+import { tableClassName, tableFrameClassName } from "@/lib/tables";
 import { deskCopyTemplates } from "@/lib/templates";
 import { CopyTemplates } from "@/app/projects/copy-templates";
+import { deleteProjectAction } from "@/app/projects/actions";
+import { ActivityForm } from "@/app/log/activity-form";
+import { ActivityList } from "@/app/log/activity-list";
 
 export const dynamic = "force-dynamic";
 
@@ -31,40 +44,24 @@ const PROCESS_STEPS = [
   },
 ] as const;
 
-type DeskStats =
-  | { kind: "missing" }
-  | {
-      kind: "ok";
-      projectCount: number;
-      clientCount: number;
-      operatorName: string | null;
-      active: Awaited<ReturnType<typeof listActiveProjects>>;
-    }
-  | { kind: "error" };
-
-async function loadDeskStats(): Promise<DeskStats> {
-  if (!databaseConfigured()) {
-    return { kind: "missing" };
-  }
-
-  try {
-    const [projectCount, clientCount, operator, active] = await Promise.all([
-      countProjects(),
-      countClients(),
-      getOperator(),
-      listActiveProjects(),
-    ]);
+async function loadDeskStats() {
+  return loadFromDb(async () => {
+    const [projectCount, clientCount, operator, active, recentLog] =
+      await Promise.all([
+        countProjects(),
+        countClients(),
+        getOperator(),
+        listActiveProjects(),
+        listActivities(5),
+      ]);
     return {
-      kind: "ok",
       projectCount,
       clientCount,
       operatorName: operator?.name ?? null,
       active,
+      recentLog,
     };
-  } catch (error) {
-    console.error("Desk database query failed", error);
-    return { kind: "error" };
-  }
+  });
 }
 
 export default async function HomePage() {
@@ -72,11 +69,9 @@ export default async function HomePage() {
   const stats = await loadDeskStats();
 
   return (
-    <div className="min-h-full">
-      <DeskHeader email={email} />
-      <main className="mx-auto max-w-6xl px-4 py-10 space-y-8">
+    <DeskShell email={email}>
         <div>
-          <h1 className="font-heading text-3xl text-dark-950 md:text-4xl">Today</h1>
+          <h1 className="section-heading">Today</h1>
           <p className="mt-2 max-w-2xl text-gray-700">
             Active work and the current gate. Nothing starts from a chat message.
           </p>
@@ -101,41 +96,82 @@ export default async function HomePage() {
           </div>
         </div>
 
-        {stats.kind === "ok" && stats.active.length > 0 ? (
-          <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
-            <table className="w-full text-left text-sm">
+        {stats.kind === "ok" && stats.data.active.length > 0 ? (
+          <div className={tableFrameClassName}>
+            <table className={tableClassName}>
               <thead className="bg-gray-50 text-gray-600">
                 <tr>
                   <th className="px-4 py-3 font-medium">Active project</th>
                   <th className="px-4 py-3 font-medium">Client</th>
                   <th className="px-4 py-3 font-medium">Gate</th>
                   <th className="px-4 py-3 font-medium">This gate</th>
+                  <TableActionsHeader />
                 </tr>
               </thead>
               <tbody>
-                {stats.active.map((project) => {
+                {stats.data.active.map((project) => {
                   const guide = gateGuide(project.currentGate);
                   return (
                     <tr key={project.id} className="border-t border-gray-100">
                       <td className="px-4 py-3">
                         <Link
                           href={`/projects/${project.id}`}
-                          className="font-medium text-dark-950 hover:text-gold-500"
+                          className={linkClassName("table")}
                         >
                           {project.title}
                         </Link>
                       </td>
                       <td className="px-4 py-3 text-gray-700">
-                        {project.clientName}
+                        <Link
+                          href={`/clients/${project.clientId}`}
+                          className={linkClassName("table")}
+                        >
+                          {project.clientName}
+                        </Link>
                       </td>
                       <td className="px-4 py-3 text-gray-700">{guide.label}</td>
                       <td className="px-4 py-3 text-gray-600">{guide.youDo}</td>
+                      <TableActionsCell>
+                        <EditLink href={`/projects/${project.id}`} />
+                        <form action={deleteProjectAction}>
+                          <input type="hidden" name="id" value={project.id} />
+                          <input type="hidden" name="next" value="/" />
+                          <ConfirmDelete
+                            label="Remove"
+                            confirmValue={project.title}
+                            message={`Deletes “${project.title}” and everything on it. Type the title to confirm.`}
+                          />
+                        </form>
+                      </TableActionsCell>
                     </tr>
                   );
                 })}
               </tbody>
             </table>
           </div>
+        ) : null}
+
+        {stats.kind === "ok" ? (
+          <Card>
+            <CardHeader>
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <CardTitle>Journal</CardTitle>
+                <Link
+                  href="/log"
+                  className={linkClassName("back")}
+                >
+                  Open journal
+                </Link>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <p className="text-sm text-gray-600">
+                Personal work that is not a client job.
+              </p>
+              <ActivityForm next="/" />
+              <ActivityList entries={stats.data.recentLog} next="/" />
+            </CardContent>
+          </Card>
         ) : null}
 
         <Card>
@@ -150,58 +186,48 @@ export default async function HomePage() {
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Desk</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-2 text-gray-700">
-            {stats.kind === "missing" ? (
-              <>
-                <p>Neon is not linked in this environment yet.</p>
-                <p className="text-sm text-gray-500">
-                  Set DATABASE_URL for this environment, then apply migrations.
-                </p>
-              </>
-            ) : null}
-            {stats.kind === "error" ? (
-              <>
-                <p>Could not read the database.</p>
-                <p className="text-sm text-gray-500">
-                  Check DATABASE_URL and that the first migration has been applied.
-                </p>
-              </>
-            ) : null}
-            {stats.kind === "ok" ? (
-              <>
-                <p>
-                  {stats.clientCount} client{stats.clientCount === 1 ? "" : "s"},{" "}
-                  {stats.projectCount} project
-                  {stats.projectCount === 1 ? "" : "s"}.
-                </p>
-                <p className="text-sm text-gray-500">
-                  {stats.operatorName
-                    ? `Operator: ${stats.operatorName}.`
-                    : "Database connected. Seed the operator next."}
-                </p>
-                <div className="flex flex-wrap gap-3 pt-2">
-                  {stats.clientCount === 0 ? (
-                    <Link href="/clients/new" className={buttonClassName()}>
-                      Add client
-                    </Link>
-                  ) : (
-                    <Link href="/projects/new" className={buttonClassName()}>
-                      Add project
-                    </Link>
-                  )}
-                  <Link href="/projects" className={buttonClassName("outline")}>
-                    Open projects
+        {stats.kind === "missing" || stats.kind === "error" ? (
+          <DatabaseNotice kind={stats.kind} />
+        ) : (
+          <Card>
+            <CardHeader>
+              <CardTitle>Desk</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-2 text-gray-700">
+              <p>
+                {stats.data.clientCount} client
+                {stats.data.clientCount === 1 ? "" : "s"},{" "}
+                {stats.data.projectCount} project
+                {stats.data.projectCount === 1 ? "" : "s"}.
+              </p>
+              <p className="text-sm text-gray-500">
+                {stats.data.operatorName
+                  ? `Operator: ${stats.data.operatorName}.`
+                  : "Database connected. Seed the operator next."}
+              </p>
+              <div className="flex flex-wrap gap-3 pt-2">
+                {stats.data.clientCount === 0 ? (
+                  <Link href="/clients/new" className={buttonClassName()}>
+                    Add client
                   </Link>
-                </div>
-              </>
-            ) : null}
-          </CardContent>
-        </Card>
-      </main>
-    </div>
+                ) : (
+                  <Link href="/projects/new" className={buttonClassName()}>
+                    Add project
+                  </Link>
+                )}
+                <Link href="/projects" className={buttonClassName("outline")}>
+                  Open projects
+                </Link>
+                <Link href="/products" className={buttonClassName("outline")}>
+                  Products
+                </Link>
+                <Link href="/export" className={buttonClassName("outline")}>
+                  Export
+                </Link>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+    </DeskShell>
   );
 }

@@ -3,11 +3,18 @@ import { SignJWT, jwtVerify } from "jose";
 import { cookies } from "next/headers";
 
 export const SESSION_COOKIE = "desk_session";
-const SESSION_DAYS = 14;
+export const SESSION_DAYS = 14;
+const SECRET_MIN_LENGTH = 16;
+
+export type SessionPayload = {
+  email: string;
+  userId: string | null;
+  sessionId: string | null;
+};
 
 function getSecret() {
   const secret = process.env.AUTH_SECRET;
-  if (!secret) {
+  if (!secret || secret.length < SECRET_MIN_LENGTH) {
     throw new Error("AUTH_SECRET is not set");
   }
   return new TextEncoder().encode(secret);
@@ -21,11 +28,25 @@ export function getAdminCredentials() {
 
 export function credentialsConfigured() {
   const { email, password } = getAdminCredentials();
-  return Boolean(email && password && process.env.AUTH_SECRET);
+  const secret = process.env.AUTH_SECRET ?? "";
+  return Boolean(email && password && secret.length >= SECRET_MIN_LENGTH);
 }
 
-export async function createSession(email: string) {
-  const token = await new SignJWT({ email })
+export function authSecretConfigured() {
+  const secret = process.env.AUTH_SECRET ?? "";
+  return secret.length >= SECRET_MIN_LENGTH;
+}
+
+export async function createSessionCookie(payload: {
+  email: string;
+  userId: string;
+  sessionId: string;
+}) {
+  const token = await new SignJWT({
+    email: payload.email,
+    uid: payload.userId,
+    sid: payload.sessionId,
+  })
     .setProtectedHeader({ alg: "HS256" })
     .setIssuedAt()
     .setExpirationTime(`${SESSION_DAYS}d`)
@@ -46,23 +67,37 @@ export async function clearSession() {
   jar.delete(SESSION_COOKIE);
 }
 
-export async function readSessionToken(token: string | undefined) {
-  if (!token || !process.env.AUTH_SECRET) {
+export async function readSessionToken(
+  token: string | undefined,
+): Promise<SessionPayload | null> {
+  if (!token || !authSecretConfigured()) {
     return null;
   }
 
   try {
     const { payload } = await jwtVerify(token, getSecret());
     const email = typeof payload.email === "string" ? payload.email : null;
-    return email;
+    if (!email) {
+      return null;
+    }
+    return {
+      email,
+      userId: typeof payload.uid === "string" ? payload.uid : null,
+      sessionId: typeof payload.sid === "string" ? payload.sid : null,
+    };
   } catch {
     return null;
   }
 }
 
-export async function getSessionEmail() {
+export async function getSessionPayload() {
   const jar = await cookies();
   return readSessionToken(jar.get(SESSION_COOKIE)?.value);
+}
+
+export async function getSessionEmail() {
+  const session = await getSessionPayload();
+  return session?.email ?? null;
 }
 
 export function passwordsMatch(given: string, expected: string) {

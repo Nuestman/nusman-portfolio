@@ -1,15 +1,24 @@
 import Link from "next/link";
 import { getSessionEmail } from "@/lib/auth";
-import { databaseConfigured } from "@/db";
+import { loadFromDb } from "@/db";
 import { listProjects } from "@/db/queries";
-import { DeskHeader } from "@/components/desk-header";
+import { DatabaseNotice } from "@/components/database-notice";
+import { DeskShell } from "@/components/desk-shell";
+import { ConfirmDelete } from "@/components/confirm-submit";
+import {
+  EditLink,
+  TableActionsCell,
+  TableActionsHeader,
+} from "@/components/table-actions";
 import { Card, CardContent } from "@/components/ui/card";
 import { buttonClassName } from "@/components/ui/button";
 import { GATE_GUIDES, gateGuide, isProjectGate } from "@/lib/gates";
 import { isProjectStatus, projectStatusLabel } from "@/lib/labels";
 import { PROJECT_STATUSES } from "@/db/schema";
-import { cn } from "@/lib/utils";
+import { linkClassName } from "@/lib/links";
+import { tableClassName, tableFrameClassName } from "@/lib/tables";
 import type { ProjectGate, ProjectStatus } from "@/db/schema";
+import { deleteProjectAction } from "./actions";
 
 export const dynamic = "force-dynamic";
 
@@ -30,17 +39,7 @@ export default async function ProjectsPage({ searchParams }: ProjectsPageProps) 
   const status =
     statusRaw && isProjectStatus(statusRaw) ? statusRaw : undefined;
 
-  const ready = databaseConfigured();
-  let rows: Awaited<ReturnType<typeof listProjects>> = [];
-  let loadError = false;
-  if (ready) {
-    try {
-      rows = await listProjects({ gate, status });
-    } catch (error) {
-      console.error("Desk project list failed", error);
-      loadError = true;
-    }
-  }
+  const loaded = await loadFromDb(() => listProjects({ gate, status }));
 
   function hrefFor(patch: {
     gate?: ProjectGate | null;
@@ -60,12 +59,10 @@ export default async function ProjectsPage({ searchParams }: ProjectsPageProps) 
   }
 
   return (
-    <div className="min-h-full">
-      <DeskHeader email={email} />
-      <main className="mx-auto max-w-6xl px-4 py-10 space-y-8">
+    <DeskShell email={email}>
         <div className="flex flex-wrap items-end justify-between gap-4">
           <div>
-            <h1 className="font-heading text-3xl text-dark-950 md:text-4xl">
+            <h1 className="section-heading">
               Projects
             </h1>
             <p className="mt-2 max-w-2xl text-gray-700">
@@ -80,12 +77,7 @@ export default async function ProjectsPage({ searchParams }: ProjectsPageProps) 
         <div className="flex flex-wrap gap-2">
           <Link
             href={hrefFor({ gate: null })}
-            className={cn(
-              "rounded-full border px-3 py-1.5 text-sm",
-              !gate
-                ? "border-gold-500 bg-gold-500 text-white"
-                : "border-gray-200 bg-white text-dark-950 hover:border-gold-500",
-            )}
+            className={linkClassName(gate ? "chip" : "chipActive")}
           >
             All gates
           </Link>
@@ -93,11 +85,8 @@ export default async function ProjectsPage({ searchParams }: ProjectsPageProps) 
             <Link
               key={item.id}
               href={hrefFor({ gate: item.id })}
-              className={cn(
-                "rounded-full border px-3 py-1.5 text-sm",
-                gate === item.id
-                  ? "border-gold-500 bg-gold-500 text-white"
-                  : "border-gray-200 bg-white text-dark-950 hover:border-gold-500",
+              className={linkClassName(
+                gate === item.id ? "chipActive" : "chip",
               )}
             >
               {item.label}
@@ -107,12 +96,7 @@ export default async function ProjectsPage({ searchParams }: ProjectsPageProps) 
         <div className="flex flex-wrap gap-2">
           <Link
             href={hrefFor({ status: null })}
-            className={cn(
-              "rounded-full border px-3 py-1.5 text-sm",
-              !status
-                ? "border-gold-500 bg-gold-500 text-white"
-                : "border-gray-200 bg-white text-dark-950 hover:border-gold-500",
-            )}
+            className={linkClassName(status ? "chip" : "chipActive")}
           >
             All statuses
           </Link>
@@ -120,11 +104,8 @@ export default async function ProjectsPage({ searchParams }: ProjectsPageProps) 
             <Link
               key={item}
               href={hrefFor({ status: item })}
-              className={cn(
-                "rounded-full border px-3 py-1.5 text-sm",
-                status === item
-                  ? "border-gold-500 bg-gold-500 text-white"
-                  : "border-gray-200 bg-white text-dark-950 hover:border-gold-500",
+              className={linkClassName(
+                status === item ? "chipActive" : "chip",
               )}
             >
               {projectStatusLabel(item)}
@@ -132,19 +113,9 @@ export default async function ProjectsPage({ searchParams }: ProjectsPageProps) 
           ))}
         </div>
 
-        {!ready ? (
-          <Card>
-            <CardContent className="pt-6 text-gray-700">
-              Neon is not linked in this environment yet.
-            </CardContent>
-          </Card>
-        ) : loadError ? (
-          <Card>
-            <CardContent className="pt-6 text-gray-700">
-              Could not read projects. Check DATABASE_URL.
-            </CardContent>
-          </Card>
-        ) : rows.length === 0 ? (
+        {loaded.kind === "missing" || loaded.kind === "error" ? (
+          <DatabaseNotice kind={loaded.kind} noun="projects" />
+        ) : loaded.data.length === 0 ? (
           <Card>
             <CardContent className="pt-6 space-y-4 text-gray-700">
               <p>No projects in this filter. Add one after the client exists.</p>
@@ -154,23 +125,24 @@ export default async function ProjectsPage({ searchParams }: ProjectsPageProps) 
             </CardContent>
           </Card>
         ) : (
-          <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
-            <table className="w-full text-left text-sm">
+          <div className={tableFrameClassName}>
+            <table className={tableClassName}>
               <thead className="bg-gray-50 text-gray-600">
                 <tr>
                   <th className="px-4 py-3 font-medium">Project</th>
                   <th className="px-4 py-3 font-medium">Client</th>
                   <th className="px-4 py-3 font-medium">Gate</th>
                   <th className="px-4 py-3 font-medium">Status</th>
+                  <TableActionsHeader />
                 </tr>
               </thead>
               <tbody>
-                {rows.map((project) => (
+                {loaded.data.map((project) => (
                   <tr key={project.id} className="border-t border-gray-100">
                     <td className="px-4 py-3">
                       <Link
                         href={`/projects/${project.id}`}
-                        className="font-medium text-dark-950 hover:text-gold-500"
+                        className={linkClassName("table")}
                       >
                         {project.title}
                       </Link>
@@ -178,7 +150,7 @@ export default async function ProjectsPage({ searchParams }: ProjectsPageProps) 
                     <td className="px-4 py-3 text-gray-700">
                       <Link
                         href={`/clients/${project.clientId}`}
-                        className="hover:text-gold-500"
+                        className={linkClassName("table")}
                       >
                         {project.clientName}
                       </Link>
@@ -189,13 +161,24 @@ export default async function ProjectsPage({ searchParams }: ProjectsPageProps) 
                     <td className="px-4 py-3 text-gray-700">
                       {projectStatusLabel(project.status)}
                     </td>
+                    <TableActionsCell>
+                      <EditLink href={`/projects/${project.id}`} />
+                      <form action={deleteProjectAction}>
+                        <input type="hidden" name="id" value={project.id} />
+                        <input type="hidden" name="next" value="/projects" />
+                        <ConfirmDelete
+                          label="Remove"
+                          confirmValue={project.title}
+                          message={`Deletes “${project.title}” and everything on it. Type the title to confirm.`}
+                        />
+                      </form>
+                    </TableActionsCell>
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
         )}
-      </main>
-    </div>
+    </DeskShell>
   );
 }

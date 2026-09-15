@@ -1,15 +1,44 @@
 {
-  "name": "admin",
-  "version": "0.1.0",
+  "name": "nusman-desk",
+  "version": "1.0.0",
   "private": true,
+  "description": "Desk — private workbench for the nusman.dev practice: clients, hiring jobs, journal, audit, and operators.",
+  "author": {
+    "name": "Numan Usman",
+    "email": "nuestman@icloud.com",
+    "url": "https://nusman.dev"
+  },
+  "license": "MIT",
+  "homepage": "https://desk.nusman.dev",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Nuestman/nusman-portfolio.git",
+    "directory": "admin"
+  },
+  "bugs": {
+    "url": "https://github.com/Nuestman/nusman-portfolio/issues"
+  },
+  "keywords": [
+    "desk",
+    "workbench",
+    "nextjs",
+    "typescript",
+    "drizzle",
+    "neon",
+    "tailwindcss",
+    "nusman",
+    "ghana"
+  ],
   "engines": {
-    "node": ">=20.9.0"
+    "node": "^20.19.0 || >=22.12.0",
+    "npm": ">=10"
   },
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
+    "typecheck": "tsc --noEmit",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "db:seed": "tsx src/db/seed.ts"

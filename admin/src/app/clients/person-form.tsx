@@ -10,6 +10,7 @@ import {
   type FormState,
 } from "@/app/clients/actions";
 import { personRoleLabel } from "@/lib/labels";
+import { FormError } from "@/components/form-error";
 import { fieldClassName, labelClassName } from "@/lib/forms";
 
 const initialState: FormState = { error: null };
@@ -47,6 +48,7 @@ export function PersonForm({
           id="person-name"
           name="name"
           required
+          autoComplete="name"
           defaultValue={person.name}
           className={fieldClassName}
         />
@@ -79,6 +81,7 @@ export function PersonForm({
             id="person-email"
             name="email"
             type="email"
+            autoComplete="email"
             defaultValue={person.email}
             className={fieldClassName}
           />
@@ -90,6 +93,8 @@ export function PersonForm({
           <input
             id="person-phone"
             name="phone"
+            type="tel"
+            autoComplete="tel"
             defaultValue={person.phone}
             className={fieldClassName}
           />
@@ -116,11 +121,7 @@ export function PersonForm({
           className={fieldClassName}
         />
       </div>
-      {state.error ? (
-        <p className="rounded-lg bg-red-100 px-4 py-3 text-sm text-red-700" role="alert">
-          {state.error}
-        </p>
-      ) : null}
+      <FormError>{state.error}</FormError>
       <Button type="submit" disabled={pending}>
         {pending ? "Saving…" : submitLabel}
       </Button>

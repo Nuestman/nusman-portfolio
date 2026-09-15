@@ -4,14 +4,21 @@ export function safeInternalPath(value: string | undefined | null): string {
     return "/";
   }
 
+  const trimmed = value.trim();
   if (
-    !value.startsWith("/") ||
-    value.startsWith("//") ||
-    value.includes("\\") ||
-    value.includes("://")
+    !trimmed.startsWith("/") ||
+    trimmed.startsWith("//") ||
+    trimmed.includes("\\") ||
+    trimmed.includes("://") ||
+    trimmed.includes("\0")
   ) {
     return "/";
   }
 
-  return value;
+  const pathOnly = trimmed.split("?")[0] ?? "/";
+  if (pathOnly === "/login" || pathOnly.startsWith("/login/")) {
+    return "/";
+  }
+
+  return trimmed;
 }

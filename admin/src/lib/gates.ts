@@ -2,6 +2,9 @@ import {
   PROJECT_GATES,
   type PersonRole,
   type ProjectGate,
+  type ProjectStatus,
+  type QualifyOutcome,
+  type WorkKind,
 } from "@/db/schema";
 
 export type GateGuide = {
@@ -99,7 +102,23 @@ export function dailyUserRecordedWhenNeeded(
   return true;
 }
 
-export type GateMoveBlock = "skip" | "agree" | "user";
+export const GATE_MOVE_BLOCKS = [
+  "skip",
+  "agree",
+  "user",
+  "problem",
+  "option",
+  "status",
+  "qualify",
+  "intake",
+  "deposit",
+] as const;
+
+export type GateMoveBlock = (typeof GATE_MOVE_BLOCKS)[number];
+
+export function gatesLocked(status: ProjectStatus): boolean {
+  return status === "won" || status === "lost" || status === "done";
+}
 
 export function gateMoveBlockMessage(code: GateMoveBlock): string {
   switch (code) {
@@ -109,6 +128,18 @@ export function gateMoveBlockMessage(code: GateMoveBlock): string {
       return "Build is not allowed until agree.";
     case "user":
       return "If the daily user is not the buyer, add a daily-user person before leaving Discover.";
+    case "problem":
+      return "Write the problem sentence before leaving Discover.";
+    case "option":
+      return "Choose a package before leaving Propose.";
+    case "status":
+      return "Won, lost, and done projects stay on their gate. Change status first.";
+    case "qualify":
+      return "Record the qualify outcome as a real project before you leave Qualify.";
+    case "intake":
+      return "Write the Problem and Success answers before you leave Intake.";
+    case "deposit":
+      return "Deposit and written confirm before you leave Agree.";
     default: {
       const _exhaustive: never = code;
       return _exhaustive;
@@ -117,22 +148,35 @@ export function gateMoveBlockMessage(code: GateMoveBlock): string {
 }
 
 export function isGateMoveBlock(value: string): value is GateMoveBlock {
-  return value === "skip" || value === "agree" || value === "user";
+  return (GATE_MOVE_BLOCKS as readonly string[]).includes(value);
 }
 
 export function gateMoveBlock(args: {
   from: ProjectGate;
   to: ProjectGate;
   people: Array<{ role: PersonRole }>;
+  problemSentence?: string | null;
+  status?: ProjectStatus;
+  workKind?: WorkKind;
+  hasSelectedOption?: boolean;
+  qualifyOutcome?: QualifyOutcome | null;
+  intakeProblemAnswer?: string | null;
+  intakeSuccessAnswer?: string | null;
+  depositPaid?: boolean;
+  agreementConfirmed?: boolean;
 }): GateMoveBlock | null {
   const { from, to, people } = args;
   if (from === to) {
     return null;
   }
 
+  if (args.status && gatesLocked(args.status)) {
+    return "status";
+  }
+
   const fromI = gateIndex(from);
   const toI = gateIndex(to);
-  if (toI > fromI + 1) {
+  if (Math.abs(toI - fromI) > 1) {
     return "skip";
   }
 
@@ -141,9 +185,43 @@ export function gateMoveBlock(args: {
     return "agree";
   }
 
+  const hiringWork = (args.workKind ?? "client") === "client";
+  if (!hiringWork) {
+    return null;
+  }
+
+  if (from === "qualify" && toI > fromI && args.qualifyOutcome !== "real") {
+    return "qualify";
+  }
+
+  if (
+    from === "intake" &&
+    toI > fromI &&
+    (!args.intakeProblemAnswer?.trim() || !args.intakeSuccessAnswer?.trim())
+  ) {
+    return "intake";
+  }
+
   const discoverI = gateIndex("discover");
   if (toI > discoverI && !dailyUserRecordedWhenNeeded(people)) {
     return "user";
+  }
+
+  if (toI > discoverI && !args.problemSentence?.trim()) {
+    return "problem";
+  }
+
+  const proposeI = gateIndex("propose");
+  if (toI > proposeI && args.hasSelectedOption === false) {
+    return "option";
+  }
+
+  if (
+    from === "agree" &&
+    toI > fromI &&
+    (!args.depositPaid || !args.agreementConfirmed)
+  ) {
+    return "deposit";
   }
 
   return null;

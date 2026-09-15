@@ -8,6 +8,48 @@
       "when": 1789408755982,
       "tag": "0000_init",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1789418816904,
+      "tag": "0001_activities",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1789425000000,
+      "tag": "0002_work_kind",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1789480000000,
+      "tag": "0003_gate_records",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1789500000000,
+      "tag": "0004_audit_events",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1789510000000,
+      "tag": "0005_audit_detail",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1789520000000,
+      "tag": "0006_users_profile",
+      "breakpoints": true
     }
   ]
 }

@@ -1,10 +1,11 @@
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { getSessionEmail } from "@/lib/auth";
-import { getPerson } from "@/db/queries";
-import { DeskHeader } from "@/components/desk-header";
+import { getClient, getPerson } from "@/db/queries";
+import { DeskShell } from "@/components/desk-shell";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { isUuid } from "@/lib/ids";
+import { linkClassName } from "@/lib/links";
 import { PersonForm } from "@/app/clients/person-form";
 
 export const dynamic = "force-dynamic";
@@ -24,20 +25,23 @@ export default async function EditPersonPage({ params }: EditPersonPageProps) {
     notFound();
   }
 
+  const client = await getClient(id);
+  if (!client || client.kind === "practice") {
+    redirect("/products");
+  }
+
   const email = await getSessionEmail();
 
   return (
-    <div className="min-h-full">
-      <DeskHeader email={email} />
-      <main className="mx-auto max-w-3xl px-4 py-10 space-y-8">
+    <DeskShell email={email} width="3xl">
         <div>
           <Link
             href={`/clients/${id}`}
-            className="text-sm text-dark-950 hover:text-gold-500"
+            className={linkClassName("back")}
           >
             ← {person.name}
           </Link>
-          <h1 className="mt-3 font-heading text-3xl text-dark-950 md:text-4xl">
+          <h1 className="mt-3 section-heading">
             Edit person
           </h1>
         </div>
@@ -61,7 +65,6 @@ export default async function EditPersonPage({ params }: EditPersonPageProps) {
             />
           </CardContent>
         </Card>
-      </main>
-    </div>
+    </DeskShell>
   );
 }

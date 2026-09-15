@@ -3,6 +3,13 @@
 :root {
   --background: #f9fafb;
   --foreground: #150f00;
+  --desk-header-height: 5rem;
+}
+
+@media (min-width: 31.25rem) and (max-width: 63.99rem) {
+  :root {
+    --desk-header-height: 8rem;
+  }
 }
 
 @theme inline {
@@ -33,6 +40,7 @@
   --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
   --font-heading: var(--font-odibee), cursive, system-ui, sans-serif;
   --radius-md: 0.5rem;
+  --breakpoint-compact: 31.25rem;
 }
 
 html,
@@ -45,6 +53,66 @@ body {
 .font-heading {
   font-family: var(--font-heading);
   font-weight: 400;
+}
+
+/* Public nav: Tailwind text-lg (1.125rem) is too small for Odibee. */
+.font-heading.text-lg,
+.font-heading.text-base {
+  font-size: 1.5rem;
+}
+
+.section-heading {
+  font-family: var(--font-heading);
+  font-weight: 400;
+  font-size: 3rem;
+  line-height: 1.1;
+  color: #150f00;
+}
+
+.desk-table {
+  width: 100%;
+  text-align: left;
+  font-size: 0.875rem;
+}
+
+.desk-table thead {
+  background-color: #f9fafb;
+  color: #4b5563;
+}
+
+.desk-table th,
+.desk-table td {
+  padding: 0.75rem 1rem;
+}
+
+.desk-table th {
+  font-weight: 500;
+}
+
+.desk-table tbody tr {
+  border-top: 1px solid #f3f4f6;
+  transition: background-color 300ms;
+}
+
+.desk-table tbody tr:nth-child(even):not([data-current]),
+.desk-table tbody tr:hover:not([data-current]) {
+  background-color: #f9fafb;
+}
+
+.desk-table tbody tr[data-current] {
+  background-color: #fefce8;
+}
+
+@media (min-width: 768px) {
+  .section-heading {
+    font-size: 3.75rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .section-heading {
+    font-size: 4.5rem;
+  }
 }
 
 ::-webkit-scrollbar {
