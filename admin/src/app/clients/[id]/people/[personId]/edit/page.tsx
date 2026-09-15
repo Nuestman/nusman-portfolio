@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { isUuid } from "@/lib/ids";
 import { linkClassName } from "@/lib/links";
 import { PersonForm } from "@/app/clients/person-form";
+import { PortalPersonControls } from "@/app/portal-desk/person-controls";
 
 export const dynamic = "force-dynamic";
 
@@ -61,6 +62,22 @@ export default async function EditPersonPage({ params }: EditPersonPageProps) {
                 role: person.role,
                 isDecisionMaker: person.isDecisionMaker,
                 notes: person.notes ?? "",
+              }}
+            />
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader>
+            <CardTitle>Portal access</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <PortalPersonControls
+              person={{
+                id: person.id,
+                clientId: person.clientId,
+                name: person.name,
+                email: person.email,
+                portalEnabled: person.portalEnabled,
               }}
             />
           </CardContent>

@@ -155,10 +155,18 @@ export function AccountMenu({
   profile,
   pathname,
   variant,
+  links = ACCOUNT_LINKS,
+  logoutAction = logout,
 }: {
   profile: { name: string; imageSrc: string | null } | null;
   pathname: string;
   variant: AccountMenuVariant;
+  links?: ReadonlyArray<{
+    href: string;
+    label: string;
+    icon: AccountIconKind;
+  }>;
+  logoutAction?: (formData: FormData) => void | Promise<void>;
 }) {
   const [open, setOpen] = useState(false);
   const [openOnPath, setOpenOnPath] = useState(pathname);
@@ -201,7 +209,7 @@ export function AccountMenu({
   if (!profile) {
     return (
       <li>
-        <form action={logout}>
+        <form action={logoutAction}>
           <button
             type="submit"
             className={cn(
@@ -233,7 +241,7 @@ export function AccountMenu({
       </button>
       {open ? (
         <ul id={menuId} className={listClass(variant)}>
-          {ACCOUNT_LINKS.map((item) => {
+          {links.map((item) => {
             const active = accountLinkIsActive(pathname, item.href);
             return (
               <li key={item.href}>
@@ -245,7 +253,7 @@ export function AccountMenu({
             );
           })}
           <li className={signOutWrapClass(variant)}>
-            <form action={logout} className="w-full">
+            <form action={logoutAction} className="w-full">
               <button type="submit" className={itemClass(variant, false)}>
                 <AccountIcon kind="signOut" size={glyph} />
                 Sign out

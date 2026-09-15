@@ -18,7 +18,7 @@ export function NoteForm({
   submitLabel = "Add note",
 }: {
   projectId: string;
-  note?: { id: string; body: string };
+  note?: { id: string; body: string; clientVisible?: boolean };
   submitLabel?: string;
 }) {
   const action = note ? updateNoteAction : addNoteAction;
@@ -44,6 +44,15 @@ export function NoteForm({
           placeholder="Call, WhatsApp decision, scope change…"
         />
       </div>
+      <label className="flex items-center gap-2 text-sm text-dark-950">
+        <input
+          type="checkbox"
+          name="clientVisible"
+          defaultChecked={note?.clientVisible ?? false}
+          className="h-4 w-4 rounded border-gray-200 text-gold-500 focus:ring-gold-500"
+        />
+        Visible in client portal
+      </label>
       <FormError>{state.error}</FormError>
       <Button type="submit" disabled={pending}>
         {pending ? "Saving…" : submitLabel}

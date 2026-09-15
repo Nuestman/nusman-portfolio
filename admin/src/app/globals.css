@@ -138,3 +138,51 @@ body {
     scroll-behavior: auto !important;
   }
 }
+
+@keyframes portal-rise {
+  from {
+    opacity: 0;
+    transform: translateY(1rem);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes portal-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes portal-drift {
+  from {
+    opacity: 0;
+    transform: translateX(1.25rem) scale(1.02);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+}
+
+.portal-rise {
+  animation: portal-rise 0.7s ease-out both;
+}
+
+.portal-rise-delay {
+  animation: portal-rise 0.7s ease-out 0.12s both;
+}
+
+.portal-fade {
+  animation: portal-fade 0.9s ease-out 0.2s both;
+}
+
+.portal-drift {
+  animation: portal-drift 0.9s ease-out 0.15s both;
+}
+

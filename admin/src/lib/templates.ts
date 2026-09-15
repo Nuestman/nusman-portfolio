@@ -125,6 +125,21 @@ export function optionStarter(kind: OptionKind): string {
   return OPTION_STARTERS[kind];
 }
 
+/** True when summary is still the Desk coaching starter (not client-ready). */
+export function isOptionStarterSummary(
+  summary: string,
+  kind?: OptionKind,
+): boolean {
+  const normalized = summary.replace(/\s+/g, " ").trim();
+  if (!normalized) {
+    return false;
+  }
+  const kinds = kind ? [kind] : (Object.keys(OPTION_STARTERS) as OptionKind[]);
+  return kinds.some(
+    (item) => OPTION_STARTERS[item].replace(/\s+/g, " ").trim() === normalized,
+  );
+}
+
 export function unusedOptionKinds(used: readonly OptionKind[]): OptionKind[] {
   return OPTION_KINDS.filter((kind) => !used.includes(kind));
 }

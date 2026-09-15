@@ -38,15 +38,9 @@ export function OptionForm({
   const action = option.id ? updateOptionAction : createOptionAction;
   const [state, formAction, pending] = useActionState(action, initialState);
   const [kind, setKind] = useState<OptionKind | "">(option.kind);
-  const [summary, setSummary] = useState(option.summary);
-  const [summaryTouched, setSummaryTouched] = useState(option.summary.length > 0);
 
-  function onKindChange(next: OptionKind | "") {
-    setKind(next);
-    if (!option.id && next && !summaryTouched) {
-      setSummary(optionStarter(next));
-    }
-  }
+  const coaching =
+    kind && isOptionKind(kind) ? optionStarter(kind) : null;
 
   return (
     <form action={formAction} className="space-y-5">
@@ -71,7 +65,7 @@ export function OptionForm({
             value={kind}
             onChange={(event) => {
               const next = event.target.value;
-              onKindChange(isOptionKind(next) ? next : "");
+              setKind(isOptionKind(next) ? next : "");
             }}
             className={fieldClassName}
           >
@@ -84,43 +78,51 @@ export function OptionForm({
           </select>
         )}
       </div>
+      {coaching ? (
+        <p className="rounded-lg bg-gray-50 px-4 py-3 text-sm text-gray-600">
+          <span className="font-medium text-dark-950">Desk coaching only — </span>
+          {coaching}
+        </p>
+      ) : null}
       <div>
         <label htmlFor="option-summary" className={labelClassName}>
-          Summary
+          Client summary
         </label>
         <textarea
           id="option-summary"
           name="summary"
           required
           rows={4}
-          value={summary}
-          onChange={(event) => {
-            setSummary(event.target.value);
-            setSummaryTouched(true);
-          }}
+          defaultValue={option.summary}
+          placeholder="What the client should understand about this package…"
           className={fieldClassName}
         />
+        <p className="mt-1.5 text-xs text-gray-500">
+          Shown on the portal. Write for the client — not the Desk coaching hint.
+        </p>
       </div>
       <div className="grid gap-5 sm:grid-cols-2">
         <div>
           <label htmlFor="option-price" className={labelClassName}>
-            Price note
+            Price
           </label>
           <input
             id="option-price"
             name="priceNote"
             defaultValue={option.priceNote ?? ""}
+            placeholder="e.g. GHS 4,500"
             className={fieldClassName}
           />
         </div>
         <div>
           <label htmlFor="option-timeline" className={labelClassName}>
-            Timeline note
+            Timeline
           </label>
           <input
             id="option-timeline"
             name="timelineNote"
             defaultValue={option.timelineNote ?? ""}
+            placeholder="e.g. 3 weeks"
             className={fieldClassName}
           />
         </div>
@@ -134,6 +136,7 @@ export function OptionForm({
           name="inScope"
           rows={3}
           defaultValue={option.inScope ?? ""}
+          placeholder="What this package includes…"
           className={fieldClassName}
         />
       </div>
@@ -146,6 +149,7 @@ export function OptionForm({
           name="outOfScope"
           rows={3}
           defaultValue={option.outOfScope ?? ""}
+          placeholder="What is parked for later…"
           className={fieldClassName}
         />
       </div>

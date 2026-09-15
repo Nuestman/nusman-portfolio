@@ -6,6 +6,9 @@ import {
   auditEvents,
   clients,
   people,
+  portalMagicLinks,
+  portalMessages,
+  portalSessions,
   projectAgreements,
   projectChangeRequests,
   projectDemos,
@@ -25,6 +28,7 @@ import type {
   ClientSource,
   OptionKind,
   PersonRole,
+  PortalMessageAuthor,
   ProjectGate,
   ProjectStatus,
   QualifyOutcome,
@@ -466,6 +470,7 @@ export async function updatePerson(
     role: PersonRole;
     isDecisionMaker: boolean;
     notes: string | null;
+    portalEnabled?: boolean;
   },
 ) {
   const db = getDb();
@@ -650,9 +655,13 @@ export async function listNotes(projectId: string) {
     .orderBy(desc(projectNotes.createdAt));
 }
 
-export async function addNote(projectId: string, body: string) {
+export async function addNote(
+  projectId: string,
+  body: string,
+  clientVisible = false,
+) {
   const db = getDb();
-  await db.insert(projectNotes).values({ projectId, body });
+  await db.insert(projectNotes).values({ projectId, body, clientVisible });
 }
 
 export async function getNote(id: string) {
@@ -665,9 +674,27 @@ export async function getNote(id: string) {
   return row ?? null;
 }
 
-export async function updateNote(id: string, body: string) {
+export async function updateNote(
+  id: string,
+  body: string,
+  clientVisible?: boolean,
+) {
   const db = getDb();
-  await db.update(projectNotes).set({ body }).where(eq(projectNotes.id, id));
+  await db
+    .update(projectNotes)
+    .set({
+      body,
+      ...(clientVisible !== undefined ? { clientVisible } : {}),
+    })
+    .where(eq(projectNotes.id, id));
+}
+
+export async function setNoteClientVisible(id: string, clientVisible: boolean) {
+  const db = getDb();
+  await db
+    .update(projectNotes)
+    .set({ clientVisible })
+    .where(eq(projectNotes.id, id));
 }
 
 export async function deleteNote(id: string) {
@@ -1247,4 +1274,296 @@ export async function exportDesk() {
     launch: launchRows,
     audit: auditRows,
   };
+}
+
+export async function setPersonPortalEnabled(id: string, portalEnabled: boolean) {
+  const db = getDb();
+  await db
+    .update(people)
+    .set({ portalEnabled, updatedAt: new Date() })
+    .where(eq(people.id, id));
+}
+
+export async function setProjectPortalIntakeOpen(
+  id: string,
+  portalIntakeOpen: boolean,
+) {
+  const db = getDb();
+  await db
+    .update(projects)
+    .set({ portalIntakeOpen, updatedAt: new Date() })
+    .where(eq(projects.id, id));
+}
+
+export async function findPortalPersonByEmail(email: string) {
+  const db = getDb();
+  const normalized = email.trim().toLowerCase();
+  const [row] = await db
+    .select({
+      person: people,
+      client: clients,
+    })
+    .from(people)
+    .innerJoin(clients, eq(people.clientId, clients.id))
+    .where(
+      and(
+        eq(people.portalEnabled, true),
+        eq(clients.kind, "client"),
+        sql`lower(${people.email}) = ${normalized}`,
+      ),
+    )
+    .limit(1);
+  return row ?? null;
+}
+
+export async function findClientPersonByEmail(email: string) {
+  const db = getDb();
+  const normalized = email.trim().toLowerCase();
+  const [row] = await db
+    .select({
+      person: people,
+      client: clients,
+    })
+    .from(people)
+    .innerJoin(clients, eq(people.clientId, clients.id))
+    .where(
+      and(eq(clients.kind, "client"), sql`lower(${people.email}) = ${normalized}`),
+    )
+    .limit(1);
+  return row ?? null;
+}
+
+export async function getPortalPerson(id: string) {
+  const db = getDb();
+  const [row] = await db
+    .select({
+      person: people,
+      client: clients,
+    })
+    .from(people)
+    .innerJoin(clients, eq(people.clientId, clients.id))
+    .where(and(eq(people.id, id), eq(clients.kind, "client")))
+    .limit(1);
+  return row ?? null;
+}
+
+export async function createPortalMagicLink(values: {
+  personId: string;
+  tokenHash: string;
+  expiresAt: Date;
+}) {
+  const db = getDb();
+  const [row] = await db
+    .insert(portalMagicLinks)
+    .values(values)
+    .returning({ id: portalMagicLinks.id });
+  if (!row) {
+    throw new Error("Could not create magic link");
+  }
+  return row.id;
+}
+
+export async function getPortalMagicLinkByHash(tokenHash: string) {
+  const db = getDb();
+  const [row] = await db
+    .select()
+    .from(portalMagicLinks)
+    .where(eq(portalMagicLinks.tokenHash, tokenHash))
+    .limit(1);
+  return row ?? null;
+}
+
+export async function markPortalMagicLinkUsed(id: string) {
+  const db = getDb();
+  await db
+    .update(portalMagicLinks)
+    .set({ usedAt: new Date() })
+    .where(eq(portalMagicLinks.id, id));
+}
+
+export async function createPortalSessionRow(values: {
+  personId: string;
+  expiresAt: Date;
+  userAgent: string | null;
+  ip: string | null;
+}) {
+  const db = getDb();
+  const [row] = await db.insert(portalSessions).values(values).returning({
+    id: portalSessions.id,
+  });
+  if (!row) {
+    throw new Error("Could not create portal session");
+  }
+  return row.id;
+}
+
+export async function getPortalSessionRow(id: string) {
+  const db = getDb();
+  const [row] = await db
+    .select()
+    .from(portalSessions)
+    .where(eq(portalSessions.id, id))
+    .limit(1);
+  return row ?? null;
+}
+
+export async function deletePortalSession(id: string) {
+  const db = getDb();
+  await db.delete(portalSessions).where(eq(portalSessions.id, id));
+}
+
+export async function listPortalProjectsForClient(clientId: string) {
+  const db = getDb();
+  return db
+    .select()
+    .from(projects)
+    .where(
+      and(eq(projects.clientId, clientId), eq(projects.workKind, "client")),
+    )
+    .orderBy(desc(projects.updatedAt));
+}
+
+export async function getPortalProjectForPerson(
+  projectId: string,
+  clientId: string,
+) {
+  const db = getDb();
+  const [row] = await db
+    .select()
+    .from(projects)
+    .where(
+      and(
+        eq(projects.id, projectId),
+        eq(projects.clientId, clientId),
+        eq(projects.workKind, "client"),
+      ),
+    )
+    .limit(1);
+  return row ?? null;
+}
+
+export async function listClientVisibleNotes(projectId: string) {
+  const db = getDb();
+  return db
+    .select()
+    .from(projectNotes)
+    .where(
+      and(
+        eq(projectNotes.projectId, projectId),
+        eq(projectNotes.clientVisible, true),
+      ),
+    )
+    .orderBy(desc(projectNotes.createdAt));
+}
+
+export async function getSelectedOption(projectId: string) {
+  const db = getDb();
+  const [row] = await db
+    .select()
+    .from(projectOptions)
+    .where(
+      and(
+        eq(projectOptions.projectId, projectId),
+        eq(projectOptions.selected, true),
+      ),
+    )
+    .limit(1);
+  return row ?? null;
+}
+
+export async function listPortalMessages(projectId: string) {
+  const db = getDb();
+  return db
+    .select({
+      id: portalMessages.id,
+      projectId: portalMessages.projectId,
+      personId: portalMessages.personId,
+      authorKind: portalMessages.authorKind,
+      body: portalMessages.body,
+      createdAt: portalMessages.createdAt,
+      authorName: people.name,
+    })
+    .from(portalMessages)
+    .leftJoin(people, eq(people.id, portalMessages.personId))
+    .where(eq(portalMessages.projectId, projectId))
+    .orderBy(portalMessages.createdAt);
+}
+
+export async function countPortalMessages(projectId: string) {
+  const db = getDb();
+  const [row] = await db
+    .select({ value: count() })
+    .from(portalMessages)
+    .where(eq(portalMessages.projectId, projectId));
+  return row?.value ?? 0;
+}
+
+export async function listPortalConversations() {
+  const db = getDb();
+  const rows = await db
+    .select({
+      projectId: projects.id,
+      projectTitle: projects.title,
+      clientId: clients.id,
+      clientName: clients.name,
+      lastAt: portalMessages.createdAt,
+      lastBody: portalMessages.body,
+      lastAuthorKind: portalMessages.authorKind,
+    })
+    .from(portalMessages)
+    .innerJoin(projects, eq(projects.id, portalMessages.projectId))
+    .innerJoin(clients, eq(clients.id, projects.clientId))
+    .where(eq(projects.workKind, "client"))
+    .orderBy(desc(portalMessages.createdAt));
+
+  const counts = new Map<string, number>();
+  for (const row of rows) {
+    counts.set(row.projectId, (counts.get(row.projectId) ?? 0) + 1);
+  }
+
+  const conversations: Array<{
+    projectId: string;
+    projectTitle: string;
+    clientId: string;
+    clientName: string;
+    lastAt: Date;
+    lastBody: string;
+    lastAuthorKind: PortalMessageAuthor;
+    messageCount: number;
+  }> = [];
+  const seen = new Set<string>();
+  for (const row of rows) {
+    if (seen.has(row.projectId)) {
+      continue;
+    }
+    seen.add(row.projectId);
+    conversations.push({
+      projectId: row.projectId,
+      projectTitle: row.projectTitle,
+      clientId: row.clientId,
+      clientName: row.clientName,
+      lastAt: row.lastAt,
+      lastBody: row.lastBody,
+      lastAuthorKind: row.lastAuthorKind,
+      messageCount: counts.get(row.projectId) ?? 0,
+    });
+  }
+  return conversations;
+}
+
+export async function addPortalMessage(values: {
+  projectId: string;
+  personId: string | null;
+  authorKind: PortalMessageAuthor;
+  body: string;
+}) {
+  const db = getDb();
+  const [row] = await db
+    .insert(portalMessages)
+    .values(values)
+    .returning({ id: portalMessages.id });
+  if (!row) {
+    throw new Error("Could not create portal message");
+  }
+  return row.id;
 }

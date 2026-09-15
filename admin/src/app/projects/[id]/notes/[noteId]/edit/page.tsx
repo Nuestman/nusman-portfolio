@@ -42,7 +42,11 @@ export default async function EditNotePage({ params }: EditNotePageProps) {
         <CardContent>
           <NoteForm
             projectId={id}
-            note={{ id: note.id, body: note.body }}
+            note={{
+              id: note.id,
+              body: note.body,
+              clientVisible: note.clientVisible,
+            }}
             submitLabel="Save note"
           />
         </CardContent>
