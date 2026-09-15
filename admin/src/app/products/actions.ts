@@ -10,6 +10,7 @@ import {
 } from "@/db/queries";
 import { recordAudit } from "@/lib/audit";
 import { readOptional, readTrimmed } from "@/lib/forms";
+import { requireSessionUser } from "@/lib/current-user";
 
 export type FormState = {
   error: string | null;
@@ -25,6 +26,7 @@ export async function createProductAction(
   _previous: FormState,
   formData: FormData,
 ): Promise<FormState> {
+  await requireSessionUser();
   const title = readTrimmed(formData, "title");
   if (!title) {
     return { error: "Title is required." };
@@ -65,6 +67,7 @@ export async function recordKnownProductsAction(
   _previous: FormState,
   _formData: FormData,
 ): Promise<FormState> {
+  await requireSessionUser();
   try {
     await recordKnownProducts();
     await recordAudit({

@@ -1,8 +1,9 @@
 import Image from "next/image";
-import { credentialsConfigured } from "@/lib/auth";
+import { credentialsConfigured, readPendingLogin } from "@/lib/auth";
 import { safeInternalPath } from "@/lib/paths";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { LoginForm } from "./login-form";
+import { TotpForm } from "./totp-form";
 
 export const dynamic = "force-dynamic";
 
@@ -15,6 +16,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
   const fromRaw = Array.isArray(params.from) ? params.from[0] : params.from;
   const from = safeInternalPath(fromRaw);
   const ready = credentialsConfigured();
+  const pending = ready ? await readPendingLogin() : null;
 
   return (
     <main className="flex min-h-full items-center justify-center px-4 py-16">
@@ -39,7 +41,11 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
           </CardHeader>
           <CardContent>
             {ready ? (
-              <LoginForm from={from} />
+              pending ? (
+                <TotpForm from={from} />
+              ) : (
+                <LoginForm from={from} />
+              )
             ) : (
               <p className="rounded-lg bg-amber-100 px-4 py-3 text-sm text-amber-900">
                 Set ADMIN_EMAIL, ADMIN_PASSWORD, and AUTH_SECRET in the Desk

@@ -10,6 +10,7 @@ import {
 } from "@/lib/audit";
 import { readTrimmed } from "@/lib/forms";
 import { isUuid } from "@/lib/ids";
+import { requireSessionUser } from "@/lib/current-user";
 
 export type FormState = {
   error: string | null;
@@ -32,6 +33,7 @@ export async function addActivityAction(
   _previous: FormState,
   formData: FormData,
 ): Promise<FormState> {
+  await requireSessionUser();
   const body = readTrimmed(formData, "body");
   if (!body) {
     return { error: "Write a line first." };
@@ -52,6 +54,7 @@ export async function updateActivityAction(
   _previous: FormState,
   formData: FormData,
 ): Promise<FormState> {
+  await requireSessionUser();
   const id = readTrimmed(formData, "id");
   if (!isUuid(id)) {
     return { error: "That line is missing." };
@@ -82,6 +85,7 @@ export async function updateActivityAction(
 }
 
 export async function deleteActivityAction(formData: FormData) {
+  await requireSessionUser();
   const id = readTrimmed(formData, "id");
   const next = logNext(formData);
   if (!isUuid(id)) {

@@ -1,8 +1,8 @@
 # Desk
 
-Private workbench for the nusman.dev practice. Version **1.0.0**. Plan: [../docs/desk.md](../docs/desk.md). Status: [../docs/desk-status.md](../docs/desk-status.md). Visual: [../docs/style-guide.md](../docs/style-guide.md).
+Private workbench for the nusman.dev practice. Version **1.1.0**. Plan: [../docs/desk.md](../docs/desk.md). Status: [../docs/desk-status.md](../docs/desk-status.md). Visual: [../docs/style-guide.md](../docs/style-guide.md).
 
-Requires Node `^20.19.0 || >=22.12.0` and npm `>=10` (same as the public site).
+Requires Node **24.x** and npm `>=10`. Vercel follows `engines.node` in this file. Set the Desk project’s Node.js Version to **24.x** so it matches.
 
 ```bash
 cd admin
@@ -16,7 +16,7 @@ Database (Neon **nusmandotdev** only):
 
 ```bash
 npm run db:generate   # after schema edits
-npm run db:migrate    # through 0006_users_profile.sql
+npm run db:migrate    # through 0007_totp.sql
 npm run db:seed       # owner row from ADMIN_EMAIL; hashes password if empty
 ```
 

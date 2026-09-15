@@ -161,13 +161,17 @@ export function AccountMenu({
   variant: AccountMenuVariant;
 }) {
   const [open, setOpen] = useState(false);
+  const [openOnPath, setOpenOnPath] = useState(pathname);
   const menuId = useId();
   const rootRef = useRef<HTMLLIElement>(null);
   const glyph = iconSize(variant);
 
-  useEffect(() => {
-    setOpen(false);
-  }, [pathname]);
+  if (openOnPath !== pathname) {
+    setOpenOnPath(pathname);
+    if (open) {
+      setOpen(false);
+    }
+  }
 
   useEffect(() => {
     if (!open) {

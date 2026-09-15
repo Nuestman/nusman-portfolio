@@ -21,6 +21,7 @@ import {
 } from "@/lib/audit";
 import { readOptional, readTrimmed, looksLikeEmail } from "@/lib/forms";
 import { isUuid } from "@/lib/ids";
+import { requireSessionUser } from "@/lib/current-user";
 import { isClientSource, isPersonRole } from "@/lib/labels";
 import type { ClientSource, PersonRole } from "@/db/schema";
 
@@ -132,6 +133,7 @@ export async function createClientAction(
   _previous: FormState,
   formData: FormData,
 ): Promise<FormState> {
+  await requireSessionUser();
   const parsed = parseClientFields(formData);
   if (!parsed.ok) {
     return { error: parsed.error };
@@ -153,6 +155,7 @@ export async function updateClientAction(
   _previous: FormState,
   formData: FormData,
 ): Promise<FormState> {
+  await requireSessionUser();
   const id = readTrimmed(formData, "id");
   if (!isUuid(id)) {
     return { error: "Client is missing." };
@@ -185,6 +188,7 @@ export async function updateClientAction(
 }
 
 export async function deleteClientAction(formData: FormData) {
+  await requireSessionUser();
   const id = readTrimmed(formData, "id");
   if (!isUuid(id)) {
     redirect("/clients");
@@ -223,6 +227,7 @@ export async function createPersonAction(
   _previous: FormState,
   formData: FormData,
 ): Promise<FormState> {
+  await requireSessionUser();
   const clientId = readTrimmed(formData, "clientId");
   if (!isUuid(clientId)) {
     return { error: "Client is missing." };
@@ -256,6 +261,7 @@ export async function updatePersonAction(
   _previous: FormState,
   formData: FormData,
 ): Promise<FormState> {
+  await requireSessionUser();
   const id = readTrimmed(formData, "id");
   const clientId = readTrimmed(formData, "clientId");
   if (!isUuid(id) || !isUuid(clientId)) {
@@ -291,6 +297,7 @@ export async function updatePersonAction(
 }
 
 export async function deletePersonAction(formData: FormData) {
+  await requireSessionUser();
   const id = readTrimmed(formData, "id");
   const clientId = readTrimmed(formData, "clientId");
   if (!isUuid(id) || !isUuid(clientId)) {

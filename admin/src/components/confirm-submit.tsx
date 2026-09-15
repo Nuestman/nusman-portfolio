@@ -41,17 +41,12 @@ export function ConfirmDelete({
   const [open, setOpen] = useState(false);
   const [typed, setTyped] = useState("");
   const [reason, setReason] = useState("");
-  const [mounted, setMounted] = useState(false);
   const wrapRef = useRef<HTMLSpanElement>(null);
   const titleId = useId();
   const nameId = useId();
   const reasonId = useId();
   const expected = confirmValue?.trim() ?? "";
   const nameOk = expected.length === 0 || typed.trim() === expected;
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
 
   useEffect(() => {
     if (!open) {
@@ -89,7 +84,7 @@ export function ConfirmDelete({
   }
 
   const dialog =
-    open && mounted
+    open
       ? createPortal(
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
             <button

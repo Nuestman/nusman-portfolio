@@ -75,6 +75,7 @@ const USER_PUBLIC = {
   imageUrl: users.imageUrl,
   role: users.role,
   active: users.active,
+  totpEnabled: users.totpEnabled,
   createdAt: users.createdAt,
   updatedAt: users.updatedAt,
 } as const;
@@ -88,6 +89,7 @@ export type PublicUser = {
   imageUrl: string | null;
   role: UserRole;
   active: boolean;
+  totpEnabled: boolean;
   createdAt: Date;
   updatedAt: Date;
 };
@@ -101,6 +103,7 @@ export function publicUserSnapshot(user: {
   imageUrl: string | null;
   role: UserRole;
   active: boolean;
+  totpEnabled?: boolean;
 }) {
   return {
     id: user.id,
@@ -111,6 +114,7 @@ export function publicUserSnapshot(user: {
     imageUrl: user.imageUrl,
     role: user.role,
     active: user.active,
+    totpEnabled: Boolean(user.totpEnabled),
   };
 }
 
@@ -207,6 +211,26 @@ export async function setUserPasswordHash(id: string, passwordHash: string) {
   await db
     .update(users)
     .set({ passwordHash, updatedAt: new Date() })
+    .where(eq(users.id, id));
+}
+
+export async function setUserTotp(
+  id: string,
+  values: {
+    totpSecret: string | null;
+    totpEnabled: boolean;
+    totpRecoveryHashes: string[] | null;
+  },
+) {
+  const db = getDb();
+  await db
+    .update(users)
+    .set({
+      totpSecret: values.totpSecret,
+      totpEnabled: values.totpEnabled,
+      totpRecoveryHashes: values.totpRecoveryHashes,
+      updatedAt: new Date(),
+    })
     .where(eq(users.id, id));
 }
 
@@ -1204,6 +1228,7 @@ export async function exportDesk() {
       imageUrl: row.imageUrl,
       role: row.role,
       active: row.active,
+      totpEnabled: row.totpEnabled,
       createdAt: row.createdAt,
       updatedAt: row.updatedAt,
     })),
