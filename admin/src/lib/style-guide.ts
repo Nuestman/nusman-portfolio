@@ -171,7 +171,7 @@ export const TYPE_FAMILIES = [
 
 export const TYPE_PUBLIC_SCALE = [
   ["Page section title", "section-heading → text-5xl md:text-6xl lg:text-7xl font-heading text-dark-950"],
-  ["Hero name accent", "gradient-text on the word “Numan.” Marketing only."],
+  ["Hero name accent", "gradient-text on the word “Usman.” Marketing only."],
   ["Subhead / rotating line", "text-2xl sm:text-3xl md:text-4xl font-heading"],
   ["Body", "text-lg or text-xl text-gray-700 / text-dark-950/75"],
   ["Nav", "font-heading text-lg (CSS bumps this to 1.5rem)"],

@@ -11,6 +11,7 @@ import {
   listNotes,
   listOptions,
   listPeople,
+  countPortalMessages,
 } from "@/db/queries";
 import { ConfirmDelete } from "@/components/confirm-submit";
 import { DeskShell } from "@/components/desk-shell";
@@ -30,6 +31,7 @@ import { linkClassName } from "@/lib/links";
 import { formatStamp, snippet } from "@/lib/text";
 import { tableClassName, tableFrameClassName } from "@/lib/tables";
 import { deskCopyTemplates } from "@/lib/templates";
+import { PortalProjectControls } from "@/app/portal-desk/project-controls";
 import { CopyTemplates } from "../copy-templates";
 import { DeliveryWork } from "../delivery-work";
 import { GateSwitcher } from "../gate-switcher";
@@ -56,6 +58,9 @@ function projectNotice(raw: string | undefined): string | null {
   if (raw === "chosen-option") {
     return "Choose another package first, or this stays the chosen one.";
   }
+  if (raw === "option-client-summary") {
+    return "Rewrite the client summary before choosing this package. Coaching hints stay on Desk only.";
+  }
   if (raw === "confirm-title") {
     return "Type the title exactly to delete this record.";
   }
@@ -77,7 +82,7 @@ export default async function ProjectDetailPage({
   }
 
   const isProduct = project.workKind === "product";
-  const [email, client, people, notes, options, query, gateWork, delivery] =
+  const [email, client, people, notes, options, query, gateWork, delivery, portalMessageCount] =
     await Promise.all([
       getSessionEmail(),
       getClient(project.clientId),
@@ -91,6 +96,7 @@ export default async function ProjectDetailPage({
             ([changes, demos, launch]) => ({ changes, demos, launch }),
           )
         : Promise.resolve(null),
+      isProduct ? Promise.resolve(0) : countPortalMessages(id),
     ]);
 
   if (!client) {
@@ -275,6 +281,11 @@ export default async function ProjectDetailPage({
                         </td>
                         <td className="px-4 py-3 text-gray-700">
                           {snippet(note.body)}
+                          {note.clientVisible ? (
+                            <span className="mt-1 block text-xs text-gray-500">
+                              Portal visible
+                            </span>
+                          ) : null}
                         </td>
                         <TableActionsCell>
                           <EditLink
@@ -302,6 +313,21 @@ export default async function ProjectDetailPage({
           }
           form={<NoteForm projectId={project.id} />}
         />
+
+        {!isProduct ? (
+          <Card>
+            <CardHeader>
+              <CardTitle>Client portal</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <PortalProjectControls
+                projectId={project.id}
+                portalIntakeOpen={project.portalIntakeOpen}
+                messageCount={portalMessageCount}
+              />
+            </CardContent>
+          </Card>
+        ) : null}
 
         <Card>
           <CardHeader>

@@ -64,6 +64,9 @@ export type ChangeStatus = (typeof CHANGE_STATUSES)[number];
 export const USER_ROLES = ["owner", "operator"] as const;
 export type UserRole = (typeof USER_ROLES)[number];
 
+export const PORTAL_MESSAGE_AUTHORS = ["client", "operator"] as const;
+export type PortalMessageAuthor = (typeof PORTAL_MESSAGE_AUTHORS)[number];
+
 export const clientSourceEnum = pgEnum("client_source", CLIENT_SOURCES);
 export const clientKindEnum = pgEnum("client_kind", CLIENT_KINDS);
 export const personRoleEnum = pgEnum("person_role", PERSON_ROLES);
@@ -74,6 +77,10 @@ export const workKindEnum = pgEnum("work_kind", WORK_KINDS);
 export const qualifyOutcomeEnum = pgEnum("qualify_outcome", QUALIFY_OUTCOMES);
 export const changeStatusEnum = pgEnum("change_status", CHANGE_STATUSES);
 export const userRoleEnum = pgEnum("user_role", USER_ROLES);
+export const portalMessageAuthorEnum = pgEnum(
+  "portal_message_author",
+  PORTAL_MESSAGE_AUTHORS,
+);
 
 const timestamps = {
   createdAt: timestamp("created_at", { withTimezone: true })
@@ -147,6 +154,7 @@ export const people = pgTable(
     role: personRoleEnum("role").notNull(),
     isDecisionMaker: boolean("is_decision_maker").notNull().default(false),
     notes: text("notes"),
+    portalEnabled: boolean("portal_enabled").notNull().default(false),
     ...timestamps,
   },
   (table) => [index("people_client_id_idx").on(table.clientId)],
@@ -167,6 +175,7 @@ export const projects = pgTable(
     status: projectStatusEnum("status").notNull().default("active"),
     budgetNote: text("budget_note"),
     deadlineNote: text("deadline_note"),
+    portalIntakeOpen: boolean("portal_intake_open").notNull().default(false),
     ...timestamps,
   },
   (table) => [
@@ -185,6 +194,7 @@ export const projectNotes = pgTable(
       .notNull()
       .references(() => projects.id, { onDelete: "cascade" }),
     body: text("body").notNull(),
+    clientVisible: boolean("client_visible").notNull().default(false),
     createdAt: timestamp("created_at", { withTimezone: true })
       .defaultNow()
       .notNull(),
@@ -349,4 +359,60 @@ export const auditEvents = pgTable(
     index("audit_events_created_at_idx").on(table.createdAt),
     index("audit_events_project_id_idx").on(table.projectId),
   ],
+);
+
+export const portalMagicLinks = pgTable(
+  "portal_magic_links",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    personId: uuid("person_id")
+      .notNull()
+      .references(() => people.id, { onDelete: "cascade" }),
+    tokenHash: text("token_hash").notNull().unique(),
+    expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+    usedAt: timestamp("used_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+  },
+  (table) => [index("portal_magic_links_person_id_idx").on(table.personId)],
+);
+
+export const portalSessions = pgTable(
+  "portal_sessions",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    personId: uuid("person_id")
+      .notNull()
+      .references(() => people.id, { onDelete: "cascade" }),
+    expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+    userAgent: text("user_agent"),
+    ip: text("ip"),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+  },
+  (table) => [
+    index("portal_sessions_person_id_idx").on(table.personId),
+    index("portal_sessions_expires_at_idx").on(table.expiresAt),
+  ],
+);
+
+export const portalMessages = pgTable(
+  "portal_messages",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    projectId: uuid("project_id")
+      .notNull()
+      .references(() => projects.id, { onDelete: "cascade" }),
+    personId: uuid("person_id").references(() => people.id, {
+      onDelete: "set null",
+    }),
+    authorKind: portalMessageAuthorEnum("author_kind").notNull(),
+    body: text("body").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+  },
+  (table) => [index("portal_messages_project_id_idx").on(table.projectId)],
 );

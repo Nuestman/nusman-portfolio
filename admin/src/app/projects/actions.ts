@@ -59,7 +59,7 @@ import {
   optionKindLabel,
   qualifyOutcomeLabel,
 } from "@/lib/labels";
-import { INTAKE_QUESTIONS } from "@/lib/templates";
+import { INTAKE_QUESTIONS, isOptionStarterSummary } from "@/lib/templates";
 import type { OptionKind, ProjectStatus, WorkKind } from "@/db/schema";
 
 export type FormState = {
@@ -72,6 +72,7 @@ function revalidateProject(projectId: string, clientId: string) {
   revalidatePath("/products");
   revalidatePath(`/projects/${projectId}`);
   revalidatePath(`/clients/${clientId}`);
+  revalidatePath(`/portal/projects/${projectId}`);
 }
 
 function projectListPath(formData: FormData, workKind: WorkKind): string {
@@ -296,13 +297,14 @@ export async function addNoteAction(
     return { error: "Write a note first." };
   }
 
-  await addNote(projectId, body);
+  const clientVisible = formData.get("clientVisible") === "on";
+  await addNote(projectId, body, clientVisible);
   await recordAudit({
     action: "note.create",
     summary: `Added a timeline note on “${project.title}”.`,
     entityType: "note",
     projectId,
-    after: { body },
+    after: { body, clientVisible },
   });
   revalidateProject(projectId, project.clientId);
   redirect(`/projects/${projectId}`);
@@ -330,7 +332,8 @@ export async function updateNoteAction(
     return { error: "Write a note first." };
   }
 
-  await updateNote(id, body);
+  const clientVisible = formData.get("clientVisible") === "on";
+  await updateNote(id, body, clientVisible);
   await recordAudit({
     action: "note.update",
     summary: `Updated a timeline note on “${project.title}”.`,
@@ -338,7 +341,7 @@ export async function updateNoteAction(
     entityId: id,
     projectId,
     before: note,
-    after: { body },
+    after: { body, clientVisible },
   });
   revalidateProject(projectId, project.clientId);
   redirect(`/projects/${projectId}`);
@@ -373,7 +376,10 @@ export async function deleteNoteAction(formData: FormData) {
   redirect(`/projects/${projectId}`);
 }
 
-function parseOptionFields(formData: FormData):
+function parseOptionFields(
+  formData: FormData,
+  kind: OptionKind,
+):
   | {
       ok: true;
       values: {
@@ -387,7 +393,14 @@ function parseOptionFields(formData: FormData):
   | { ok: false; error: string } {
   const summary = readTrimmed(formData, "summary");
   if (!summary) {
-    return { ok: false, error: "Summary is required." };
+    return { ok: false, error: "Client summary is required." };
+  }
+  if (isOptionStarterSummary(summary, kind)) {
+    return {
+      ok: false,
+      error:
+        "Replace the coaching hint with a client-facing summary. Clients see this on the portal.",
+    };
   }
 
   return {
@@ -428,7 +441,7 @@ export async function createOptionAction(
     return { error: "That package is already on this project. Edit it instead." };
   }
 
-  const parsed = parseOptionFields(formData);
+  const parsed = parseOptionFields(formData, kind);
   if (!parsed.ok) {
     return { error: parsed.error };
   }
@@ -462,7 +475,7 @@ export async function updateOptionAction(
     return { error: "That option is gone." };
   }
 
-  const parsed = parseOptionFields(formData);
+  const parsed = parseOptionFields(formData, option.kind);
   if (!parsed.ok) {
     return { error: parsed.error };
   }
@@ -529,6 +542,10 @@ export async function selectOptionAction(formData: FormData) {
 
   if (option.selected) {
     redirect(`/projects/${projectId}`);
+  }
+
+  if (isOptionStarterSummary(option.summary, option.kind)) {
+    redirect(`/projects/${projectId}?notice=option-client-summary`);
   }
 
   const previouslyChosen = (await listOptions(projectId)).find((row) => row.selected);
