@@ -8,6 +8,7 @@ import {
   updateOptionAction,
   type FormState,
 } from "@/app/projects/actions";
+import { FormError } from "@/components/form-error";
 import { fieldClassName, labelClassName } from "@/lib/forms";
 import { isOptionKind, optionKindLabel } from "@/lib/labels";
 import { optionStarter } from "@/lib/templates";
@@ -108,7 +109,7 @@ export function OptionForm({
           <input
             id="option-price"
             name="priceNote"
-            defaultValue={option.priceNote}
+            defaultValue={option.priceNote ?? ""}
             className={fieldClassName}
           />
         </div>
@@ -119,7 +120,7 @@ export function OptionForm({
           <input
             id="option-timeline"
             name="timelineNote"
-            defaultValue={option.timelineNote}
+            defaultValue={option.timelineNote ?? ""}
             className={fieldClassName}
           />
         </div>
@@ -132,7 +133,7 @@ export function OptionForm({
           id="option-in-scope"
           name="inScope"
           rows={3}
-          defaultValue={option.inScope}
+          defaultValue={option.inScope ?? ""}
           className={fieldClassName}
         />
       </div>
@@ -144,15 +145,11 @@ export function OptionForm({
           id="option-out-of-scope"
           name="outOfScope"
           rows={3}
-          defaultValue={option.outOfScope}
+          defaultValue={option.outOfScope ?? ""}
           className={fieldClassName}
         />
       </div>
-      {state.error ? (
-        <p className="rounded-lg bg-red-100 px-4 py-3 text-sm text-red-700" role="alert">
-          {state.error}
-        </p>
-      ) : null}
+      <FormError>{state.error}</FormError>
       <Button type="submit" disabled={pending}>
         {pending ? "Saving…" : submitLabel}
       </Button>

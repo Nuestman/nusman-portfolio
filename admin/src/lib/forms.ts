@@ -12,6 +12,13 @@ export function readOptional(formData: FormData, key: string): string | null {
   return value.length > 0 ? value : null;
 }
 
+export function readChecked(formData: FormData, key: string): boolean {
+  return formData.get(key) === "on";
+}
+
+export const checkboxClassName =
+  "h-4 w-4 rounded border-gray-200 text-gold-500 focus:ring-gold-500";
+
 export function looksLikeEmail(value: string): boolean {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
 }

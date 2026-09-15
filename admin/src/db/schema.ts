@@ -1,10 +1,12 @@
 import {
   boolean,
   index,
+  jsonb,
   pgEnum,
   pgTable,
   text,
   timestamp,
+  uniqueIndex,
   uuid,
 } from "drizzle-orm/pg-core";
 
@@ -15,6 +17,9 @@ export const CLIENT_SOURCES = [
   "other",
 ] as const;
 export type ClientSource = (typeof CLIENT_SOURCES)[number];
+
+export const CLIENT_KINDS = ["client", "practice"] as const;
+export type ClientKind = (typeof CLIENT_KINDS)[number];
 
 export const PERSON_ROLES = ["buyer", "user", "other"] as const;
 export type PersonRole = (typeof PERSON_ROLES)[number];
@@ -42,11 +47,33 @@ export type ProjectStatus = (typeof PROJECT_STATUSES)[number];
 export const OPTION_KINDS = ["light", "recommended", "later"] as const;
 export type OptionKind = (typeof OPTION_KINDS)[number];
 
+export const WORK_KINDS = ["client", "product"] as const;
+export type WorkKind = (typeof WORK_KINDS)[number];
+
+export const QUALIFY_OUTCOMES = [
+  "undecided",
+  "real",
+  "favour",
+  "no",
+] as const;
+export type QualifyOutcome = (typeof QUALIFY_OUTCOMES)[number];
+
+export const CHANGE_STATUSES = ["parked", "priced", "done"] as const;
+export type ChangeStatus = (typeof CHANGE_STATUSES)[number];
+
+export const USER_ROLES = ["owner", "operator"] as const;
+export type UserRole = (typeof USER_ROLES)[number];
+
 export const clientSourceEnum = pgEnum("client_source", CLIENT_SOURCES);
+export const clientKindEnum = pgEnum("client_kind", CLIENT_KINDS);
 export const personRoleEnum = pgEnum("person_role", PERSON_ROLES);
 export const projectGateEnum = pgEnum("project_gate", PROJECT_GATES);
 export const projectStatusEnum = pgEnum("project_status", PROJECT_STATUSES);
 export const optionKindEnum = pgEnum("option_kind", OPTION_KINDS);
+export const workKindEnum = pgEnum("work_kind", WORK_KINDS);
+export const qualifyOutcomeEnum = pgEnum("qualify_outcome", QUALIFY_OUTCOMES);
+export const changeStatusEnum = pgEnum("change_status", CHANGE_STATUSES);
+export const userRoleEnum = pgEnum("user_role", USER_ROLES);
 
 const timestamps = {
   createdAt: timestamp("created_at", { withTimezone: true })
@@ -61,11 +88,40 @@ export const users = pgTable("users", {
   id: uuid("id").defaultRandom().primaryKey(),
   email: text("email").notNull().unique(),
   name: text("name").notNull(),
+  title: text("title"),
+  phone: text("phone"),
+  imageUrl: text("image_url"),
+  imageData: text("image_data"),
+  imageMime: text("image_mime"),
+  passwordHash: text("password_hash"),
+  role: userRoleEnum("role").notNull().default("operator"),
+  active: boolean("active").notNull().default(true),
   ...timestamps,
 });
 
+export const sessions = pgTable(
+  "sessions",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+    userAgent: text("user_agent"),
+    ip: text("ip"),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+  },
+  (table) => [
+    index("sessions_user_id_idx").on(table.userId),
+    index("sessions_expires_at_idx").on(table.expiresAt),
+  ],
+);
+
 export const clients = pgTable("clients", {
   id: uuid("id").defaultRandom().primaryKey(),
+  kind: clientKindEnum("kind").notNull().default("client"),
   name: text("name").notNull(),
   email: text("email"),
   phone: text("phone"),
@@ -100,6 +156,7 @@ export const projects = pgTable(
     clientId: uuid("client_id")
       .notNull()
       .references(() => clients.id, { onDelete: "restrict" }),
+    workKind: workKindEnum("work_kind").notNull().default("client"),
     title: text("title").notNull(),
     problemSentence: text("problem_sentence"),
     successLooksLike: text("success_looks_like"),
@@ -113,6 +170,7 @@ export const projects = pgTable(
     index("projects_client_id_idx").on(table.clientId),
     index("projects_current_gate_idx").on(table.currentGate),
     index("projects_status_idx").on(table.status),
+    index("projects_work_kind_idx").on(table.workKind),
   ],
 );
 
@@ -131,6 +189,14 @@ export const projectNotes = pgTable(
   (table) => [index("project_notes_project_id_idx").on(table.projectId)],
 );
 
+export const activities = pgTable("activities", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  body: text("body").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .defaultNow()
+    .notNull(),
+});
+
 export const projectOptions = pgTable(
   "project_options",
   {
@@ -148,4 +214,136 @@ export const projectOptions = pgTable(
     ...timestamps,
   },
   (table) => [index("project_options_project_id_idx").on(table.projectId)],
+);
+
+export const projectQualify = pgTable("project_qualify", {
+  projectId: uuid("project_id")
+    .primaryKey()
+    .references(() => projects.id, { onDelete: "cascade" }),
+  outcome: qualifyOutcomeEnum("outcome").notNull().default("undecided"),
+  whoFor: text("who_for"),
+  painToday: text("pain_today"),
+  neededBy: text("needed_by"),
+  callAt: text("call_at"),
+  notes: text("notes"),
+  ...timestamps,
+});
+
+export const projectIntakeAnswers = pgTable(
+  "project_intake_answers",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    projectId: uuid("project_id")
+      .notNull()
+      .references(() => projects.id, { onDelete: "cascade" }),
+    theme: text("theme").notNull(),
+    ask: text("ask").notNull(),
+    answer: text("answer"),
+    ...timestamps,
+  },
+  (table) => [
+    uniqueIndex("project_intake_answers_project_theme_idx").on(
+      table.projectId,
+      table.theme,
+    ),
+  ],
+);
+
+export const projectDiscovery = pgTable("project_discovery", {
+  projectId: uuid("project_id")
+    .primaryKey()
+    .references(() => projects.id, { onDelete: "cascade" }),
+  callAt: text("call_at"),
+  attendees: text("attendees"),
+  currentProcess: text("current_process"),
+  lastExample: text("last_example"),
+  inScope: text("in_scope"),
+  outOfScope: text("out_of_scope"),
+  devicesLanguage: text("devices_language"),
+  privacyNotes: text("privacy_notes"),
+  ...timestamps,
+});
+
+export const projectAgreements = pgTable("project_agreements", {
+  projectId: uuid("project_id")
+    .primaryKey()
+    .references(() => projects.id, { onDelete: "cascade" }),
+  parties: text("parties"),
+  outcome: text("outcome"),
+  scope: text("scope"),
+  money: text("money"),
+  time: text("time"),
+  changes: text("changes"),
+  support: text("support"),
+  workplace: text("workplace"),
+  depositPaid: boolean("deposit_paid").notNull().default(false),
+  confirmed: boolean("confirmed").notNull().default(false),
+  ...timestamps,
+});
+
+export const projectChangeRequests = pgTable(
+  "project_change_requests",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    projectId: uuid("project_id")
+      .notNull()
+      .references(() => projects.id, { onDelete: "cascade" }),
+    body: text("body").notNull(),
+    status: changeStatusEnum("status").notNull().default("parked"),
+    ...timestamps,
+  },
+  (table) => [
+    index("project_change_requests_project_id_idx").on(table.projectId),
+  ],
+);
+
+export const projectDemos = pgTable(
+  "project_demos",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    projectId: uuid("project_id")
+      .notNull()
+      .references(() => projects.id, { onDelete: "cascade" }),
+    happenedAt: text("happened_at"),
+    notes: text("notes").notNull(),
+    ...timestamps,
+  },
+  (table) => [index("project_demos_project_id_idx").on(table.projectId)],
+);
+
+export const projectLaunch = pgTable("project_launch", {
+  projectId: uuid("project_id")
+    .primaryKey()
+    .references(() => projects.id, { onDelete: "cascade" }),
+  trained: boolean("trained").notNull().default(false),
+  guideLeft: boolean("guide_left").notNull().default(false),
+  remainingInvoiced: boolean("remaining_invoiced").notNull().default(false),
+  maintenanceOffered: boolean("maintenance_offered").notNull().default(false),
+  handoverNote: text("handover_note"),
+  ...timestamps,
+});
+
+export const auditEvents = pgTable(
+  "audit_events",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    actorEmail: text("actor_email"),
+    action: text("action").notNull(),
+    summary: text("summary").notNull(),
+    before: jsonb("before"),
+    after: jsonb("after"),
+    reason: text("reason"),
+    entityType: text("entity_type"),
+    entityId: uuid("entity_id"),
+    projectId: uuid("project_id").references(() => projects.id, {
+      onDelete: "set null",
+    }),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+  },
+  (table) => [
+    index("audit_events_created_at_idx").on(table.createdAt),
+    index("audit_events_project_id_idx").on(table.projectId),
+  ],
 );

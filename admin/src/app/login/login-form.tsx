@@ -2,6 +2,8 @@
 
 import { useActionState } from "react";
 import { Button } from "@/components/ui/button";
+import { FormError } from "@/components/form-error";
+import { fieldClassName, labelClassName } from "@/lib/forms";
 import { login, type LoginState } from "./actions";
 
 const initialState: LoginState = { error: null };
@@ -13,7 +15,7 @@ export function LoginForm({ from }: { from?: string }) {
     <form action={action} className="space-y-5">
       {from ? <input type="hidden" name="from" value={from} /> : null}
       <div>
-        <label htmlFor="email" className="mb-2 block text-sm font-medium text-dark-950">
+        <label htmlFor="email" className={labelClassName}>
           Email
         </label>
         <input
@@ -21,12 +23,13 @@ export function LoginForm({ from }: { from?: string }) {
           name="email"
           type="email"
           autoComplete="username"
+          autoFocus
           required
-          className="w-full rounded-lg border border-gray-200 bg-white px-4 py-3 placeholder:text-gray-500 focus:border-gold-500 focus:ring-2 focus:ring-gold-500"
+          className={fieldClassName}
         />
       </div>
       <div>
-        <label htmlFor="password" className="mb-2 block text-sm font-medium text-dark-950">
+        <label htmlFor="password" className={labelClassName}>
           Password
         </label>
         <input
@@ -35,14 +38,10 @@ export function LoginForm({ from }: { from?: string }) {
           type="password"
           autoComplete="current-password"
           required
-          className="w-full rounded-lg border border-gray-200 bg-white px-4 py-3 placeholder:text-gray-500 focus:border-gold-500 focus:ring-2 focus:ring-gold-500"
+          className={fieldClassName}
         />
       </div>
-      {state.error ? (
-        <p className="rounded-lg bg-red-100 px-4 py-3 text-sm text-red-700" role="alert">
-          {state.error}
-        </p>
-      ) : null}
+      <FormError>{state.error}</FormError>
       <Button type="submit" className="w-full" size="lg" disabled={pending}>
         {pending ? "Signing in…" : "Sign in"}
       </Button>

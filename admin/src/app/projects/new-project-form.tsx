@@ -3,6 +3,7 @@
 import { useActionState } from "react";
 import { Button } from "@/components/ui/button";
 import { createProjectAction, type FormState } from "@/app/projects/actions";
+import { FormError } from "@/components/form-error";
 import { fieldClassName, labelClassName } from "@/lib/forms";
 
 const initialState: FormState = { error: null };
@@ -62,6 +63,9 @@ export function NewProjectForm({
           className={fieldClassName}
           placeholder="The one sentence both sides can repeat."
         />
+        <p className="mt-2 text-sm text-gray-500">
+          Optional at Qualify. Needed before you leave Discover.
+        </p>
       </div>
       <div>
         <label htmlFor="successLooksLike" className={labelClassName}>
@@ -74,11 +78,7 @@ export function NewProjectForm({
           className={fieldClassName}
         />
       </div>
-      {state.error ? (
-        <p className="rounded-lg bg-red-100 px-4 py-3 text-sm text-red-700" role="alert">
-          {state.error}
-        </p>
-      ) : null}
+      <FormError>{state.error}</FormError>
       <Button type="submit" disabled={pending}>
         {pending ? "Saving…" : "Create project"}
       </Button>

@@ -1,107 +1,113 @@
 import Link from "next/link";
 import { getSessionEmail } from "@/lib/auth";
-import { databaseConfigured } from "@/db";
+import { loadFromDb } from "@/db";
 import { listClients } from "@/db/queries";
-import { DeskHeader } from "@/components/desk-header";
 import { buttonClassName } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { ConfirmDelete } from "@/components/confirm-submit";
+import { DatabaseNotice } from "@/components/database-notice";
+import { DeskShell } from "@/components/desk-shell";
+import {
+  EditLink,
+  TableActionsCell,
+  TableActionsHeader,
+} from "@/components/table-actions";
 import { clientSourceLabel } from "@/lib/labels";
+import { linkClassName } from "@/lib/links";
+import { tableClassName, tableFrameClassName } from "@/lib/tables";
+import { deleteClientAction } from "./actions";
 
 export const dynamic = "force-dynamic";
 
 export default async function ClientsPage() {
   const email = await getSessionEmail();
-  const ready = databaseConfigured();
-  let rows: Awaited<ReturnType<typeof listClients>> = [];
-  let loadError = false;
-
-  if (ready) {
-    try {
-      rows = await listClients();
-    } catch (error) {
-      console.error("Desk client list failed", error);
-      loadError = true;
-    }
-  }
+  const loaded = await loadFromDb(() => listClients());
 
   return (
-    <div className="min-h-full">
-      <DeskHeader email={email} />
-      <main className="mx-auto max-w-6xl px-4 py-10 space-y-8">
-        <div className="flex flex-wrap items-end justify-between gap-4">
-          <div>
-            <h1 className="font-heading text-3xl text-dark-950 md:text-4xl">
-              Clients
-            </h1>
-            <p className="mt-2 max-w-2xl text-gray-700">
-              The hiring party — person or organisation paying for the work.
-            </p>
-          </div>
-          <Link href="/clients/new" className={buttonClassName()}>
-            Add client
-          </Link>
+    <DeskShell email={email}>
+      <div className="flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <h1 className="section-heading">Clients</h1>
+          <p className="mt-2 max-w-2xl text-gray-700">
+            The hiring party — person or organisation paying for the work.
+          </p>
         </div>
+        <Link href="/clients/new" className={buttonClassName()}>
+          Add client
+        </Link>
+      </div>
 
-        {!ready ? (
-          <Card>
-            <CardContent className="pt-6 text-gray-700">
-              Neon is not linked in this environment yet.
-            </CardContent>
-          </Card>
-        ) : loadError ? (
-          <Card>
-            <CardContent className="pt-6 text-gray-700">
-              Could not read clients. Check DATABASE_URL and that migrations have
-              been applied.
-            </CardContent>
-          </Card>
-        ) : rows.length === 0 ? (
-          <Card>
-            <CardContent className="pt-6 space-y-4 text-gray-700">
-              <p>No clients yet. Add the hiring party before you start building.</p>
-              <Link href="/clients/new" className={buttonClassName()}>
-                Add client
-              </Link>
-            </CardContent>
-          </Card>
-        ) : (
-          <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
-            <table className="w-full text-left text-sm">
-              <thead className="bg-gray-50 text-gray-600">
-                <tr>
-                  <th className="px-4 py-3 font-medium">Name</th>
-                  <th className="px-4 py-3 font-medium">Organisation</th>
-                  <th className="px-4 py-3 font-medium">Source</th>
-                  <th className="px-4 py-3 font-medium">Email</th>
+      {loaded.kind === "missing" || loaded.kind === "error" ? (
+        <DatabaseNotice kind={loaded.kind} noun="clients" />
+      ) : loaded.data.length === 0 ? (
+        <Card>
+          <CardContent className="space-y-4 pt-6 text-gray-700">
+            <p>No clients yet. Add the hiring party before you start building.</p>
+            <Link href="/clients/new" className={buttonClassName()}>
+              Add client
+            </Link>
+          </CardContent>
+        </Card>
+      ) : (
+        <div className={tableFrameClassName}>
+          <table className={tableClassName}>
+            <thead className="bg-gray-50 text-gray-600">
+              <tr>
+                <th className="px-4 py-3 font-medium">Name</th>
+                <th className="px-4 py-3 font-medium">Organisation</th>
+                <th className="px-4 py-3 font-medium">People</th>
+                <th className="px-4 py-3 font-medium">Projects</th>
+                <th className="px-4 py-3 font-medium">Source</th>
+                <th className="hidden px-4 py-3 font-medium sm:table-cell">
+                  Email
+                </th>
+                <TableActionsHeader />
+              </tr>
+            </thead>
+            <tbody>
+              {loaded.data.map((client) => (
+                <tr key={client.id} className="border-t border-gray-100">
+                  <td className="px-4 py-3">
+                    <Link
+                      href={`/clients/${client.id}`}
+                      className={linkClassName("table")}
+                    >
+                      {client.name}
+                    </Link>
+                  </td>
+                  <td className="px-4 py-3 text-gray-700">
+                    {client.organisation ?? "—"}
+                  </td>
+                  <td className="px-4 py-3 text-gray-700">
+                    {Number(client.personCount)}
+                  </td>
+                  <td className="px-4 py-3 text-gray-700">
+                    {Number(client.projectCount)}
+                  </td>
+                  <td className="px-4 py-3 text-gray-700">
+                    {client.source ? clientSourceLabel(client.source) : "—"}
+                  </td>
+                  <td className="hidden px-4 py-3 text-gray-700 sm:table-cell">
+                    {client.email ?? "—"}
+                  </td>
+                  <TableActionsCell>
+                    <EditLink href={`/clients/${client.id}`} />
+                    {Number(client.projectCount) > 0 ? null : (
+                      <form action={deleteClientAction}>
+                        <input type="hidden" name="id" value={client.id} />
+                        <ConfirmDelete
+                          label="Remove"
+                          message={`Delete ${client.name} and their people?`}
+                        />
+                      </form>
+                    )}
+                  </TableActionsCell>
                 </tr>
-              </thead>
-              <tbody>
-                {rows.map((client) => (
-                  <tr key={client.id} className="border-t border-gray-100">
-                    <td className="px-4 py-3">
-                      <Link
-                        href={`/clients/${client.id}`}
-                        className="font-medium text-dark-950 hover:text-gold-500"
-                      >
-                        {client.name}
-                      </Link>
-                    </td>
-                    <td className="px-4 py-3 text-gray-700">
-                      {client.organisation ?? "—"}
-                    </td>
-                    <td className="px-4 py-3 text-gray-700">
-                      {client.source ? clientSourceLabel(client.source) : "—"}
-                    </td>
-                    <td className="px-4 py-3 text-gray-700">
-                      {client.email ?? "—"}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </main>
-    </div>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </DeskShell>
   );
 }

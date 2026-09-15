@@ -22,21 +22,26 @@ async function writeClipboard(text: string): Promise<boolean> {
   }
 }
 
-export function CopyTemplates({ templates }: { templates: CopyTemplate[] }) {
-  const [copiedId, setCopiedId] = useState<string | null>(null);
+export function CopyButton({ text, label }: { text: string; label: string }) {
+  const [status, setStatus] = useState<"idle" | "copied" | "failed">("idle");
 
-  async function copy(template: CopyTemplate) {
-    const wrote = await writeClipboard(template.text);
-    if (!wrote) {
-      setCopiedId(null);
-      return;
-    }
-    setCopiedId(template.id);
-    window.setTimeout(() => {
-      setCopiedId((current) => (current === template.id ? null : current));
-    }, 2000);
+  async function copy() {
+    const wrote = await writeClipboard(text);
+    setStatus(wrote ? "copied" : "failed");
+    window.setTimeout(() => setStatus("idle"), 2000);
   }
 
+  const caption =
+    status === "copied" ? "Copied" : status === "failed" ? "Copy failed" : label;
+
+  return (
+    <Button type="button" variant="outline" size="sm" onClick={() => void copy()}>
+      {caption}
+    </Button>
+  );
+}
+
+export function CopyTemplates({ templates }: { templates: CopyTemplate[] }) {
   return (
     <ul className="space-y-6">
       {templates.map((template) => (
@@ -48,16 +53,7 @@ export function CopyTemplates({ templates }: { templates: CopyTemplate[] }) {
               </h3>
               <p className="text-sm text-gray-600">{template.hint}</p>
             </div>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={() => {
-                void copy(template);
-              }}
-            >
-              {copiedId === template.id ? "Copied" : "Copy"}
-            </Button>
+            <CopyButton text={template.text} label="Copy" />
           </div>
           <pre className="whitespace-pre-wrap rounded-xl bg-gray-200 p-4 text-sm text-gray-700">
             {template.text}

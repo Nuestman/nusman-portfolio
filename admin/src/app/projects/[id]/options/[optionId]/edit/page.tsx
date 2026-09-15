@@ -2,10 +2,11 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getSessionEmail } from "@/lib/auth";
 import { getOption, getProject } from "@/db/queries";
-import { DeskHeader } from "@/components/desk-header";
+import { DeskShell } from "@/components/desk-shell";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { isUuid } from "@/lib/ids";
 import { optionKindLabel } from "@/lib/labels";
+import { linkClassName } from "@/lib/links";
 import { OptionForm } from "@/app/projects/option-form";
 
 export const dynamic = "force-dynamic";
@@ -31,17 +32,15 @@ export default async function EditOptionPage({ params }: EditOptionPageProps) {
   const email = await getSessionEmail();
 
   return (
-    <div className="min-h-full">
-      <DeskHeader email={email} />
-      <main className="mx-auto max-w-3xl px-4 py-10 space-y-8">
+    <DeskShell email={email} width="3xl">
         <div>
           <Link
             href={`/projects/${id}`}
-            className="text-sm text-dark-950 hover:text-gold-500"
+            className={linkClassName("back")}
           >
             ← {project.title}
           </Link>
-          <h1 className="mt-3 font-heading text-3xl text-dark-950 md:text-4xl">
+          <h1 className="mt-3 section-heading">
             Edit {optionKindLabel(option.kind).toLowerCase()} option
           </h1>
         </div>
@@ -66,7 +65,6 @@ export default async function EditOptionPage({ params }: EditOptionPageProps) {
             />
           </CardContent>
         </Card>
-      </main>
-    </div>
+    </DeskShell>
   );
 }

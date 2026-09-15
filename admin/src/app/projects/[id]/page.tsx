@@ -3,35 +3,41 @@ import { notFound } from "next/navigation";
 import { getSessionEmail } from "@/lib/auth";
 import {
   getClient,
+  getLaunch,
   getProject,
+  getProjectGateWork,
+  listChangeRequests,
+  listDemos,
   listNotes,
   listOptions,
   listPeople,
 } from "@/db/queries";
-import { DeskHeader } from "@/components/desk-header";
+import { ConfirmDelete } from "@/components/confirm-submit";
+import { DeskShell } from "@/components/desk-shell";
+import { EditableCard } from "@/components/editable-card";
+import { InfoList } from "@/components/info-list";
+import {
+  EditLink,
+  TableActionsCell,
+  TableActionsHeader,
+} from "@/components/table-actions";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ConfirmSubmit } from "@/components/confirm-submit";
-import { buttonClassName } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
+import { QueryNotice } from "@/components/query-notice";
 import { isUuid } from "@/lib/ids";
-import {
-  GATE_GUIDES,
-  gateGuide,
-  gateMoveBlock,
-  gateMoveBlockMessage,
-  isGateMoveBlock,
-} from "@/lib/gates";
-import { optionKindLabel } from "@/lib/labels";
-import { deskCopyTemplates, optionStarter, unusedOptionKinds } from "@/lib/templates";
-import {
-  deleteOptionAction,
-  moveGateAction,
-  selectOptionAction,
-} from "../actions";
+import { gateMoveBlockMessage, isGateMoveBlock } from "@/lib/gates";
+import { projectStatusLabel, workKindLabel } from "@/lib/labels";
+import { linkClassName } from "@/lib/links";
+import { formatStamp, snippet } from "@/lib/text";
+import { tableClassName, tableFrameClassName } from "@/lib/tables";
+import { deskCopyTemplates } from "@/lib/templates";
 import { CopyTemplates } from "../copy-templates";
+import { DeliveryWork } from "../delivery-work";
+import { GateSwitcher } from "../gate-switcher";
 import { NoteForm } from "../note-form";
-import { OptionForm } from "../option-form";
 import { ProjectDetailsForm } from "../project-details-form";
+import { ProposeAgreeWork } from "../propose-agree-work";
+import { SalesWork } from "../sales-work";
+import { deleteNoteAction, deleteProjectAction } from "../actions";
 
 export const dynamic = "force-dynamic";
 
@@ -39,6 +45,22 @@ type ProjectDetailPageProps = {
   params: Promise<{ id: string }>;
   searchParams: Promise<{ notice?: string | string[] }>;
 };
+
+function projectNotice(raw: string | undefined): string | null {
+  if (!raw) {
+    return null;
+  }
+  if (isGateMoveBlock(raw)) {
+    return gateMoveBlockMessage(raw);
+  }
+  if (raw === "chosen-option") {
+    return "Choose another package first, or this stays the chosen one.";
+  }
+  if (raw === "confirm-title") {
+    return "Type the title exactly to delete this record.";
+  }
+  return null;
+}
 
 export default async function ProjectDetailPage({
   params,
@@ -54,136 +76,128 @@ export default async function ProjectDetailPage({
     notFound();
   }
 
-  const [email, client, people, notes, options, query] = await Promise.all([
-    getSessionEmail(),
-    getClient(project.clientId),
-    listPeople(project.clientId),
-    listNotes(id),
-    listOptions(id),
-    searchParams,
-  ]);
+  const isProduct = project.workKind === "product";
+  const [email, client, people, notes, options, query, gateWork, delivery] =
+    await Promise.all([
+      getSessionEmail(),
+      getClient(project.clientId),
+      listPeople(project.clientId),
+      listNotes(id),
+      listOptions(id),
+      searchParams,
+      isProduct ? Promise.resolve(null) : getProjectGateWork(id),
+      isProduct
+        ? Promise.all([listChangeRequests(id), listDemos(id), getLaunch(id)]).then(
+            ([changes, demos, launch]) => ({ changes, demos, launch }),
+          )
+        : Promise.resolve(null),
+    ]);
 
   if (!client) {
     notFound();
   }
 
   const noticeRaw = Array.isArray(query.notice) ? query.notice[0] : query.notice;
-  const notice =
-    noticeRaw && isGateMoveBlock(noticeRaw)
-      ? gateMoveBlockMessage(noticeRaw)
-      : null;
-  const current = gateGuide(project.currentGate);
-  const remainingKinds = unusedOptionKinds(options.map((item) => item.kind));
-  const onlyKind = remainingKinds.length === 1 ? remainingKinds[0] : undefined;
-  const copyTemplates = deskCopyTemplates(project.problemSentence);
+  const notice = projectNotice(noticeRaw);
+  const hasSelectedOption = options.some((option) => option.selected);
+  const copyTemplates = isProduct
+    ? []
+    : deskCopyTemplates(project.problemSentence);
+  const qualify = gateWork?.qualify ?? null;
+  const intake = gateWork?.intake ?? [];
+  const agreement = gateWork?.agreement ?? null;
+  const changes = gateWork?.changes ?? delivery?.changes ?? [];
+  const demos = gateWork?.demos ?? delivery?.demos ?? [];
+  const launch = gateWork?.launch ?? delivery?.launch ?? null;
+  const problemAnswer =
+    intake.find((row) => row.theme === "Problem")?.answer ?? null;
+  const successAnswer =
+    intake.find((row) => row.theme === "Success")?.answer ?? null;
 
   return (
-    <div className="min-h-full">
-      <DeskHeader email={email} />
-      <main className="mx-auto max-w-3xl px-4 py-10 space-y-8">
+    <DeskShell email={email} width="3xl">
         <div>
           <Link
-            href="/projects"
-            className="text-sm text-dark-950 hover:text-gold-500"
+            href={isProduct ? "/products" : "/projects"}
+            className={linkClassName("back")}
           >
-            ← Projects
+            {isProduct ? "← Products" : "← Projects"}
           </Link>
-          <h1 className="mt-3 font-heading text-3xl text-dark-950 md:text-4xl">
+          <h1 className="mt-3 section-heading">
             {project.title}
           </h1>
           <p className="mt-2 text-gray-700">
-            Client:{" "}
-            <Link
-              href={`/clients/${client.id}`}
-              className="text-dark-950 hover:text-gold-500"
-            >
-              {client.name}
-            </Link>
+            {isProduct ? (
+              `${workKindLabel(project.workKind)}. The live app and database stay on their own Neon project.`
+            ) : (
+              <>
+                Client:{" "}
+                <Link
+                  href={`/clients/${client.id}`}
+                  className={linkClassName("inline")}
+                >
+                  {client.name}
+                </Link>
+              </>
+            )}
           </p>
         </div>
 
-        {notice ? (
-          <p className="rounded-lg bg-red-100 px-4 py-3 text-sm text-red-700" role="alert">
-            {notice}
-          </p>
-        ) : null}
+        <QueryNotice message={notice} />
 
         <Card>
           <CardHeader>
             <CardTitle>Gate</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-5">
-            <div className="flex flex-wrap gap-2">
-              {GATE_GUIDES.map((item) => {
-                const blocked = gateMoveBlock({
-                  from: project.currentGate,
-                  to: item.id,
-                  people,
-                });
-                const active = item.id === project.currentGate;
-                if (active) {
-                  return (
-                    <span
-                      key={item.id}
-                      className="rounded-full border border-gold-500 bg-gold-500 px-3 py-1.5 text-sm text-white"
-                    >
-                      {item.label}
-                    </span>
-                  );
-                }
-                if (blocked) {
-                  return (
-                    <span
-                      key={item.id}
-                      title={gateMoveBlockMessage(blocked)}
-                      className="rounded-full border border-gray-200 bg-gray-100 px-3 py-1.5 text-sm text-gray-500"
-                    >
-                      {item.label}
-                    </span>
-                  );
-                }
-                return (
-                  <form key={item.id} action={moveGateAction}>
-                    <input type="hidden" name="id" value={project.id} />
-                    <input type="hidden" name="gate" value={item.id} />
-                    <button
-                      type="submit"
-                      className={cn(
-                        "rounded-full border border-gray-200 bg-white px-3 py-1.5 text-sm text-dark-950 hover:border-gold-500",
-                      )}
-                    >
-                      {item.label}
-                    </button>
-                  </form>
-                );
-              })}
-            </div>
-            <div className="rounded-xl bg-gray-200 p-4 text-sm text-gray-700 space-y-2">
-              <p>
-                <span className="font-medium text-dark-950">Public: </span>
-                {current.publicStep}
-              </p>
-              <p>
-                <span className="font-medium text-dark-950">You: </span>
-                {current.youDo}
-              </p>
-              <p>
-                <span className="font-medium text-dark-950">They: </span>
-                {current.theyDo}
-              </p>
-              <p>
-                <span className="font-medium text-dark-950">Exit when: </span>
-                {current.exitWhen}
-              </p>
-            </div>
+          <CardContent>
+            <GateSwitcher
+              project={{
+                id: project.id,
+                currentGate: project.currentGate,
+                problemSentence: project.problemSentence,
+                status: project.status,
+                workKind: project.workKind,
+              }}
+              people={people}
+              hasSelectedOption={hasSelectedOption}
+              qualifyOutcome={qualify?.outcome ?? "undecided"}
+              intakeProblemAnswer={problemAnswer}
+              intakeSuccessAnswer={successAnswer}
+              depositPaid={agreement?.depositPaid ?? false}
+              agreementConfirmed={agreement?.confirmed ?? false}
+            />
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Project</CardTitle>
-          </CardHeader>
-          <CardContent>
+        {isProduct || !gateWork ? null : (
+          <SalesWork
+            projectId={project.id}
+            qualify={gateWork.qualify}
+            intake={gateWork.intake}
+            discovery={gateWork.discovery}
+          />
+        )}
+
+        <EditableCard
+          title="Project"
+          hint={
+            isProduct
+              ? undefined
+              : "Problem sentence is needed before you leave Discover."
+          }
+          view={
+            <InfoList
+              items={[
+                { label: "Title", value: project.title },
+                { label: "Problem sentence", value: project.problemSentence },
+                { label: "Success looks like", value: project.successLooksLike },
+                { label: "Budget note", value: project.budgetNote },
+                { label: "Deadline note", value: project.deadlineNote },
+                { label: "Status", value: projectStatusLabel(project.status) },
+              ]}
+            />
+          }
+          form={
             <ProjectDetailsForm
               project={{
                 id: project.id,
@@ -194,168 +208,125 @@ export default async function ProjectDetailPage({
                 deadlineNote: project.deadlineNote ?? "",
                 status: project.status,
               }}
+              problemHint={
+                isProduct ? undefined : "Needed before you leave Discover."
+              }
             />
-          </CardContent>
-        </Card>
+          }
+        />
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Options</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-8">
-            <p className="text-sm text-gray-600">
-              Offer light, recommended, and later. Choose one before you agree.
-            </p>
-            {options.length === 0 ? (
-              <p className="text-sm text-gray-600">No packages yet.</p>
+        {isProduct || !gateWork ? null : (
+          <ProposeAgreeWork
+            projectId={project.id}
+            currentGate={project.currentGate}
+            options={options}
+            agreement={gateWork.agreement}
+          />
+        )}
+
+        <DeliveryWork
+          projectId={project.id}
+          isProduct={isProduct}
+          changes={changes}
+          demos={demos}
+          launch={launch}
+        />
+
+        {copyTemplates.length > 0 ? (
+          <Card>
+            <CardHeader>
+              <CardTitle>Templates</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="mb-6 text-sm text-gray-600">
+                Copy into WhatsApp or email. Fill the brackets before you send.
+              </p>
+              <CopyTemplates templates={copyTemplates} />
+            </CardContent>
+          </Card>
+        ) : null}
+
+        <EditableCard
+          title="Timeline"
+          hint={
+            isProduct
+              ? "Notes and gate moves."
+              : "Calls, WhatsApp, gate moves, and the chosen package."
+          }
+          editLabel="Add"
+          always={
+            notes.length === 0 ? (
+              <p className="text-sm text-gray-600">No timeline yet.</p>
             ) : (
-              <ul className="space-y-4">
-                {options.map((option) => (
-                  <li
-                    key={option.id}
-                    className="rounded-xl border border-gray-200 bg-white p-4 space-y-3"
-                  >
-                    <div className="flex flex-wrap items-start justify-between gap-3">
-                      <div>
-                        <p className="font-medium text-dark-950">
-                          {optionKindLabel(option.kind)}
-                          {option.selected ? (
-                            <span className="ml-2 rounded-full bg-gold-500 px-2 py-0.5 text-xs text-white">
-                              Chosen
-                            </span>
-                          ) : null}
-                        </p>
-                        {option.priceNote || option.timelineNote ? (
-                          <p className="mt-1 text-sm text-gray-500">
-                            {[option.priceNote, option.timelineNote]
-                              .filter(Boolean)
-                              .join(" · ")}
-                          </p>
-                        ) : null}
-                      </div>
-                      <div className="flex flex-wrap items-center justify-end gap-3">
-                        {option.selected ? null : (
-                          <form action={selectOptionAction}>
-                            <input type="hidden" name="id" value={option.id} />
+              <div className={tableFrameClassName}>
+                <table className={tableClassName}>
+                  <thead className="bg-gray-50 text-gray-600">
+                    <tr>
+                      <th className="px-4 py-3 font-medium">When</th>
+                      <th className="px-4 py-3 font-medium">Note</th>
+                      <TableActionsHeader />
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {notes.map((note) => (
+                      <tr key={note.id} className="border-t border-gray-100">
+                        <td className="px-4 py-3 text-gray-500 whitespace-nowrap">
+                          {formatStamp(note.createdAt)}
+                        </td>
+                        <td className="px-4 py-3 text-gray-700">
+                          {snippet(note.body)}
+                        </td>
+                        <TableActionsCell>
+                          <EditLink
+                            href={`/projects/${project.id}/notes/${note.id}/edit`}
+                          />
+                          <form action={deleteNoteAction}>
+                            <input type="hidden" name="id" value={note.id} />
                             <input
                               type="hidden"
                               name="projectId"
                               value={project.id}
                             />
-                            <button
-                              type="submit"
-                              className={buttonClassName("outline", "sm")}
-                            >
-                              Choose this
-                            </button>
+                            <ConfirmDelete
+                              label="Remove"
+                              message="Remove this note?"
+                            />
                           </form>
-                        )}
-                        <Link
-                          href={`/projects/${project.id}/options/${option.id}/edit`}
-                          className="text-sm text-dark-950 hover:text-gold-500"
-                        >
-                          Edit
-                        </Link>
-                        <form action={deleteOptionAction}>
-                          <input type="hidden" name="id" value={option.id} />
-                          <input
-                            type="hidden"
-                            name="projectId"
-                            value={project.id}
-                          />
-                          <ConfirmSubmit
-                            label="Remove"
-                            message={`Remove the ${optionKindLabel(option.kind).toLowerCase()} option?`}
-                          />
-                        </form>
-                      </div>
-                    </div>
-                    <p className="whitespace-pre-wrap text-sm text-gray-700">
-                      {option.summary}
-                    </p>
-                    {option.inScope ? (
-                      <p className="text-sm text-gray-600">
-                        <span className="font-medium text-dark-950">In: </span>
-                        {option.inScope}
-                      </p>
-                    ) : null}
-                    {option.outOfScope ? (
-                      <p className="text-sm text-gray-600">
-                        <span className="font-medium text-dark-950">Out: </span>
-                        {option.outOfScope}
-                      </p>
-                    ) : null}
-                  </li>
-                ))}
-              </ul>
-            )}
-            {remainingKinds.length === 0 ? (
-              <p className="text-sm text-gray-600">
-                All three packages are on this project.
-              </p>
-            ) : (
-              <div>
-                <h3 className="mb-4 font-heading text-xl text-dark-950">
-                  Add option
-                </h3>
-                <OptionForm
-                  submitLabel="Add option"
-                  availableKinds={remainingKinds}
-                  option={{
-                    projectId: project.id,
-                    kind: onlyKind ?? "",
-                    summary: onlyKind ? optionStarter(onlyKind) : "",
-                    priceNote: "",
-                    timelineNote: "",
-                    inScope: "",
-                    outOfScope: "",
-                  }}
-                />
+                        </TableActionsCell>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
-            )}
-          </CardContent>
-        </Card>
+            )
+          }
+          form={<NoteForm projectId={project.id} />}
+        />
 
         <Card>
           <CardHeader>
-            <CardTitle>Templates</CardTitle>
+            <CardTitle>Remove {isProduct ? "product" : "project"}</CardTitle>
           </CardHeader>
-          <CardContent>
-            <p className="mb-6 text-sm text-gray-600">
-              Copy into WhatsApp or email. Fill the brackets before you send.
+          <CardContent className="space-y-3 text-gray-700">
+            <p className="text-sm">
+              Deletes this record and its notes, options, and gate forms.
             </p>
-            <CopyTemplates templates={copyTemplates} />
+            <form action={deleteProjectAction}>
+              <input type="hidden" name="id" value={project.id} />
+              <input
+                type="hidden"
+                name="next"
+                value={isProduct ? "/products" : "/projects"}
+              />
+              <ConfirmDelete
+                label={isProduct ? "Delete product" : "Delete project"}
+                size="default"
+                confirmValue={project.title}
+                message={`Deletes this ${isProduct ? "product" : "project"} and its notes, options, and gate forms. Type the title to confirm.`}
+              />
+            </form>
           </CardContent>
         </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Notes</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            <NoteForm projectId={project.id} />
-            {notes.length === 0 ? (
-              <p className="text-sm text-gray-600">No notes yet.</p>
-            ) : (
-              <ul className="space-y-4">
-                {notes.map((note) => (
-                  <li
-                    key={note.id}
-                    className="rounded-xl border border-gray-200 bg-white p-4"
-                  >
-                    <p className="text-xs text-gray-500">
-                      {note.createdAt.toLocaleString()}
-                    </p>
-                    <p className="mt-2 whitespace-pre-wrap text-sm text-gray-700">
-                      {note.body}
-                    </p>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </CardContent>
-        </Card>
-      </main>
-    </div>
+    </DeskShell>
   );
 }
