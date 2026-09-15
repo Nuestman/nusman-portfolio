@@ -90,21 +90,23 @@ function NavLinks({
 }
 
 export function DeskHeader({
-  email: _email,
   profile,
 }: {
-  email: string | null;
   profile?: { name: string; imageSrc: string | null } | null;
 }) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
+  const [openOnPath, setOpenOnPath] = useState(pathname);
   const menuId = useId();
   const chromeRef = useRef<HTMLDivElement>(null);
   const account = profile ?? null;
 
-  useEffect(() => {
-    setOpen(false);
-  }, [pathname]);
+  if (openOnPath !== pathname) {
+    setOpenOnPath(pathname);
+    if (open) {
+      setOpen(false);
+    }
+  }
 
   useEffect(() => {
     const chrome = chromeRef.current;

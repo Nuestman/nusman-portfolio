@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import type { Metadata } from "next";
 import { Inter, Odibee_Sans } from "next/font/google";
 import "./globals.css";
@@ -28,7 +29,11 @@ export const metadata: Metadata = {
   manifest: "/favicon/site.webmanifest",
 };
 
-export default function RootLayout({ children }: LayoutProps<"/">) {
+export default function RootLayout({
+  children,
+}: Readonly<{
+  children: ReactNode;
+}>) {
   return (
     <html
       lang="en"

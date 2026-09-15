@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import { DeskHeader } from "@/components/desk-header";
-import { getSessionUser, userAvatarSrc } from "@/lib/current-user";
+import { requireSessionUser, userAvatarSrc } from "@/lib/current-user";
 import { cn } from "@/lib/utils";
 
 const WIDTHS = {
@@ -10,7 +10,6 @@ const WIDTHS = {
 } as const;
 
 export async function DeskShell({
-  email,
   children,
   width = "6xl",
   beforeMain,
@@ -22,7 +21,7 @@ export async function DeskShell({
   beforeMain?: ReactNode;
   mainClassName?: string;
 }) {
-  const user = await getSessionUser().catch(() => null);
+  const user = await requireSessionUser();
 
   return (
     <div className="min-h-full">
@@ -33,15 +32,10 @@ export async function DeskShell({
         Skip to content
       </a>
       <DeskHeader
-        email={user?.email ?? email ?? null}
-        profile={
-          user
-            ? {
-                name: user.name,
-                imageSrc: userAvatarSrc(user),
-              }
-            : null
-        }
+        profile={{
+          name: user.name,
+          imageSrc: userAvatarSrc(user),
+        }}
       />
       {beforeMain}
       <main

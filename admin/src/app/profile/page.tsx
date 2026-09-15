@@ -1,6 +1,5 @@
-import { notFound } from "next/navigation";
-import { getSessionEmail, getSessionPayload } from "@/lib/auth";
-import { getSessionUser, userAvatarSrc } from "@/lib/current-user";
+import { getSessionPayload } from "@/lib/auth";
+import { requireSessionUser, userAvatarSrc } from "@/lib/current-user";
 import { listSessionsForUser, listUsers } from "@/db/queries";
 import { ConfirmDelete } from "@/components/confirm-submit";
 import { DeskShell } from "@/components/desk-shell";
@@ -16,6 +15,7 @@ import { tableClassName, tableFrameClassName } from "@/lib/tables";
 import { AddOperatorForm } from "./add-operator-form";
 import { PasswordForm } from "./password-form";
 import { ProfileForm } from "./profile-form";
+import { TotpCard } from "./totp-card";
 import {
   activateUserAction,
   deactivateUserAction,
@@ -35,6 +35,8 @@ function profileNotice(raw: string | undefined): string | null {
       return "Password updated. Other devices were signed out.";
     case "added":
       return "Operator added.";
+    case "totp-off":
+      return "Authenticator turned off.";
     case "devices":
       return "Signed out of those devices.";
     case "relogin":
@@ -51,14 +53,10 @@ export default async function ProfilePage({ searchParams }: ProfilePageProps) {
   const noticeRaw = Array.isArray(params.notice) ? params.notice[0] : params.notice;
   const notice = profileNotice(noticeRaw);
 
-  const [email, user, payload] = await Promise.all([
-    getSessionEmail(),
-    getSessionUser(),
+  const [user, payload] = await Promise.all([
+    requireSessionUser(),
     getSessionPayload(),
   ]);
-  if (!user) {
-    notFound();
-  }
 
   const [operators, devices] = await Promise.all([
     user.role === "owner" ? listUsers() : Promise.resolve([user]),
@@ -66,7 +64,7 @@ export default async function ProfilePage({ searchParams }: ProfilePageProps) {
   ]);
 
   return (
-    <DeskShell email={email} width="3xl">
+    <DeskShell width="3xl">
       <div>
         <h1 className="section-heading">Profile</h1>
         <p className="mt-2 text-gray-700">
@@ -104,6 +102,15 @@ export default async function ProfilePage({ searchParams }: ProfilePageProps) {
         </CardHeader>
         <CardContent>
           <PasswordForm />
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Authenticator</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <TotpCard enabled={user.totpEnabled} />
         </CardContent>
       </Card>
 

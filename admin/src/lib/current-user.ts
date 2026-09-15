@@ -1,5 +1,6 @@
-import { getSessionPayload } from "@/lib/auth";
-import { getSessionRow, getUserByEmail, getUserById } from "@/db/queries";
+import { redirect } from "next/navigation";
+import { clearSession, getSessionPayload } from "@/lib/auth";
+import { getSessionRow, getUserById } from "@/db/queries";
 
 export function userAvatarSrc(user: {
   id: string;
@@ -17,23 +18,39 @@ export function userAvatarSrc(user: {
 
 export async function getSessionUser() {
   const payload = await getSessionPayload();
-  if (!payload) {
+  if (!payload?.sessionId) {
     return null;
   }
 
-  if (payload.sessionId) {
-    const row = await getSessionRow(payload.sessionId);
-    if (!row || row.expiresAt.getTime() < Date.now()) {
-      return null;
-    }
+  const row = await getSessionRow(payload.sessionId);
+  if (!row || row.expiresAt.getTime() < Date.now()) {
+    return null;
   }
 
-  const user = payload.userId
-    ? await getUserById(payload.userId)
-    : await getUserByEmail(payload.email);
+  const user = await getUserById(row.userId);
   if (!user || !user.active) {
+    return null;
+  }
+  if (payload.userId && payload.userId !== user.id) {
+    return null;
+  }
+  if (payload.email && payload.email !== user.email) {
     return null;
   }
 
   return user;
+}
+
+export async function requireSessionUser() {
+  const user = await getSessionUser();
+  if (user) {
+    return user;
+  }
+  await clearSession();
+  redirect("/login");
+}
+
+export async function sessionEmail() {
+  const user = await getSessionUser();
+  return user?.email ?? null;
 }

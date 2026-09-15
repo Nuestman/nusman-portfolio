@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getSessionEmail } from "@/lib/auth";
+import { requireSessionUser } from "@/lib/current-user";
 import { recordAuditSafe } from "@/lib/audit";
 import { databaseConfigured } from "@/db";
 import { exportDesk } from "@/db/queries";
@@ -14,12 +14,7 @@ import {
 export const dynamic = "force-dynamic";
 
 export async function GET(request: Request) {
-  const email = await getSessionEmail();
-  if (!email) {
-    const login = new URL("/login", request.url);
-    login.searchParams.set("from", "/export");
-    return NextResponse.redirect(login);
-  }
+  const user = await requireSessionUser();
 
   if (!databaseConfigured()) {
     return NextResponse.json(
@@ -40,7 +35,7 @@ export async function GET(request: Request) {
       action: "export.download",
       summary: `Downloaded ${format} export.`,
       entityType: "export",
-      actorEmail: email,
+      actorEmail: user.email,
       after: { format },
     });
     const day = payload.exportedAt.slice(0, 10);

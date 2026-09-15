@@ -12,29 +12,39 @@ import {
   getUserById,
   publicUserSnapshot,
   setUserActive,
+  setUserTotp,
   updateUser,
 } from "@/db/queries";
 import { deleteWasConfirmed, recordAudit } from "@/lib/audit";
 import { getSessionPayload } from "@/lib/auth";
-import { getSessionUser } from "@/lib/current-user";
+import { requireSessionUser } from "@/lib/current-user";
 import { readOptional, readTrimmed, looksLikeEmail } from "@/lib/forms";
 import { isUuid } from "@/lib/ids";
 import { hashPassword, passwordTooShort, verifyPassword } from "@/lib/password";
+import {
+  generateRecoveryCodes,
+  generateTotpSecret,
+  hashRecoveryCode,
+  otpauthUrl,
+  parseRecoveryHashes,
+  recoveryCodeMatches,
+  verifyTotp,
+} from "@/lib/totp";
+import QRCode from "qrcode";
 
 export type FormState = {
   error: string | null;
 };
 
+export type TotpState = {
+  error: string | null;
+  secret: string | null;
+  qrDataUrl: string | null;
+  recoveryCodes: string[] | null;
+};
+
 const PHOTO_TYPES = new Set(["image/png", "image/jpeg", "image/webp"]);
 const PHOTO_MAX_BYTES = 400 * 1024;
-
-async function requireUser() {
-  const user = await getSessionUser();
-  if (!user) {
-    redirect("/login");
-  }
-  return user;
-}
 
 async function readPhoto(formData: FormData) {
   const file = formData.get("photo");
@@ -55,7 +65,7 @@ export async function updateProfileAction(
   _previous: FormState,
   formData: FormData,
 ): Promise<FormState> {
-  const user = await requireUser();
+  const user = await requireSessionUser();
   const name = readTrimmed(formData, "name");
   if (!name) {
     return { error: "Name is required." };
@@ -112,7 +122,7 @@ export async function changePasswordAction(
   _previous: FormState,
   formData: FormData,
 ): Promise<FormState> {
-  const user = await requireUser();
+  const user = await requireSessionUser();
   const current = String(formData.get("currentPassword") ?? "");
   const next = String(formData.get("newPassword") ?? "");
   const confirm = String(formData.get("confirmPassword") ?? "");
@@ -159,7 +169,7 @@ export async function createOperatorAction(
   _previous: FormState,
   formData: FormData,
 ): Promise<FormState> {
-  const actor = await requireUser();
+  const actor = await requireSessionUser();
   if (actor.role !== "owner") {
     return { error: "Only the owner can add operators." };
   }
@@ -203,7 +213,7 @@ export async function createOperatorAction(
 }
 
 export async function deactivateUserAction(formData: FormData) {
-  const actor = await requireUser();
+  const actor = await requireSessionUser();
   if (actor.role !== "owner") {
     redirect("/profile");
   }
@@ -236,7 +246,7 @@ export async function deactivateUserAction(formData: FormData) {
 }
 
 export async function activateUserAction(formData: FormData) {
-  const actor = await requireUser();
+  const actor = await requireSessionUser();
   if (actor.role !== "owner") {
     redirect("/profile");
   }
@@ -265,7 +275,7 @@ export async function activateUserAction(formData: FormData) {
 }
 
 export async function revokeOtherSessionsAction() {
-  const user = await requireUser();
+  const user = await requireSessionUser();
   const payload = await getSessionPayload();
   if (!payload?.sessionId) {
     redirect("/profile?notice=relogin");
@@ -282,7 +292,7 @@ export async function revokeOtherSessionsAction() {
 }
 
 export async function revokeSessionAction(formData: FormData) {
-  const user = await requireUser();
+  const user = await requireSessionUser();
   const payload = await getSessionPayload();
   const id = readTrimmed(formData, "id");
   if (!isUuid(id) || id === payload?.sessionId) {
@@ -304,3 +314,108 @@ export async function revokeSessionAction(formData: FormData) {
   revalidatePath("/profile");
   redirect("/profile?notice=devices");
 }
+
+export async function startTotpAction(
+  _previous: TotpState,
+  _formData: FormData,
+): Promise<TotpState> {
+  const user = await requireSessionUser();
+  if (user.totpEnabled) {
+    return {
+      error: "Authenticator is already on.",
+      secret: null,
+      qrDataUrl: null,
+      recoveryCodes: null,
+    };
+  }
+
+  const secret = generateTotpSecret();
+  const qrDataUrl = await QRCode.toDataURL(otpauthUrl(user.email, secret), {
+    margin: 1,
+    width: 220,
+    color: { dark: "#150F00", light: "#ffffff" },
+  });
+
+  return {
+    error: null,
+    secret,
+    qrDataUrl,
+    recoveryCodes: null,
+  };
+}
+
+export async function confirmTotpAction(
+  _previous: TotpState,
+  formData: FormData,
+): Promise<TotpState> {
+  const user = await requireSessionUser();
+  const secret = readTrimmed(formData, "secret");
+  const code = String(formData.get("code") ?? "");
+  if (!secret || !verifyTotp(secret, code)) {
+    return {
+      error: "That code is wrong. Scan again or wait for a new code.",
+      secret,
+      qrDataUrl: readTrimmed(formData, "qrDataUrl") || null,
+      recoveryCodes: null,
+    };
+  }
+
+  const recoveryCodes = generateRecoveryCodes();
+  await setUserTotp(user.id, {
+    totpSecret: secret,
+    totpEnabled: true,
+    totpRecoveryHashes: recoveryCodes.map(hashRecoveryCode),
+  });
+  await recordAudit({
+    action: "profile.totp-enable",
+    summary: `Turned on authenticator for ${user.name}.`,
+    entityType: "user",
+    entityId: user.id,
+  });
+  revalidatePath("/profile");
+  return {
+    error: null,
+    secret: null,
+    qrDataUrl: null,
+    recoveryCodes,
+  };
+}
+
+export async function disableTotpAction(
+  _previous: TotpState,
+  formData: FormData,
+): Promise<TotpState> {
+  const user = await requireSessionUser();
+  const empty = {
+    error: null as string | null,
+    secret: null,
+    qrDataUrl: null,
+    recoveryCodes: null,
+  };
+  if (!user.totpEnabled || !user.totpSecret) {
+    return { ...empty, error: "Authenticator is not on." };
+  }
+
+  const code = String(formData.get("code") ?? "");
+  const totpOk = verifyTotp(user.totpSecret, code);
+  const hashes = parseRecoveryHashes(user.totpRecoveryHashes);
+  const matched = totpOk ? null : recoveryCodeMatches(code, hashes);
+  if (!totpOk && !matched) {
+    return { ...empty, error: "That code is wrong." };
+  }
+
+  await setUserTotp(user.id, {
+    totpSecret: null,
+    totpEnabled: false,
+    totpRecoveryHashes: null,
+  });
+  await recordAudit({
+    action: "profile.totp-disable",
+    summary: `Turned off authenticator for ${user.name}.`,
+    entityType: "user",
+    entityId: user.id,
+  });
+  revalidatePath("/profile");
+  redirect("/profile?notice=totp-off");
+}
+

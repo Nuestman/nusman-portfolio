@@ -49,6 +49,7 @@ import {
 import { readChecked, readOptional, readTrimmed } from "@/lib/forms";
 import { gateGuide, gateMoveBlock, isProjectGate } from "@/lib/gates";
 import { isUuid } from "@/lib/ids";
+import { requireSessionUser } from "@/lib/current-user";
 import { safeInternalPath } from "@/lib/paths";
 import {
   isChangeStatus,
@@ -91,6 +92,7 @@ export async function createProjectAction(
   _previous: FormState,
   formData: FormData,
 ): Promise<FormState> {
+  await requireSessionUser();
   const clientId = readTrimmed(formData, "clientId");
   if (!isUuid(clientId)) {
     return { error: "Pick a client." };
@@ -138,6 +140,7 @@ export async function updateProjectAction(
   _previous: FormState,
   formData: FormData,
 ): Promise<FormState> {
+  await requireSessionUser();
   const id = readTrimmed(formData, "id");
   if (!isUuid(id)) {
     return { error: "Project is missing." };
@@ -183,6 +186,7 @@ export async function updateProjectAction(
 }
 
 export async function deleteProjectAction(formData: FormData) {
+  await requireSessionUser();
   const id = readTrimmed(formData, "id");
   if (!isUuid(id)) {
     redirect("/projects");
@@ -216,6 +220,7 @@ export async function deleteProjectAction(formData: FormData) {
 }
 
 export async function moveGateAction(formData: FormData) {
+  await requireSessionUser();
   const id = readTrimmed(formData, "id");
   const toRaw = readTrimmed(formData, "gate");
   if (!isUuid(id) || !isProjectGate(toRaw)) {
@@ -275,6 +280,7 @@ export async function addNoteAction(
   _previous: FormState,
   formData: FormData,
 ): Promise<FormState> {
+  await requireSessionUser();
   const projectId = readTrimmed(formData, "projectId");
   if (!isUuid(projectId)) {
     return { error: "Project is missing." };
@@ -306,6 +312,7 @@ export async function updateNoteAction(
   _previous: FormState,
   formData: FormData,
 ): Promise<FormState> {
+  await requireSessionUser();
   const id = readTrimmed(formData, "id");
   const projectId = readTrimmed(formData, "projectId");
   if (!isUuid(id) || !isUuid(projectId)) {
@@ -338,6 +345,7 @@ export async function updateNoteAction(
 }
 
 export async function deleteNoteAction(formData: FormData) {
+  await requireSessionUser();
   const id = readTrimmed(formData, "id");
   const projectId = readTrimmed(formData, "projectId");
   if (!isUuid(id) || !isUuid(projectId)) {
@@ -398,6 +406,7 @@ export async function createOptionAction(
   _previous: FormState,
   formData: FormData,
 ): Promise<FormState> {
+  await requireSessionUser();
   const projectId = readTrimmed(formData, "projectId");
   if (!isUuid(projectId)) {
     return { error: "Project is missing." };
@@ -440,6 +449,7 @@ export async function updateOptionAction(
   _previous: FormState,
   formData: FormData,
 ): Promise<FormState> {
+  await requireSessionUser();
   const id = readTrimmed(formData, "id");
   const projectId = readTrimmed(formData, "projectId");
   if (!isUuid(id) || !isUuid(projectId)) {
@@ -472,6 +482,7 @@ export async function updateOptionAction(
 }
 
 export async function deleteOptionAction(formData: FormData) {
+  await requireSessionUser();
   const id = readTrimmed(formData, "id");
   const projectId = readTrimmed(formData, "projectId");
   if (!isUuid(id) || !isUuid(projectId)) {
@@ -503,6 +514,7 @@ export async function deleteOptionAction(formData: FormData) {
 }
 
 export async function selectOptionAction(formData: FormData) {
+  await requireSessionUser();
   const id = readTrimmed(formData, "id");
   const projectId = readTrimmed(formData, "projectId");
   if (!isUuid(id) || !isUuid(projectId)) {
@@ -544,6 +556,7 @@ export async function saveQualifyAction(
   _previous: FormState,
   formData: FormData,
 ): Promise<FormState> {
+  await requireSessionUser();
   const projectId = readTrimmed(formData, "projectId");
   if (!isUuid(projectId)) {
     return { error: "Project is missing." };
@@ -589,6 +602,7 @@ export async function saveIntakeAction(
   _previous: FormState,
   formData: FormData,
 ): Promise<FormState> {
+  await requireSessionUser();
   const projectId = readTrimmed(formData, "projectId");
   if (!isUuid(projectId)) {
     return { error: "Project is missing." };
@@ -629,6 +643,7 @@ export async function saveDiscoveryAction(
   _previous: FormState,
   formData: FormData,
 ): Promise<FormState> {
+  await requireSessionUser();
   const projectId = readTrimmed(formData, "projectId");
   if (!isUuid(projectId)) {
     return { error: "Project is missing." };
@@ -671,6 +686,7 @@ export async function saveAgreementAction(
   _previous: FormState,
   formData: FormData,
 ): Promise<FormState> {
+  await requireSessionUser();
   const projectId = readTrimmed(formData, "projectId");
   if (!isUuid(projectId)) {
     return { error: "Project is missing." };
@@ -715,6 +731,7 @@ export async function createChangeRequestAction(
   _previous: FormState,
   formData: FormData,
 ): Promise<FormState> {
+  await requireSessionUser();
   const projectId = readTrimmed(formData, "projectId");
   if (!isUuid(projectId)) {
     return { error: "Project is missing." };
@@ -751,6 +768,7 @@ export async function updateChangeRequestAction(
   _previous: FormState,
   formData: FormData,
 ): Promise<FormState> {
+  await requireSessionUser();
   const id = readTrimmed(formData, "id");
   const projectId = readTrimmed(formData, "projectId");
   if (!isUuid(id) || !isUuid(projectId)) {
@@ -788,6 +806,7 @@ export async function updateChangeRequestAction(
 }
 
 export async function deleteChangeRequestAction(formData: FormData) {
+  await requireSessionUser();
   const id = readTrimmed(formData, "id");
   const projectId = readTrimmed(formData, "projectId");
   if (!isUuid(id) || !isUuid(projectId)) {
@@ -819,6 +838,7 @@ export async function createDemoAction(
   _previous: FormState,
   formData: FormData,
 ): Promise<FormState> {
+  await requireSessionUser();
   const projectId = readTrimmed(formData, "projectId");
   if (!isUuid(projectId)) {
     return { error: "Project is missing." };
@@ -854,6 +874,7 @@ export async function updateDemoAction(
   _previous: FormState,
   formData: FormData,
 ): Promise<FormState> {
+  await requireSessionUser();
   const id = readTrimmed(formData, "id");
   const projectId = readTrimmed(formData, "projectId");
   if (!isUuid(id) || !isUuid(projectId)) {
@@ -890,6 +911,7 @@ export async function updateDemoAction(
 }
 
 export async function deleteDemoAction(formData: FormData) {
+  await requireSessionUser();
   const id = readTrimmed(formData, "id");
   const projectId = readTrimmed(formData, "projectId");
   if (!isUuid(id) || !isUuid(projectId)) {
@@ -921,6 +943,7 @@ export async function saveLaunchAction(
   _previous: FormState,
   formData: FormData,
 ): Promise<FormState> {
+  await requireSessionUser();
   const projectId = readTrimmed(formData, "projectId");
   if (!isUuid(projectId)) {
     return { error: "Project is missing." };
