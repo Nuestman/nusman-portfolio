@@ -14,7 +14,12 @@ function isPortalPublicPath(pathname: string) {
     pathname === "/" ||
     pathname === "/login" ||
     pathname === "/auth/magic" ||
-    pathname.startsWith("/auth/magic/")
+    pathname.startsWith("/auth/magic/") ||
+    // Rewrite destinations can re-enter proxy; these must stay public too.
+    pathname === "/portal" ||
+    pathname === "/portal/login" ||
+    pathname === "/portal/auth/magic" ||
+    pathname.startsWith("/portal/auth/magic/")
   );
 }
 
@@ -36,7 +41,11 @@ function isDeskPublicApiPath(pathname: string) {
  * page at the public path. Other portal URLs still rewrite to `/portal/...`.
  */
 function isSharedDeskPortalPath(pathname: string) {
-  return pathname === "/projects" || pathname.startsWith("/projects/");
+  return (
+    pathname === "/login" ||
+    pathname === "/projects" ||
+    pathname.startsWith("/projects/")
+  );
 }
 
 function isDeskExclusivePath(pathname: string) {
@@ -48,15 +57,23 @@ function isDeskExclusivePath(pathname: string) {
     pathname.startsWith("/activities") ||
     pathname.startsWith("/audit") ||
     pathname.startsWith("/export") ||
-    pathname.startsWith("/log") ||
+    // Exact `/log` or `/log/...` only — `/login` must not match.
+    pathname === "/log" ||
+    pathname.startsWith("/log/") ||
     pathname.startsWith("/portal-desk") ||
     pathname.startsWith("/settings")
   );
 }
 
+function isPortalTreePath(pathname: string) {
+  return pathname === "/portal" || pathname.startsWith("/portal/");
+}
+
 async function handlePortal(request: NextRequest) {
   const { pathname, search } = request.nextUrl;
-  const portalOrigin = `${portalPublicBaseUrl()}/`;
+  // Prefer the request host for redirects so a wrong PORTAL_APP_URL cannot
+  // bounce portal ↔ desk or http ↔ https in a loop.
+  const portalOrigin = request.nextUrl.origin;
 
   if (pathname.startsWith("/_next") || pathname.startsWith("/favicon")) {
     return NextResponse.next();
@@ -79,7 +96,7 @@ async function handlePortal(request: NextRequest) {
   if (!live && !isPublic) {
     const login = new URL("/login", portalOrigin);
     const from = safeInternalPath(`${pathname}${search}`);
-    if (from !== "/") {
+    if (from !== "/" && !from.startsWith("/portal")) {
       login.searchParams.set("from", from);
     }
     const response = NextResponse.redirect(login);
@@ -90,9 +107,20 @@ async function handlePortal(request: NextRequest) {
     return response;
   }
 
-  if (live && pathname === "/login") {
+  if (live && (pathname === "/login" || pathname === "/portal/login")) {
     const response = NextResponse.redirect(new URL("/projects", portalOrigin));
     response.cookies.delete(SESSION_COOKIE);
+    return response;
+  }
+
+  // Already on the portal App Router tree (rewrite destination re-entering
+  // proxy, or a direct /portal/... hit). Never rewrite again — that produced
+  // /login ↔ /portal/login redirect loops.
+  if (isPortalTreePath(pathname)) {
+    const response = NextResponse.next();
+    if (request.cookies.has(SESSION_COOKIE)) {
+      response.cookies.delete(SESSION_COOKIE);
+    }
     return response;
   }
 
@@ -171,7 +199,7 @@ export async function proxy(request: NextRequest) {
       return portalResponse;
     }
     // Desk-exclusive path on the portal host — send them to Portal home.
-    return NextResponse.redirect(new URL("/projects", `${portalPublicBaseUrl()}/`));
+    return NextResponse.redirect(new URL("/", request.nextUrl.origin));
   }
 
   // Local / same-origin: magic link and live portal sessions use Portal chrome

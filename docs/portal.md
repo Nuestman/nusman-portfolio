@@ -80,7 +80,7 @@ Magic link rows: hashed token, person_id, expires_at, used_at. One-time use.
 
 **Cause:** Public URLs (`/projects`, `/projects/[id]`, …) exist in **two** App Router trees (`app/projects/…` and `app/portal/projects/…`). Proxy rewrite to `/portal/…` works on document loads; soft navigations resolve the **desk** module from the browser URL and collide with the rewrite.
 
-**Current workaround (keep until cleanup):** For `/projects*`, proxy uses `NextResponse.next()` (no rewrite). Desk pages branch with `shouldServePortalUi()` (`admin/src/lib/serve-portal.ts`) and render Portal UI. Thin aliases exist for intake/schedule under `app/projects/[id]/…`. Desk-only paths are not rewritten when a portal cookie is live on localhost.
+**Current workaround (keep until cleanup):** For `/login` and `/projects*`, proxy uses `NextResponse.next()` (no rewrite). Desk pages branch with `shouldServePortalUi()` (`admin/src/lib/serve-portal.ts`) and render Portal UI. Thin aliases exist for intake/schedule under `app/projects/[id]/…`. Proxy also short-circuits already-rewritten `/portal/…` paths so rewrite re-entry cannot loop. Desk-only paths use careful prefixes (`/log` and `/log/…` only — never `startsWith("/log")`, which matched `/login` and caused `ERR_TOO_MANY_REDIRECTS` on Portal login).
 
 **Preferred later fix (pick one):**
 

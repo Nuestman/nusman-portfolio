@@ -1,17 +1,23 @@
 import Image from "next/image";
 import { credentialsConfigured, readPendingLogin } from "@/lib/auth";
 import { safeInternalPath } from "@/lib/paths";
+import { shouldServePortalUi } from "@/lib/serve-portal";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import PortalLoginPage from "@/app/portal/login/page";
 import { LoginForm } from "./login-form";
 import { TotpForm } from "./totp-form";
 
 export const dynamic = "force-dynamic";
 
 type LoginPageProps = {
-  searchParams: Promise<{ from?: string | string[] }>;
+  searchParams: Promise<{ from?: string | string[]; notice?: string | string[] }>;
 };
 
 export default async function LoginPage({ searchParams }: LoginPageProps) {
+  if (await shouldServePortalUi()) {
+    return <PortalLoginPage searchParams={searchParams} />;
+  }
+
   const params = await searchParams;
   const fromRaw = Array.isArray(params.from) ? params.from[0] : params.from;
   const from = safeInternalPath(fromRaw);
