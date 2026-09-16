@@ -1,5 +1,15 @@
 # Changelog
 
+## 16 Sep 2026 — Desk 2.0.0
+
+Surfaces model locked in [desk-2.0.md](./desk-2.0.md). Desk **2.0.0** ships:
+
+- **Project page reshape** — current gate first, Earlier stages, timeline, portal strip; GateSwitcher chips only  
+- **Scheduler** — `0009_project_events`; Desk + Portal `/schedule` hubs (Cards / Calendar via `react-big-calendar`); per-project schedule; confirm / decline / cancel / request; Today **Next 7 days** teaser  
+- On-brand confirm dialogs (no native browser alerts)  
+
+---
+
 ## 15 Sep 2026 — Desk 1.3.0 / Portal 1.0 · public 4.1.0
 
 ### Desk / Portal (`admin/` → **1.3.0**)

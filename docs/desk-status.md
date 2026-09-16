@@ -1,25 +1,26 @@
 # Desk status
 
-Checked 15 Sep 2026 against the code in `admin/`. Product version: **1.3.0** (`admin/package.json`). Product rules stay in [desk.md](./desk.md). Portal: [portal.md](./portal.md). Archive: [archive/desk-1.1.md](./archive/desk-1.1.md). Visual: [style-guide.md](./style-guide.md). Deploy: [deploy.md](./deploy.md). Update this file when something ships or an open item is closed.
+Checked 16 Sep 2026 against the code in `admin/`. Product version: **2.0.0** (`admin/package.json`). Product rules: [desk-2.0.md](./desk-2.0.md) (wins) and [desk.md](./desk.md). Portal: [portal.md](./portal.md). Archive: [archive/desk-1.1.md](./archive/desk-1.1.md). Visual: [style-guide.md](./style-guide.md). Deploy: [deploy.md](./deploy.md). Update this file when something ships or an open item is closed.
 
-Desk **1.3.0** / Portal **1.0** are usable. Phases 0–14 in `desk.md` are done. Public site **4.1.0** posts `/start` leads into Desk.
+Desk **2.0.0** / Portal **1.0** are usable. Public site **4.1.0** posts `/start` leads into Desk.
 
 ---
 
 ## Live
 
-Hiring jobs with gate records, table-row edit/remove, playbook on Desk, multi-format export, own products as records, an audit trail with before/after, operator profiles, sessions for device revoke, **Portal** (magic link), **Messages** inbox, and **inbound leads** from the public `/start` form.
+Hiring jobs with gate records, table-row edit/remove, playbook on Desk, multi-format export, own products as records, an audit trail with before/after, operator profiles, sessions for device revoke, **Portal** (magic link), **Messages** inbox, **Schedule** hubs (Cards/Calendar), and **inbound leads** from the public `/start` form.
 
 ### Routes
 
 | Route | Status |
 |---|---|
 | `/login` | Live. Env bootstrap only until owner hash exists; optional TOTP after password |
-| `/` | Today |
+| `/` | Today — active projects + **Next 7 days** schedule teaser |
 | `/log`, `/log/[id]/edit` | Live. UI says **Journal**; URL stays `/log` |
 | `/audit`, `/audit/[id]` | Live. Row click opens detail |
 | `/clients` … `/clients/[id]/people/[personId]/edit` | Live. Person edit includes portal enable + magic link |
-| `/projects` … gate records, notes, options, changes, demos | Live. Options are package cards; client summary required |
+| `/schedule` | Live. Hub: Cards / Calendar; create/edit still on project |
+| `/projects` … gate records, notes, options, changes, demos | Live. **Desk 2.0:** current gate first; earlier stages collapsed; timeline; **Schedule** (`project_events`); portal strip |
 | `/messages`, `/messages/[projectId]` | Live. Chat-style portal conversation inbox + reply |
 | `/products`, `/products/new` | Live. Own-product records only |
 | `/playbook` | Live on Desk. Public scratch page is gone |
@@ -35,8 +36,9 @@ Hiring jobs with gate records, table-row edit/remove, playbook on Desk, multi-fo
 |---|---|
 | `/`, `/login`, `/auth/magic` | Live |
 | `/profile` | Live. Read-only person details; account chip matches Desk |
-| `/projects`, `/projects/[id]` | Live. Progress, your package (client fields), updates |
-| `/projects/[id]/intake`, `/messages` | Live |
+| `/projects`, `/projects/[id]` | Live. Progress, your package (client fields), updates, schedule strip |
+| `/schedule` | Live. Wide hub: Cards / Calendar; confirm/decline/cancel; request |
+| `/projects/[id]/intake`, `/messages`, `/schedule` | Live |
 
 ### Schema
 
@@ -70,7 +72,7 @@ Apply from `admin/` with `npm run db:migrate`. Do not point `DATABASE_URL` at Mi
 
 ### Chrome (as built)
 
-Main nav: Today, Audit, Clients, Projects, **Messages**, Products, Playbook, Style, Export.
+Main nav: Today, Audit, Clients, Projects, **Schedule**, Messages, Products, Playbook, Style, Export.
 
 Account menu (last nav item): grey chip (`bg-gray-100 hover:bg-gray-200`), no gold ring except focus. Opens Profile, Journal, Sign out. Inline SVG icons (person, book, door). Journal is not in the main nav so it is not confused with sign-in or Audit.
 

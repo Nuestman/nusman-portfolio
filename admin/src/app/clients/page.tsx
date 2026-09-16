@@ -29,7 +29,8 @@ export default async function ClientsPage() {
         <div>
           <h1 className="section-heading">Clients</h1>
           <p className="mt-2 max-w-2xl text-gray-700">
-            The hiring party — person or organisation paying for the work.
+            CRM — who is hiring, who you talk to, and who can use Portal. Jobs
+            live under Projects.
           </p>
         </div>
         <Link href="/clients/new" className={buttonClassName()}>

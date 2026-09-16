@@ -8,10 +8,12 @@ export function PortalProjectControls({
   projectId,
   portalIntakeOpen,
   messageCount,
+  scheduleRequestCount = 0,
 }: {
   projectId: string;
   portalIntakeOpen: boolean;
   messageCount: number;
+  scheduleRequestCount?: number;
 }) {
   return (
     <div className="space-y-8">
@@ -44,6 +46,15 @@ export function PortalProjectControls({
         >
           Open conversation
         </Link>
+      </div>
+
+      <div className="space-y-3">
+        <h3 className="font-heading text-xl text-dark-950">Schedule</h3>
+        <p className="text-sm text-gray-600">
+          {scheduleRequestCount === 0
+            ? "No client meeting requests waiting."
+            : `${scheduleRequestCount} client request${scheduleRequestCount === 1 ? "" : "s"} waiting — open Schedule above and Propose time.`}
+        </p>
       </div>
     </div>
   );

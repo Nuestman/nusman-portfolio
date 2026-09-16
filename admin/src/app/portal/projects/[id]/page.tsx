@@ -4,15 +4,21 @@ import {
   getPortalProjectForPerson,
   getSelectedOption,
   listClientVisibleNotes,
+  listProjectEvents,
 } from "@/db/queries";
 import { PortalShell } from "@/components/portal-shell";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { requirePortalPerson } from "@/lib/current-person";
 import { gateGuide } from "@/lib/gates";
 import { isUuid } from "@/lib/ids";
-import { projectStatusLabel, optionKindLabel } from "@/lib/labels";
+import {
+  projectStatusLabel,
+  optionKindLabel,
+  projectEventKindLabel,
+  projectEventStatusLabel,
+} from "@/lib/labels";
 import { linkClassName } from "@/lib/links";
-import { formatStamp } from "@/lib/text";
+import { formatEventWhen, formatStamp } from "@/lib/text";
 import { isOptionStarterSummary } from "@/lib/templates";
 import { tableClassName, tableFrameClassName } from "@/lib/tables";
 import { InfoList } from "@/components/info-list";
@@ -37,11 +43,18 @@ export default async function PortalProjectPage({
     notFound();
   }
 
-  const [notes, selected] = await Promise.all([
+  const [notes, selected, events] = await Promise.all([
     listClientVisibleNotes(project.id),
     getSelectedOption(project.id),
+    listProjectEvents(project.id),
   ]);
   const guide = gateGuide(project.currentGate);
+  const upcoming = events.filter(
+    (event) =>
+      event.status === "proposed" ||
+      event.status === "confirmed" ||
+      event.status === "requested",
+  );
 
   return (
     <PortalShell>
@@ -65,6 +78,12 @@ export default async function PortalProjectPage({
             className={linkClassName("nav")}
           >
             Messages
+          </Link>
+          <Link
+            href={`/projects/${project.id}/schedule`}
+            className={linkClassName("nav")}
+          >
+            Schedule
           </Link>
         </div>
       </div>
@@ -140,6 +159,46 @@ export default async function PortalProjectPage({
           </CardContent>
         </Card>
       ) : null}
+
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between gap-4 space-y-0">
+          <CardTitle>Schedule</CardTitle>
+          <Link
+            href={`/projects/${project.id}/schedule`}
+            className={linkClassName("back")}
+          >
+            Open
+          </Link>
+        </CardHeader>
+        <CardContent>
+          {upcoming.length === 0 ? (
+            <p className="text-sm text-gray-600">
+              No upcoming meetings.{" "}
+              <Link
+                href={`/projects/${project.id}/schedule`}
+                className={linkClassName("nav")}
+              >
+                Request one
+              </Link>
+              .
+            </p>
+          ) : (
+            <ul className="space-y-3">
+              {upcoming.slice(0, 3).map((event) => (
+                <li key={event.id} className="text-sm text-gray-700">
+                  <span className="font-medium text-dark-950">
+                    {event.title}
+                  </span>
+                  {" · "}
+                  {projectEventKindLabel(event.kind)} ·{" "}
+                  {projectEventStatusLabel(event.status)} ·{" "}
+                  {formatEventWhen(event.startsAt)}
+                </li>
+              ))}
+            </ul>
+          )}
+        </CardContent>
+      </Card>
 
       <Card>
         <CardHeader>

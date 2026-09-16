@@ -27,7 +27,9 @@ type ClauseField =
   | "support"
   | "workplace";
 
-function clauseField(clause: (typeof AGREEMENT_CLAUSES)[number]["clause"]): ClauseField {
+function clauseField(
+  clause: (typeof AGREEMENT_CLAUSES)[number]["clause"],
+): ClauseField {
   switch (clause) {
     case "Parties":
       return "parties";
@@ -57,6 +59,7 @@ export function ProposeAgreeWork({
   currentGate,
   options,
   agreement,
+  include,
 }: {
   projectId: string;
   currentGate: ProjectGate;
@@ -73,7 +76,11 @@ export function ProposeAgreeWork({
     depositPaid: boolean;
     confirmed: boolean;
   } | null;
+  include?: readonly ProjectGate[];
 }) {
+  const show = (gate: ProjectGate) =>
+    !include || include.includes(gate);
+
   const agreementValues = {
     parties: agreement?.parties ?? "",
     outcome: agreement?.outcome ?? "",
@@ -89,37 +96,41 @@ export function ProposeAgreeWork({
 
   return (
     <>
-      <OptionsPanel
-        projectId={projectId}
-        options={options}
-        currentGate={currentGate}
-      />
+      {show("propose") ? (
+        <OptionsPanel
+          projectId={projectId}
+          options={options}
+          currentGate={currentGate}
+        />
+      ) : null}
 
-      <EditableCard
-        title="Agree"
-        hint="One page. Deposit and written confirm before you leave Agree."
-        view={
-          <InfoList
-            items={[
-              ...AGREEMENT_CLAUSES.map((item) => ({
-                label: item.clause,
-                value: agreementValues[clauseField(item.clause)],
-              })),
-              {
-                label: "Deposit paid",
-                value: displayYesNo(agreementValues.depositPaid),
-              },
-              {
-                label: "Signed or WhatsApp confirmed",
-                value: displayYesNo(agreementValues.confirmed),
-              },
-            ]}
-          />
-        }
-        form={
-          <AgreementForm projectId={projectId} agreement={agreementValues} />
-        }
-      />
+      {show("agree") ? (
+        <EditableCard
+          title="Agree"
+          hint="One page. Deposit and written confirm before you leave Agree."
+          view={
+            <InfoList
+              items={[
+                ...AGREEMENT_CLAUSES.map((item) => ({
+                  label: item.clause,
+                  value: agreementValues[clauseField(item.clause)],
+                })),
+                {
+                  label: "Deposit paid",
+                  value: displayYesNo(agreementValues.depositPaid),
+                },
+                {
+                  label: "Signed or WhatsApp confirmed",
+                  value: displayYesNo(agreementValues.confirmed),
+                },
+              ]}
+            />
+          }
+          form={
+            <AgreementForm projectId={projectId} agreement={agreementValues} />
+          }
+        />
+      ) : null}
     </>
   );
 }
