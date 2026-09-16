@@ -35,7 +35,7 @@ export function PortalIntakeForm({
   if (!open) {
     return (
       <p className="text-sm text-gray-600">
-        Intake is closed for edits. You can still read the answers below.
+        Discovery is closed for edits. You can still read the answers below.
       </p>
     );
   }

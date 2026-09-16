@@ -1,5 +1,23 @@
 # Changelog
 
+## 16 Sep 2026 — Desk 2.1.0 / Portal 1.1 · public 4.1.1
+
+### Desk / Portal (`admin/` → **2.1.0**)
+
+- **Process milestones** — `project_milestones` (`0010`); sequential tick/reopen; seeded defaults including “Qualified — real job”. Qualify outcome **Real** auto-completes that milestone (and reopens when leaving Real if later checkpoints are still open).
+- **Gate remap** — `0011`: intake → discover; propose/agree → plan. Playbook / GateSwitcher follow the thinner process.
+- **Qualify “no”** — disqualifies the job (Lost), locks pipeline; reopening Qualify restores Active.
+- **Email (Resend)** — shared mailer (`mail.ts` / `notify-email.ts`): magic links, inbound lead receipt, portal access, messages, schedule, milestones. Verified `PORTAL_FROM_EMAIL` required (not personal iCloud unless verified in Resend).
+- **Desk Messages** — compose new conversation (`/messages/new`); inbox workspace polish.
+- **Portal** — start a project (`/projects/new`); Messages hub aligned with Desk; project detail soft-nav 404 fixed (dual-mode `/projects*` + `shouldServePortalUi`; see [portal.md](./portal.md#later--routing-cleanup-best-practice)).
+- Magic links always finish on the Portal origin (`PORTAL_APP_URL` / `portal.localhost`).
+
+### Public site (**4.1.1**)
+
+- Homepage section renamed **What I Do** (component `WhatIDo`).
+
+---
+
 ## 16 Sep 2026 — Desk 2.0.0
 
 Surfaces model locked in [desk-2.0.md](./desk-2.0.md). Desk **2.0.0** ships:

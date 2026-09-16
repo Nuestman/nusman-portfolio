@@ -16,6 +16,7 @@ import {
   projectEvents,
   projectIntakeAnswers,
   projectLaunch,
+  projectMilestones,
   projectNotes,
   projectOptions,
   projectQualify,
@@ -40,6 +41,7 @@ import type {
   WorkKind,
 } from "./schema";
 import { INTAKE_QUESTIONS } from "@/lib/templates";
+import { DEFAULT_MILESTONES } from "@/lib/milestones";
 import { KNOWN_PRODUCTS } from "@/lib/products";
 
 export async function countProjects(workKind: WorkKind = "client") {
@@ -446,6 +448,18 @@ export async function listPeople(clientId: string) {
     );
 }
 
+/** Portal-enabled people with an email — for client-facing alerts. */
+export async function listPortalNotifyPeople(clientId: string) {
+  const rows = await listPeople(clientId);
+  return rows.flatMap((person) => {
+    const email = person.email?.trim();
+    if (!person.portalEnabled || !email) {
+      return [];
+    }
+    return [{ ...person, email }];
+  });
+}
+
 export async function listPeopleByClientIds(clientIds: string[]) {
   if (clientIds.length === 0) {
     return [];
@@ -595,6 +609,7 @@ export async function createProject(values: {
   }
   if ((values.workKind ?? "client") === "client") {
     await ensureIntakeAnswers(row.id);
+    await ensureProjectMilestones(row.id);
   }
   return row.id;
 }
@@ -645,6 +660,23 @@ export async function updateProject(
     budgetNote: string | null;
     deadlineNote: string | null;
     status: ProjectStatus;
+  },
+) {
+  const db = getDb();
+  await db
+    .update(projects)
+    .set({ ...values, updatedAt: new Date() })
+    .where(eq(projects.id, id));
+}
+
+export async function patchProject(
+  id: string,
+  values: {
+    problemSentence?: string | null;
+    successLooksLike?: string | null;
+    budgetNote?: string | null;
+    deadlineNote?: string | null;
+    status?: ProjectStatus;
   },
 ) {
   const db = getDb();
@@ -887,6 +919,49 @@ export async function ensureIntakeAnswers(projectId: string) {
   return listIntakeAnswers(projectId);
 }
 
+/** Prefill empty discovery themes from Qualify / Job details (inbound or oral). */
+export async function seedEmptyDiscoveryAnswers(projectId: string) {
+  const [answers, qualify, project] = await Promise.all([
+    ensureIntakeAnswers(projectId),
+    getQualify(projectId),
+    getProject(projectId),
+  ]);
+
+  const seeds: Record<string, string | null> = {
+    Problem: project?.problemSentence ?? qualify?.painToday ?? null,
+    Who: qualify?.whoFor ?? null,
+    Success: project?.successLooksLike ?? null,
+    Constraints: [
+      qualify?.budgetNote ? `Budget: ${qualify.budgetNote}` : null,
+      qualify?.neededBy ? `Needed by: ${qualify.neededBy}` : null,
+      project?.deadlineNote && project.deadlineNote !== qualify?.neededBy
+        ? `Deadline: ${project.deadlineNote}`
+        : null,
+    ]
+      .filter(Boolean)
+      .join("\n") || null,
+  };
+
+  const db = getDb();
+  const now = new Date();
+  let changed = false;
+  for (const row of answers) {
+    if (row.answer?.trim()) {
+      continue;
+    }
+    const seed = seeds[row.theme]?.trim();
+    if (!seed) {
+      continue;
+    }
+    await db
+      .update(projectIntakeAnswers)
+      .set({ answer: seed, updatedAt: now })
+      .where(eq(projectIntakeAnswers.id, row.id));
+    changed = true;
+  }
+  return changed ? listIntakeAnswers(projectId) : answers;
+}
+
 export async function saveIntakeAnswers(
   projectId: string,
   answers: Array<{ theme: string; ask: string; answer: string | null }>,
@@ -935,6 +1010,7 @@ export async function upsertQualify(
     whoFor: string | null;
     painToday: string | null;
     neededBy: string | null;
+    budgetNote: string | null;
     callAt: string | null;
     notes: string | null;
   },
@@ -949,6 +1025,77 @@ export async function upsertQualify(
     return;
   }
   await db.insert(projectQualify).values({ projectId, ...values });
+}
+
+export async function listProjectMilestones(projectId: string) {
+  const db = getDb();
+  return db
+    .select()
+    .from(projectMilestones)
+    .where(eq(projectMilestones.projectId, projectId))
+    .orderBy(asc(projectMilestones.sortOrder), asc(projectMilestones.createdAt));
+}
+
+export async function ensureProjectMilestones(projectId: string) {
+  const existing = await listProjectMilestones(projectId);
+  if (existing.length > 0) {
+    return existing;
+  }
+  const db = getDb();
+  await db.insert(projectMilestones).values(
+    DEFAULT_MILESTONES.map((item) => ({
+      projectId,
+      key: item.key,
+      label: item.label,
+      stage: item.stage,
+      sortOrder: item.sortOrder,
+    })),
+  );
+  return listProjectMilestones(projectId);
+}
+
+export async function setMilestoneDone(
+  id: string,
+  done: boolean,
+  note?: string | null,
+) {
+  const db = getDb();
+  if (note === undefined) {
+    await db
+      .update(projectMilestones)
+      .set({
+        doneAt: done ? new Date() : null,
+        updatedAt: new Date(),
+      })
+      .where(eq(projectMilestones.id, id));
+    return;
+  }
+  await db
+    .update(projectMilestones)
+    .set({
+      doneAt: done ? new Date() : null,
+      note,
+      updatedAt: new Date(),
+    })
+    .where(eq(projectMilestones.id, id));
+}
+
+export async function updateMilestoneNote(id: string, note: string | null) {
+  const db = getDb();
+  await db
+    .update(projectMilestones)
+    .set({ note, updatedAt: new Date() })
+    .where(eq(projectMilestones.id, id));
+}
+
+export async function getMilestone(id: string) {
+  const db = getDb();
+  const [row] = await db
+    .select()
+    .from(projectMilestones)
+    .where(eq(projectMilestones.id, id))
+    .limit(1);
+  return row ?? null;
 }
 
 export async function getDiscovery(projectId: string) {
@@ -1374,7 +1521,7 @@ export async function getProjectGateWork(projectId: string) {
   const [qualify, intake, discovery, agreement, changes, demos, launch] =
     await Promise.all([
       getQualify(projectId),
-      ensureIntakeAnswers(projectId),
+      seedEmptyDiscoveryAnswers(projectId),
       getDiscovery(projectId),
       getAgreement(projectId),
       listChangeRequests(projectId),
@@ -1785,6 +1932,66 @@ export async function listPortalConversations() {
     });
   }
   return conversations;
+}
+
+/** Portal inbox: all hiring projects for a client, with latest message if any. */
+export async function listPortalConversationsForClient(clientId: string) {
+  const db = getDb();
+  const clientProjects = await listPortalProjectsForClient(clientId);
+  if (clientProjects.length === 0) {
+    return [];
+  }
+
+  const projectIds = clientProjects.map((project) => project.id);
+  const rows = await db
+    .select({
+      projectId: portalMessages.projectId,
+      lastAt: portalMessages.createdAt,
+      lastBody: portalMessages.body,
+      lastAuthorKind: portalMessages.authorKind,
+    })
+    .from(portalMessages)
+    .where(inArray(portalMessages.projectId, projectIds))
+    .orderBy(desc(portalMessages.createdAt));
+
+  const counts = new Map<string, number>();
+  const latest = new Map<
+    string,
+    {
+      lastAt: Date;
+      lastBody: string;
+      lastAuthorKind: PortalMessageAuthor;
+    }
+  >();
+  for (const row of rows) {
+    counts.set(row.projectId, (counts.get(row.projectId) ?? 0) + 1);
+    if (!latest.has(row.projectId)) {
+      latest.set(row.projectId, {
+        lastAt: row.lastAt,
+        lastBody: row.lastBody,
+        lastAuthorKind: row.lastAuthorKind,
+      });
+    }
+  }
+
+  const client = await getClient(clientId);
+  const clientName = client?.name ?? "Your projects";
+
+  return clientProjects
+    .map((project) => {
+      const last = latest.get(project.id);
+      return {
+        projectId: project.id,
+        projectTitle: project.title,
+        clientId,
+        clientName,
+        lastAt: last?.lastAt ?? project.updatedAt,
+        lastBody: last?.lastBody ?? "No messages yet — say hello",
+        lastAuthorKind: last?.lastAuthorKind ?? ("operator" as const),
+        messageCount: counts.get(project.id) ?? 0,
+      };
+    })
+    .sort((a, b) => b.lastAt.getTime() - a.lastAt.getTime());
 }
 
 export async function addPortalMessage(values: {

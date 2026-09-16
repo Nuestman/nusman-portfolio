@@ -1,14 +1,14 @@
 # Desk status
 
-Checked 16 Sep 2026 against the code in `admin/`. Product version: **2.0.0** (`admin/package.json`). Product rules: [desk-2.0.md](./desk-2.0.md) (wins) and [desk.md](./desk.md). Portal: [portal.md](./portal.md). Archive: [archive/desk-1.1.md](./archive/desk-1.1.md). Visual: [style-guide.md](./style-guide.md). Deploy: [deploy.md](./deploy.md). Update this file when something ships or an open item is closed.
+Checked 16 Sep 2026 against the code in `admin/`. Product version: **2.1.0** (`admin/package.json`). Product rules: [desk-2.0.md](./desk-2.0.md) (wins) and [desk.md](./desk.md). Portal: [portal.md](./portal.md). Archive: [archive/desk-1.1.md](./archive/desk-1.1.md). Visual: [style-guide.md](./style-guide.md). Deploy: [deploy.md](./deploy.md). Update this file when something ships or an open item is closed.
 
-Desk **2.0.0** / Portal **1.0** are usable. Public site **4.1.0** posts `/start` leads into Desk.
+Desk **2.1.0** / Portal **1.1** are usable. Public site **4.1.1** posts `/start` leads into Desk.
 
 ---
 
 ## Live
 
-Hiring jobs with gate records, table-row edit/remove, playbook on Desk, multi-format export, own products as records, an audit trail with before/after, operator profiles, sessions for device revoke, **Portal** (magic link), **Messages** inbox, **Schedule** hubs (Cards/Calendar), and **inbound leads** from the public `/start` form.
+Hiring jobs with gate records, **process milestones**, table-row edit/remove, playbook on Desk, multi-format export, own products as records, an audit trail with before/after, operator profiles, sessions for device revoke, **Portal** (magic link + start project), **Messages** inbox (compose new), **Schedule** hubs (Cards/Calendar), **Resend alerts** (messages, schedule, milestones, inbound receipt, portal access), and **inbound leads** from the public `/start` form.
 
 ### Routes
 
@@ -20,25 +20,28 @@ Hiring jobs with gate records, table-row edit/remove, playbook on Desk, multi-fo
 | `/audit`, `/audit/[id]` | Live. Row click opens detail |
 | `/clients` … `/clients/[id]/people/[personId]/edit` | Live. Person edit includes portal enable + magic link |
 | `/schedule` | Live. Hub: Cards / Calendar; create/edit still on project |
-| `/projects` … gate records, notes, options, changes, demos | Live. **Desk 2.0:** current gate first; earlier stages collapsed; timeline; **Schedule** (`project_events`); portal strip |
-| `/messages`, `/messages/[projectId]` | Live. Chat-style portal conversation inbox + reply |
+| `/projects` … gate records, notes, options, changes, demos, **milestones** | Live. Current gate first; earlier stages collapsed; timeline; **Schedule** (`project_events`); portal strip; Qualify Real ↔ qualified milestone |
+| `/messages`, `/messages/new`, `/messages/[projectId]` | Live. Chat-style portal conversation inbox, compose, reply |
 | `/products`, `/products/new` | Live. Own-product records only |
 | `/playbook` | Live on Desk. Public scratch page is gone |
 | `/style` | Live specimens. Live header is the account-menu specimen |
 | `/export`, `/export/download` | Live. JSON, YAML, CSV zip, Markdown, HTML |
 | `/profile` | Live. Self-edit, password, optional authenticator, devices; owner adds / deactivates operators |
 | `/profile/photo/[id]` | Live. Session required. Static photos: `/avatars/` |
-| `/api/inbound-lead` | Live. Public CORS POST from nusman.dev `/start` |
+| `/api/inbound-lead` | Live. Public CORS POST from nusman.dev `/start`; optional receipt + Desk alert email |
 
 ### Portal host (`portal.*` / `portal.localhost`)
 
 | Route | Status |
 |---|---|
-| `/`, `/login`, `/auth/magic` | Live |
+| `/`, `/login`, `/auth/magic` | Live. Magic links finish on Portal origin |
 | `/profile` | Live. Read-only person details; account chip matches Desk |
-| `/projects`, `/projects/[id]` | Live. Progress, your package (client fields), updates, schedule strip |
+| `/projects`, `/projects/new`, `/projects/[id]` | Live. List, start project, progress / package / updates / milestones strip |
+| `/projects/[id]/intake`, `/projects/[id]/schedule` | Live |
+| `/messages`, `/messages/[projectId]` | Live. Hub + thread (aligned with Desk messages UX) |
 | `/schedule` | Live. Wide hub: Cards / Calendar; confirm/decline/cancel; request |
-| `/projects/[id]/intake`, `/messages`, `/schedule` | Live |
+
+`/projects*` uses dual-mode pages (no proxy rewrite) so soft-nav does not 404 — cleanup note in [portal.md](./portal.md#later--routing-cleanup-best-practice).
 
 ### Schema
 
@@ -55,6 +58,9 @@ Migrations on Neon **nusmandotdev** (`sparkling-art-67399165`) only:
 | `0006_users_profile` | User profile columns + `sessions` |
 | `0007_totp` | Optional authenticator columns on `users` |
 | `0008_portal` | Portal magic links, sessions, messages; note/intake/person flags |
+| `0009_project_events` | Scheduler events |
+| `0010_process_milestones` | `project_milestones`; `plan` gate enum; qualify `budget_note` |
+| `0011_process_gate_remap` | Remap intake→discover, propose/agree→plan |
 
 Apply from `admin/` with `npm run db:migrate`. Do not point `DATABASE_URL` at Mineaid, Uventory, church, or any other Neon project.
 
@@ -102,9 +108,10 @@ These are leftover product work, not bugs in the last UI pass.
 
 ### Portal / messages
 
-- No unread badges or email on new portal messages.
+- No unread badges on new portal messages (email alerts ship when Resend is configured).
 - Operator replies do not store which operator wrote them (`author_kind` only).
 - Chosen package with leftover coaching text in `summary` must be rewritten on Desk before Choose / before Portal looks complete.
+- **Routing cleanup (later):** collapse Desk/Portal overlapping `/projects*` trees so soft-nav does not need dual-mode. See [portal.md](./portal.md#later--routing-cleanup-best-practice).
 
 ### Security (intentional for v1)
 
@@ -133,4 +140,4 @@ Not a new phase unless you choose one:
 3. Add other operators from Profile when you need them.
 4. Later, import product databases — only when you choose to, and never by pointing Desk at their `DATABASE_URL`.
 
-Possible later work if you ask for it: unread message badges; operator identity on replies; owner edit / password-reset for other operators; sweep expired sessions; require authenticator for all operators; Neon snapshots; product-data import.
+Possible later work if you ask for it: Portal routing cleanup (one module per public URL — [portal.md](./portal.md#later--routing-cleanup-best-practice)); unread message badges; operator identity on replies; owner edit / password-reset for other operators; sweep expired sessions; require authenticator for all operators; Neon snapshots; product-data import.

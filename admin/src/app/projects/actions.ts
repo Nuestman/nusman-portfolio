@@ -22,20 +22,26 @@ import {
   getDemo,
   getDiscovery,
   getLaunch,
+  getMilestone,
   getNote,
   getOption,
   getPerson,
   getProject,
   getProjectEvent,
   getQualify,
+  ensureProjectMilestones,
   listIntakeAnswers,
   listOptions,
   listPeople,
+  listProjectMilestones,
+  patchProject,
   saveIntakeAnswers,
   selectOption,
+  setMilestoneDone,
   setProjectEventStatus,
   updateChangeRequest,
   updateDemo,
+  updateMilestoneNote,
   updateNote,
   updateOption,
   updateProject,
@@ -53,7 +59,7 @@ import {
   typedNameMatches,
 } from "@/lib/audit";
 import { readChecked, readOptional, readTrimmed } from "@/lib/forms";
-import { gateGuide, gateMoveBlock, isProjectGate } from "@/lib/gates";
+import { gateGuide, gateMoveBlock, isProcessGate, isProjectGate } from "@/lib/gates";
 import { isUuid } from "@/lib/ids";
 import { requireSessionUser } from "@/lib/current-user";
 import { safeInternalPath } from "@/lib/paths";
@@ -69,13 +75,15 @@ import {
   projectEventStatusLabel,
   qualifyOutcomeLabel,
 } from "@/lib/labels";
-import { parseDatetimeLocal } from "@/lib/text";
+import { parseDatetimeLocal, formatEventWhen } from "@/lib/text";
 import { INTAKE_QUESTIONS, isOptionStarterSummary } from "@/lib/templates";
+import { notifyClientsOfMilestone, notifyClientsOfSchedule } from "@/lib/notify";
 import type {
   OptionKind,
   ProjectEventKind,
   ProjectEventStatus,
   ProjectStatus,
+  QualifyOutcome,
   WorkKind,
 } from "@/db/schema";
 
@@ -108,6 +116,42 @@ function bounceIfNotConfirmed(formData: FormData, href: string) {
   if (!deleteWasConfirmed(formData)) {
     redirect(href);
   }
+}
+
+/** Keep the first checkpoint in sync with Qualify → Real. */
+async function syncQualifiedMilestoneFromOutcome(
+  projectId: string,
+  outcome: QualifyOutcome,
+) {
+  const milestones = await ensureProjectMilestones(projectId);
+  const qualified = milestones.find((row) => row.key === "qualified");
+  if (!qualified) {
+    return;
+  }
+
+  const ordered = [...milestones].sort(
+    (a, b) =>
+      a.sortOrder - b.sortOrder || a.createdAt.getTime() - b.createdAt.getTime(),
+  );
+  const index = ordered.findIndex((row) => row.id === qualified.id);
+  const laterDone =
+    index >= 0 && ordered.slice(index + 1).some((row) => row.doneAt);
+
+  if (outcome === "real") {
+    if (qualified.doneAt) {
+      return;
+    }
+    await setMilestoneDone(qualified.id, true);
+    await addNote(projectId, `Milestone done: ${qualified.label}.`);
+    return;
+  }
+
+  if (!qualified.doneAt || laterDone) {
+    return;
+  }
+
+  await setMilestoneDone(qualified.id, false);
+  await addNote(projectId, `Milestone reopened: ${qualified.label}.`);
 }
 
 export async function createProjectAction(
@@ -245,7 +289,7 @@ export async function moveGateAction(formData: FormData) {
   await requireSessionUser();
   const id = readTrimmed(formData, "id");
   const toRaw = readTrimmed(formData, "gate");
-  if (!isUuid(id) || !isProjectGate(toRaw)) {
+  if (!isUuid(id) || !isProjectGate(toRaw) || !isProcessGate(toRaw)) {
     redirect("/projects");
   }
 
@@ -254,12 +298,11 @@ export async function moveGateAction(formData: FormData) {
     redirect("/projects");
   }
 
-  const [people, options, qualify, intake, agreement] = await Promise.all([
+  const [people, options, qualify, intake] = await Promise.all([
     listPeople(project.clientId),
     listOptions(id),
     getQualify(id),
     listIntakeAnswers(id),
-    getAgreement(id),
   ]);
   const problemAnswer =
     intake.find((row) => row.theme === "Problem")?.answer ?? null;
@@ -276,8 +319,6 @@ export async function moveGateAction(formData: FormData) {
     qualifyOutcome: qualify?.outcome ?? "undecided",
     intakeProblemAnswer: problemAnswer,
     intakeSuccessAnswer: successAnswer,
-    depositPaid: agreement?.depositPaid ?? false,
-    agreementConfirmed: agreement?.confirmed ?? false,
   });
   if (block) {
     redirect(`/projects/${id}?notice=${block}`);
@@ -618,11 +659,32 @@ export async function saveQualifyAction(
     whoFor: readOptional(formData, "whoFor"),
     painToday: readOptional(formData, "painToday"),
     neededBy: readOptional(formData, "neededBy"),
+    budgetNote: readOptional(formData, "budgetNote"),
     callAt: readOptional(formData, "callAt"),
     notes: readOptional(formData, "notes"),
   };
   const previousQualify = await getQualify(projectId);
   await upsertQualify(projectId, nextQualify);
+
+  if (outcomeRaw === "no") {
+    await patchProject(projectId, { status: "lost" });
+    await addNote(
+      projectId,
+      "Disqualified at Qualify (not a real project). Pipeline closed.",
+    );
+  } else if (
+    previousQualify?.outcome === "no" &&
+    project.status === "lost"
+  ) {
+    await patchProject(projectId, { status: "active" });
+    await addNote(
+      projectId,
+      `Qualify reopened as ${qualifyOutcomeLabel(outcomeRaw)}. Project set back to Active.`,
+    );
+  }
+
+  await syncQualifiedMilestoneFromOutcome(projectId, outcomeRaw);
+
   await recordAudit({
     action: "qualify.save",
     summary: `Saved qualify (${qualifyOutcomeLabel(outcomeRaw)}) on “${project.title}”.`,
@@ -661,10 +723,27 @@ export async function saveIntakeAction(
     answer: readOptional(formData, `answer_${item.theme}`),
   }));
   await saveIntakeAnswers(projectId, nextIntake);
+
+  const problem = nextIntake.find((row) => row.theme === "Problem")?.answer;
+  const success = nextIntake.find((row) => row.theme === "Success")?.answer;
+  const projectPatch: {
+    problemSentence?: string | null;
+    successLooksLike?: string | null;
+  } = {};
+  if (problem?.trim() && !project.problemSentence?.trim()) {
+    projectPatch.problemSentence = problem.trim();
+  }
+  if (success?.trim() && !project.successLooksLike?.trim()) {
+    projectPatch.successLooksLike = success.trim();
+  }
+  if (Object.keys(projectPatch).length > 0) {
+    await patchProject(projectId, projectPatch);
+  }
+
   await recordAudit({
-    action: "intake.save",
-    summary: `Saved intake answers on “${project.title}”.`,
-    entityType: "intake",
+    action: "discovery.answers-save",
+    summary: `Saved discovery answers on “${project.title}”.`,
+    entityType: "discovery",
     projectId,
     before: previousIntake.map((row) => ({
       theme: row.theme,
@@ -695,17 +774,17 @@ export async function saveDiscoveryAction(
     return { error: PRODUCTS_SKIP_SALES };
   }
 
+  const previousDiscovery = await getDiscovery(projectId);
   const nextDiscovery = {
     callAt: readOptional(formData, "callAt"),
     attendees: readOptional(formData, "attendees"),
-    currentProcess: readOptional(formData, "currentProcess"),
+    currentProcess: previousDiscovery?.currentProcess ?? null,
     lastExample: readOptional(formData, "lastExample"),
     inScope: readOptional(formData, "inScope"),
     outOfScope: readOptional(formData, "outOfScope"),
-    devicesLanguage: readOptional(formData, "devicesLanguage"),
-    privacyNotes: readOptional(formData, "privacyNotes"),
+    devicesLanguage: previousDiscovery?.devicesLanguage ?? null,
+    privacyNotes: previousDiscovery?.privacyNotes ?? null,
   };
-  const previousDiscovery = await getDiscovery(projectId);
   await upsertDiscovery(projectId, nextDiscovery);
   await recordAudit({
     action: "discovery.save",
@@ -1084,6 +1163,20 @@ export async function createProjectEventAction(
     projectId,
     after: { ...parsed.values, personId },
   });
+  if (project.workKind === "client") {
+    await notifyClientsOfSchedule({
+      clientId: project.clientId,
+      projectId,
+      projectTitle: project.title,
+      headline: `Usman scheduled “${parsed.values.title}”.`,
+      details: [
+        `Kind: ${projectEventKindLabel(parsed.values.kind)}`,
+        `Status: ${projectEventStatusLabel(parsed.values.status)}`,
+        `When: ${formatEventWhen(parsed.values.startsAt)}`,
+        parsed.values.location ? `Where: ${parsed.values.location}` : null,
+      ].filter((line): line is string => Boolean(line)),
+    });
+  }
   revalidateProject(projectId, project.clientId);
   const next = readTrimmed(formData, "next");
   redirect(next === "/schedule" ? "/schedule" : `/projects/${projectId}`);
@@ -1127,6 +1220,19 @@ export async function updateProjectEventAction(
     before: event,
     after: parsed.values,
   });
+  if (project.workKind === "client") {
+    await notifyClientsOfSchedule({
+      clientId: project.clientId,
+      projectId,
+      projectTitle: project.title,
+      headline: `Schedule update on “${parsed.values.title}”.`,
+      details: [
+        `Status: ${projectEventStatusLabel(parsed.values.status)}`,
+        `When: ${formatEventWhen(parsed.values.startsAt)}`,
+        parsed.values.location ? `Where: ${parsed.values.location}` : null,
+      ].filter((line): line is string => Boolean(line)),
+    });
+  }
   revalidateProject(projectId, project.clientId);
   redirect(`/projects/${projectId}`);
 }
@@ -1164,6 +1270,15 @@ export async function setProjectEventStatusAction(formData: FormData) {
     before: { status: event.status },
     after: { status: statusRaw },
   });
+  if (project.workKind === "client") {
+    await notifyClientsOfSchedule({
+      clientId: project.clientId,
+      projectId,
+      projectTitle: project.title,
+      headline: `“${event.title}” is now ${projectEventStatusLabel(statusRaw).toLowerCase()}.`,
+      details: [`When: ${formatEventWhen(event.startsAt)}`],
+    });
+  }
   revalidateProject(projectId, project.clientId);
   redirect("/schedule");
 }
@@ -1230,6 +1345,110 @@ export async function saveLaunchAction(
     projectId,
     before: previousLaunch,
     after: nextLaunch,
+  });
+  revalidateProject(projectId, project.clientId);
+  redirect(`/projects/${projectId}`);
+}
+
+export async function toggleMilestoneAction(formData: FormData) {
+  await requireSessionUser();
+  const id = readTrimmed(formData, "id");
+  const projectId = readTrimmed(formData, "projectId");
+  const doneRaw = readTrimmed(formData, "done");
+  if (!isUuid(id) || !isUuid(projectId)) {
+    redirect("/projects");
+  }
+
+  const project = await getProject(projectId);
+  const milestone = await getMilestone(id);
+  if (!project || !milestone || milestone.projectId !== projectId) {
+    redirect("/projects");
+  }
+
+  if (project.status === "lost" || project.status === "won" || project.status === "done") {
+    redirect(`/projects/${projectId}?notice=status`);
+  }
+
+  const done = doneRaw === "1";
+  const all = await listProjectMilestones(projectId);
+  const ordered = [...all].sort(
+    (a, b) => a.sortOrder - b.sortOrder || a.createdAt.getTime() - b.createdAt.getTime(),
+  );
+  const index = ordered.findIndex((row) => row.id === id);
+  if (index < 0) {
+    redirect(`/projects/${projectId}`);
+  }
+
+  if (done) {
+    const priorOpen = ordered
+      .slice(0, index)
+      .some((row) => !row.doneAt);
+    if (priorOpen) {
+      redirect(`/projects/${projectId}?notice=milestone-order`);
+    }
+  } else {
+    const laterDone = ordered.slice(index + 1).some((row) => row.doneAt);
+    if (laterDone) {
+      redirect(`/projects/${projectId}?notice=milestone-reopen`);
+    }
+  }
+
+  await setMilestoneDone(id, done);
+  await addNote(
+    projectId,
+    done
+      ? `Milestone done: ${milestone.label}.`
+      : `Milestone reopened: ${milestone.label}.`,
+  );
+  await recordAudit({
+    action: done ? "milestone.done" : "milestone.reopen",
+    summary: `${done ? "Completed" : "Reopened"} milestone “${milestone.label}” on “${project.title}”.`,
+    entityType: "milestone",
+    entityId: id,
+    projectId,
+    before: { doneAt: milestone.doneAt },
+    after: { done },
+  });
+  if (project.workKind === "client") {
+    await notifyClientsOfMilestone({
+      clientId: project.clientId,
+      projectId,
+      projectTitle: project.title,
+      milestoneLabel: milestone.label,
+      done,
+    });
+  }
+  revalidateProject(projectId, project.clientId);
+  redirect(`/projects/${projectId}`);
+}
+
+export async function saveMilestoneNoteAction(
+  _previous: FormState,
+  formData: FormData,
+): Promise<FormState> {
+  await requireSessionUser();
+  const id = readTrimmed(formData, "id");
+  const projectId = readTrimmed(formData, "projectId");
+  if (!isUuid(id) || !isUuid(projectId)) {
+    return { error: "Milestone is missing." };
+  }
+
+  const project = await getProject(projectId);
+  const milestone = await getMilestone(id);
+  if (!project || !milestone || milestone.projectId !== projectId) {
+    return { error: "That milestone is gone." };
+  }
+
+  const note = readOptional(formData, "note");
+  await updateMilestoneNote(id, note);
+  await recordAudit({
+    action: "milestone.note",
+    summary: `Updated note on milestone “${milestone.label}”.`,
+    entityType: "milestone",
+    entityId: id,
+    projectId,
+    before: { note: milestone.note },
+    after: { note },
   });
   revalidateProject(projectId, project.clientId);
   redirect(`/projects/${projectId}`);

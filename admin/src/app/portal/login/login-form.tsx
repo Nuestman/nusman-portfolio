@@ -23,11 +23,14 @@ export function PortalLoginForm() {
 
   if (state.sent) {
     return (
-      <p className="rounded-lg bg-gray-100 px-4 py-3 text-sm text-gray-800">
-        {state.emailed
-          ? "Check your inbox for a one-time sign-in link."
-          : "Your account was found. Ask Usman to send or paste the magic link — email is not configured on this server."}
-      </p>
+      <div className="space-y-3">
+        <p className="rounded-lg bg-gray-100 px-4 py-3 text-sm text-gray-800">
+          {state.emailed
+            ? "Check your inbox for a one-time sign-in link."
+            : "Your account was found, but the sign-in email did not go out."}
+        </p>
+        <FormError>{state.error}</FormError>
+      </div>
     );
   }
 

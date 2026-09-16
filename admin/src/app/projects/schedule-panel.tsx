@@ -88,9 +88,11 @@ function sortEvents(events: ScheduleEvent[]): ScheduleEvent[] {
 export function SchedulePanel({
   projectId,
   events,
+  locked = false,
 }: {
   projectId: string;
   events: ScheduleEvent[];
+  locked?: boolean;
 }) {
   const ordered = sortEvents(events);
   const requestCount = events.filter(
@@ -100,11 +102,16 @@ export function SchedulePanel({
   return (
     <EditableCard
       title="Schedule"
-      hint="Client requests and proposed times also show on Desk → Schedule. Add here for this job; clients confirm on Portal."
+      hint={
+        locked
+          ? "Schedule is frozen while this job is closed."
+          : "Client requests and proposed times also show on Desk → Schedule. Add here for this job; clients confirm on Portal."
+      }
       editLabel="Add"
+      showEdit={!locked}
       always={
         <>
-          {requestCount > 0 ? (
+          {requestCount > 0 && !locked ? (
             <p className="rounded-lg bg-amber-100 px-4 py-3 text-sm text-amber-950">
               {requestCount === 1
                 ? "1 client meeting request waiting for a time from you."
@@ -152,7 +159,7 @@ export function SchedulePanel({
                             {displayText(event.notes)}
                           </p>
                         ) : null}
-                        {isRequest ? (
+                        {isRequest && !locked ? (
                           <p className="mt-2 text-sm text-amber-950">
                             Respond: set a start time, change status to{" "}
                             <span className="font-medium">Proposed</span>, save
@@ -160,60 +167,62 @@ export function SchedulePanel({
                           </p>
                         ) : null}
                       </div>
-                      <div className="flex flex-wrap items-center justify-end gap-3">
-                        {isRequest ? (
-                          <Link
-                            href={`/projects/${projectId}/events/${event.id}/edit`}
-                            className={buttonClassName("default", "sm")}
-                          >
-                            Propose time
-                          </Link>
-                        ) : (
-                          <EditLink
-                            href={`/projects/${projectId}/events/${event.id}/edit`}
-                          />
-                        )}
-                        {event.status === "proposed" ? (
-                          <StatusAction
-                            eventId={event.id}
-                            projectId={projectId}
-                            status="confirmed"
-                            label="Confirm"
-                            message={`Confirm “${event.title}”?`}
-                          />
-                        ) : null}
-                        {event.status === "confirmed" ? (
-                          <StatusAction
-                            eventId={event.id}
-                            projectId={projectId}
-                            status="completed"
-                            label="Done"
-                            message={`Mark “${event.title}” completed?`}
-                          />
-                        ) : null}
-                        {event.status !== "cancelled" &&
-                        event.status !== "completed" ? (
-                          <StatusAction
-                            eventId={event.id}
-                            projectId={projectId}
-                            status="cancelled"
-                            label="Cancel"
-                            message={`Cancel “${event.title}”?`}
-                          />
-                        ) : null}
-                        <form action={deleteProjectEventAction}>
-                          <input type="hidden" name="id" value={event.id} />
-                          <input
-                            type="hidden"
-                            name="projectId"
-                            value={projectId}
-                          />
-                          <ConfirmDelete
-                            label="Remove"
-                            message={`Remove “${event.title}” from the schedule?`}
-                          />
-                        </form>
-                      </div>
+                      {!locked ? (
+                        <div className="flex flex-wrap items-center justify-end gap-3">
+                          {isRequest ? (
+                            <Link
+                              href={`/projects/${projectId}/events/${event.id}/edit`}
+                              className={buttonClassName("default", "sm")}
+                            >
+                              Propose time
+                            </Link>
+                          ) : (
+                            <EditLink
+                              href={`/projects/${projectId}/events/${event.id}/edit`}
+                            />
+                          )}
+                          {event.status === "proposed" ? (
+                            <StatusAction
+                              eventId={event.id}
+                              projectId={projectId}
+                              status="confirmed"
+                              label="Confirm"
+                              message={`Confirm “${event.title}”?`}
+                            />
+                          ) : null}
+                          {event.status === "confirmed" ? (
+                            <StatusAction
+                              eventId={event.id}
+                              projectId={projectId}
+                              status="completed"
+                              label="Done"
+                              message={`Mark “${event.title}” completed?`}
+                            />
+                          ) : null}
+                          {event.status !== "cancelled" &&
+                          event.status !== "completed" ? (
+                            <StatusAction
+                              eventId={event.id}
+                              projectId={projectId}
+                              status="cancelled"
+                              label="Cancel"
+                              message={`Cancel “${event.title}”?`}
+                            />
+                          ) : null}
+                          <form action={deleteProjectEventAction}>
+                            <input type="hidden" name="id" value={event.id} />
+                            <input
+                              type="hidden"
+                              name="projectId"
+                              value={projectId}
+                            />
+                            <ConfirmDelete
+                              label="Remove"
+                              message={`Remove “${event.title}” from the schedule?`}
+                            />
+                          </form>
+                        </div>
+                      ) : null}
                     </div>
                   </li>
                 );
@@ -223,7 +232,9 @@ export function SchedulePanel({
         </>
       }
       form={
-        <ProjectEventForm projectId={projectId} submitLabel="Add event" />
+        locked ? undefined : (
+          <ProjectEventForm projectId={projectId} submitLabel="Add event" />
+        )
       }
     />
   );

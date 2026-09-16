@@ -7,6 +7,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { DatabaseNotice } from "@/components/database-notice";
 import { isUuid } from "@/lib/ids";
 import { linkClassName } from "@/lib/links";
+import { shouldServePortalUi } from "@/lib/serve-portal";
+import PortalStartProjectPage from "@/app/portal/projects/new/page";
 import { NewProjectForm } from "../new-project-form";
 
 export const dynamic = "force-dynamic";
@@ -16,6 +18,10 @@ type NewProjectPageProps = {
 };
 
 export default async function NewProjectPage({ searchParams }: NewProjectPageProps) {
+  if (await shouldServePortalUi()) {
+    return <PortalStartProjectPage />;
+  }
+
   const email = await getSessionEmail();
   const query = await searchParams;
   const clientRaw = Array.isArray(query.clientId)

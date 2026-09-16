@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import {
+  ensureProjectMilestones,
   getPortalProjectForPerson,
   getSelectedOption,
   listClientVisibleNotes,
@@ -43,10 +44,11 @@ export default async function PortalProjectPage({
     notFound();
   }
 
-  const [notes, selected, events] = await Promise.all([
+  const [notes, selected, events, milestones] = await Promise.all([
     listClientVisibleNotes(project.id),
     getSelectedOption(project.id),
     listProjectEvents(project.id),
+    ensureProjectMilestones(project.id),
   ]);
   const guide = gateGuide(project.currentGate);
   const upcoming = events.filter(
@@ -55,6 +57,7 @@ export default async function PortalProjectPage({
       event.status === "confirmed" ||
       event.status === "requested",
   );
+  const doneCount = milestones.filter((item) => item.doneAt).length;
 
   return (
     <PortalShell>
@@ -71,10 +74,10 @@ export default async function PortalProjectPage({
             href={`/projects/${project.id}/intake`}
             className={linkClassName("nav")}
           >
-            Intake
+            Discovery
           </Link>
           <Link
-            href={`/projects/${project.id}/messages`}
+            href={`/messages/${project.id}`}
             className={linkClassName("nav")}
           >
             Messages
@@ -95,11 +98,15 @@ export default async function PortalProjectPage({
         <CardContent className="space-y-3 text-sm text-gray-700">
           <p>
             <span className="font-medium text-dark-950">Stage:</span>{" "}
-            {guide.label}
+            {guide.publicStep}
           </p>
           <p>
             <span className="font-medium text-dark-950">Status:</span>{" "}
             {projectStatusLabel(project.status)}
+          </p>
+          <p>
+            <span className="font-medium text-dark-950">Milestones:</span>{" "}
+            {doneCount} of {milestones.length} done
           </p>
           {project.problemSentence ? (
             <p>
@@ -113,6 +120,29 @@ export default async function PortalProjectPage({
               {project.successLooksLike}
             </p>
           ) : null}
+          <ul className="mt-4 space-y-2">
+            {milestones.map((item) => (
+              <li key={item.id} className="flex items-start gap-2">
+                <span
+                  className={
+                    item.doneAt
+                      ? "mt-0.5 text-gold-600"
+                      : "mt-0.5 text-gray-400"
+                  }
+                  aria-hidden
+                >
+                  {item.doneAt ? "✓" : "○"}
+                </span>
+                <span
+                  className={
+                    item.doneAt ? "text-gray-500 line-through" : "text-dark-950"
+                  }
+                >
+                  {item.label}
+                </span>
+              </li>
+            ))}
+          </ul>
         </CardContent>
       </Card>
 

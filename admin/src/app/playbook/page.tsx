@@ -4,7 +4,7 @@ import { databaseConfigured } from "@/db";
 import { listActiveProjects } from "@/db/queries";
 import { DeskShell } from "@/components/desk-shell";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { GATE_GUIDES } from "@/lib/gates";
+import { GATE_GUIDES, toProcessGate } from "@/lib/gates";
 import {
   AGREEMENT_CLAUSES,
   DISCOVERY_AGENDA,
@@ -16,7 +16,7 @@ import {
   afterCallMessage,
   optionStarter,
 } from "@/lib/templates";
-import { OPTION_KINDS } from "@/db/schema";
+import { OPTION_KINDS, type ProjectGate } from "@/db/schema";
 import { optionKindLabel } from "@/lib/labels";
 import { linkClassName } from "@/lib/links";
 import { tableClassName, tableFrameClassName } from "@/lib/tables";
@@ -43,7 +43,8 @@ export default async function PlaybookPage() {
   if (databaseConfigured()) {
     try {
       const active = await listActiveProjects();
-      activeGate = active[0]?.currentGate ?? null;
+      const raw = active[0]?.currentGate as ProjectGate | undefined;
+      activeGate = raw ? toProcessGate(raw) : null;
     } catch (error) {
       console.error("Desk playbook gate query failed", error);
     }

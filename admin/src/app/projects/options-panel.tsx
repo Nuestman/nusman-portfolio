@@ -52,7 +52,7 @@ export function OptionsPanel({
   const remainingKinds = unusedOptionKinds(options.map((item) => item.kind));
   const hasChosen = options.some((option) => option.selected);
   const needsChoice =
-    gateIndex(currentGate) >= gateIndex("propose") && !hasChosen;
+    gateIndex(currentGate) >= gateIndex("plan") && !hasChosen;
   const chosen = options.find((option) => option.selected) ?? null;
 
   return (
@@ -65,8 +65,7 @@ export function OptionsPanel({
         <div className="space-y-4">
           {needsChoice ? (
             <p className="rounded-lg bg-amber-100 px-4 py-3 text-sm text-amber-950">
-              No package is chosen yet. You cannot leave Propose until you pick
-              one.
+              No package is chosen yet. You cannot leave Plan until you pick one.
             </p>
           ) : null}
 

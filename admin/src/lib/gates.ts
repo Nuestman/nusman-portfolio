@@ -1,6 +1,8 @@
 import {
+  PROCESS_GATES,
   PROJECT_GATES,
   type PersonRole,
+  type ProcessGate,
   type ProjectGate,
   type ProjectStatus,
   type QualifyOutcome,
@@ -8,7 +10,7 @@ import {
 } from "@/db/schema";
 
 export type GateGuide = {
-  id: ProjectGate;
+  id: ProcessGate;
   label: string;
   publicStep: string;
   youDo: string;
@@ -19,59 +21,43 @@ export type GateGuide = {
 export const GATE_GUIDES: GateGuide[] = [
   {
     id: "qualify",
-    label: "0. Qualify",
-    publicStep: "Before Discover",
-    youDo: "15-min screen. Decide if this is a real project, a favour, or a no.",
-    theyDo: "Say who it is for, the pain, and when they need it.",
-    exitWhen: "You know buyer vs user, and whether to book discovery.",
-  },
-  {
-    id: "intake",
-    label: "1. Intake",
-    publicStep: "Discover & Plan",
-    youDo: "Send the 8-question brief. Do not design yet.",
-    theyDo: "Write answers. Involve the daily user if they are not the buyer.",
-    exitWhen: "Written problem, users, current workaround, and success look like.",
+    label: "1. Qualify",
+    publicStep: "Qualifying",
+    youDo: "Confirm this is a real job — real client, real problem they want fixed.",
+    theyDo: "Say who it is for, the pain, timeline, and budget hints (oral or /start).",
+    exitWhen: "Outcome is a real project and you are ready for discovery.",
   },
   {
     id: "discover",
     label: "2. Discover",
-    publicStep: "Discover & Plan",
-    youDo: "45–60 min call. Watch the current process if you can.",
-    theyDo: "Show how the daily user actually works today. Name the decision-maker.",
-    exitWhen: "You can restate the problem in one sentence they agree with.",
+    publicStep: "Discovery",
+    youDo: "Capture the eight themes after the call (or via portal form), estimate, and lock commitment.",
+    theyDo: "Show how work is done today; agree problem and success in writing.",
+    exitWhen: "Problem and Success are written; enough to plan and price.",
   },
   {
-    id: "propose",
-    label: "3. Propose",
-    publicStep: "Discover & Plan",
-    youDo: "Offer 2–3 options: light / recommended / later. Price and timeline.",
-    theyDo: "Choose a package. Push back on scope, not on process.",
-    exitWhen: "One option is selected. Out-of-scope is written down.",
-  },
-  {
-    id: "agree",
-    label: "4. Agree",
-    publicStep: "Discover & Plan",
-    youDo: "One-page agreement + deposit before any build.",
-    theyDo: "Sign (or WhatsApp confirm) and pay deposit.",
-    exitWhen: "Money and scope are locked. They are a client, not a favour.",
+    id: "plan",
+    label: "3. Plan",
+    publicStep: "Planning",
+    youDo: "Align objectives, scope, timeline, budget, and package before any build.",
+    theyDo: "Choose a package and confirm the written plan.",
+    exitWhen: "Shared plan and chosen package — ready to build.",
   },
   {
     id: "build",
-    label: "5. Build & Test",
-    publicStep: "Build & Test",
-    youDo: "Weekly demo. Change requests go on a list, not into the sprint.",
-    theyDo: "Use the demo. Give feedback in one channel.",
-    exitWhen: "Agreed features work for the daily user on their device.",
+    label: "4. Build",
+    publicStep: "Building",
+    youDo: "Deliver against the plan. Demo regularly. Park change requests.",
+    theyDo: "Use demos and give feedback in one channel.",
+    exitWhen: "Agreed features work for the daily user.",
   },
   {
     id: "launch",
-    label: "6. Launch & Support",
-    publicStep: "Launch & Support",
-    youDo: "Train the daily user, leave a simple guide, time-box support.",
-    theyDo: "Run it without you for a week. Pay remaining balance.",
-    exitWhen: "Handover done. Optional paid maintenance is offered.",
+    label: "5. Launch",
+    publicStep: "Launch & support",
+    youDo: "Train, hand over a simple guide, time-box support.",
+    theyDo: "Run it without you. Pay remaining balance if owed.",
+    exitWhen: "Handover done.",
   },
 ];
 
@@ -79,16 +65,48 @@ export function isProjectGate(value: string): value is ProjectGate {
   return (PROJECT_GATES as readonly string[]).includes(value);
 }
 
-const GATE_BY_ID = Object.fromEntries(
-  GATE_GUIDES.map((guide) => [guide.id, guide]),
-) as Record<ProjectGate, GateGuide>;
-
-export function gateGuide(gate: ProjectGate): GateGuide {
-  return GATE_BY_ID[gate];
+export function isProcessGate(value: string): value is ProcessGate {
+  return (PROCESS_GATES as readonly string[]).includes(value);
 }
 
+/** Map legacy gates onto the active process strip. */
+export function toProcessGate(gate: ProjectGate): ProcessGate {
+  switch (gate) {
+    case "qualify":
+      return "qualify";
+    case "intake":
+    case "discover":
+      return "discover";
+    case "propose":
+    case "agree":
+    case "plan":
+      return "plan";
+    case "build":
+      return "build";
+    case "launch":
+      return "launch";
+    default: {
+      const _exhaustive: never = gate;
+      return _exhaustive;
+    }
+  }
+}
+
+const GATE_BY_ID = Object.fromEntries(
+  GATE_GUIDES.map((guide) => [guide.id, guide]),
+) as Record<ProcessGate, GateGuide>;
+
+export function gateGuide(gate: ProjectGate): GateGuide {
+  return GATE_BY_ID[toProcessGate(gate)];
+}
+
+export function processGateIndex(gate: ProcessGate): number {
+  return PROCESS_GATES.indexOf(gate);
+}
+
+/** @deprecated Prefer processGateIndex(toProcessGate(gate)) */
 export function gateIndex(gate: ProjectGate): number {
-  return PROJECT_GATES.indexOf(gate);
+  return processGateIndex(toProcessGate(gate));
 }
 
 export function dailyUserRecordedWhenNeeded(
@@ -104,14 +122,13 @@ export function dailyUserRecordedWhenNeeded(
 
 export const GATE_MOVE_BLOCKS = [
   "skip",
-  "agree",
+  "plan",
   "user",
   "problem",
   "option",
   "status",
   "qualify",
-  "intake",
-  "deposit",
+  "discover",
 ] as const;
 
 export type GateMoveBlock = (typeof GATE_MOVE_BLOCKS)[number];
@@ -123,23 +140,21 @@ export function gatesLocked(status: ProjectStatus): boolean {
 export function gateMoveBlockMessage(code: GateMoveBlock): string {
   switch (code) {
     case "skip":
-      return "Move one gate at a time. Do not skip.";
-    case "agree":
-      return "Build is not allowed until agree.";
+      return "Move one stage at a time. Do not skip.";
+    case "plan":
+      return "Build is not allowed until Plan is complete.";
     case "user":
       return "If the daily user is not the buyer, add a daily-user person before leaving Discover.";
     case "problem":
       return "Write the problem sentence before leaving Discover.";
     case "option":
-      return "Choose a package before leaving Propose.";
+      return "Choose a package before leaving Plan.";
     case "status":
-      return "Won, lost, and done projects stay on their gate. Change status first.";
+      return "Won, lost, and done projects stay on their stage. Change status first.";
     case "qualify":
       return "Record the qualify outcome as a real project before you leave Qualify.";
-    case "intake":
-      return "Write the Problem and Success answers before you leave Intake.";
-    case "deposit":
-      return "Deposit and written confirm before you leave Agree.";
+    case "discover":
+      return "Write the Problem and Success discovery answers before you leave Discover.";
     default: {
       const _exhaustive: never = code;
       return _exhaustive;
@@ -162,8 +177,6 @@ export function gateMoveBlock(args: {
   qualifyOutcome?: QualifyOutcome | null;
   intakeProblemAnswer?: string | null;
   intakeSuccessAnswer?: string | null;
-  depositPaid?: boolean;
-  agreementConfirmed?: boolean;
 }): GateMoveBlock | null {
   const { from, to, people } = args;
   if (from === to) {
@@ -174,15 +187,21 @@ export function gateMoveBlock(args: {
     return "status";
   }
 
-  const fromI = gateIndex(from);
-  const toI = gateIndex(to);
+  if (!isProcessGate(to)) {
+    return "skip";
+  }
+
+  const fromP = toProcessGate(from);
+  const toP = toProcessGate(to);
+  const fromI = processGateIndex(fromP);
+  const toI = processGateIndex(toP);
   if (Math.abs(toI - fromI) > 1) {
     return "skip";
   }
 
-  const agreeI = gateIndex("agree");
-  if (toI > agreeI && fromI < agreeI) {
-    return "agree";
+  const planI = processGateIndex("plan");
+  if (toI > planI && fromI < planI) {
+    return "plan";
   }
 
   const hiringWork = (args.workKind ?? "client") === "client";
@@ -190,19 +209,19 @@ export function gateMoveBlock(args: {
     return null;
   }
 
-  if (from === "qualify" && toI > fromI && args.qualifyOutcome !== "real") {
+  if (fromP === "qualify" && toI > fromI && args.qualifyOutcome !== "real") {
     return "qualify";
   }
 
   if (
-    from === "intake" &&
+    fromP === "discover" &&
     toI > fromI &&
     (!args.intakeProblemAnswer?.trim() || !args.intakeSuccessAnswer?.trim())
   ) {
-    return "intake";
+    return "discover";
   }
 
-  const discoverI = gateIndex("discover");
+  const discoverI = processGateIndex("discover");
   if (toI > discoverI && !dailyUserRecordedWhenNeeded(people)) {
     return "user";
   }
@@ -211,17 +230,8 @@ export function gateMoveBlock(args: {
     return "problem";
   }
 
-  const proposeI = gateIndex("propose");
-  if (toI > proposeI && args.hasSelectedOption === false) {
+  if (fromP === "plan" && toI > fromI && args.hasSelectedOption === false) {
     return "option";
-  }
-
-  if (
-    from === "agree" &&
-    toI > fromI &&
-    (!args.depositPaid || !args.agreementConfirmed)
-  ) {
-    return "deposit";
   }
 
   return null;

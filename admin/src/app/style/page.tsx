@@ -547,7 +547,7 @@ export default async function StylePage() {
                     Practice system
                   </a>
                 </td>
-                <td className="text-gray-700">0. Qualify</td>
+                <td className="text-gray-700">1. Qualify</td>
                 <td className="text-gray-700">Active</td>
                 <td className="text-right">
                   <a href="#table" className={linkClassName("back")}>
@@ -618,15 +618,15 @@ export default async function StylePage() {
           </span>
           <button
             type="button"
-            className="rounded-full border border-gray-200 bg-white px-3 py-1.5 text-sm text-dark-950 hover:border-gold-500"
+            className="cursor-pointer rounded-full border border-gray-200 bg-white px-3 py-1.5 text-sm text-dark-950 hover:border-gold-500"
           >
-            1. Intake
+            1. Qualify
           </button>
           <span
-            title="Move one gate at a time. Do not skip."
+            title="Move one stage at a time. Do not skip."
             className="rounded-full border border-gray-200 bg-gray-100 px-3 py-1.5 text-sm text-gray-500"
           >
-            4. Agree
+            3. Plan
           </span>
         </div>
       </section>

@@ -11,9 +11,9 @@ const services = [
   { icon: Code, label: 'Custom development' },
 ]
 
-const WhatICanDo: React.FC = () => {
+const WhatIDo: React.FC = () => {
   return (
-    <section id="what-i-can-do" className="py-24 bg-gray-50">
+    <section id="what-i-do" className="py-24 bg-gray-50">
       <div className="container mx-auto px-4">
         <motion.h2
           className="section-heading text-center text-dark-950 mb-16"
@@ -22,7 +22,7 @@ const WhatICanDo: React.FC = () => {
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}
         >
-          What I Can Do
+          What I Do
         </motion.h2>
 
         <div className="grid grid-cols-2 md:grid-cols-3 gap-4 max-w-3xl mx-auto">
@@ -48,4 +48,4 @@ const WhatICanDo: React.FC = () => {
   )
 }
 
-export default WhatICanDo
+export default WhatIDo

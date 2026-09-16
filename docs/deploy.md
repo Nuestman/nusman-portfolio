@@ -56,20 +56,21 @@ Vercel only lists Root Directory folders that already exist on the GitHub branch
 | `AUTH_SECRET` | Yes | JWT signing key (Desk + Portal). At least 16 characters. |
 | `DATABASE_URL` | Yes | Neon **nusmandotdev** pooled URL. Never another product’s database. |
 | `DATABASE_URL_UNPOOLED` | If Neon asks | Unpooled URL for migrations. |
-| `RESEND_API_KEY` | No | Portal magic-link email and optional lead alerts. Without it, copy magic links from Desk. |
-| `PORTAL_FROM_EMAIL` | No | From-address for portal mail when Resend is set. |
+| `RESEND_API_KEY` | No | Magic-link email and practice alerts (messages, schedule, milestones, inbound, portal access). Without it, copy magic links from Desk. |
+| `PORTAL_FROM_EMAIL` | No | Verified Resend From (domain sender). Required when `RESEND_API_KEY` is set. |
 | `PORTAL_APP_URL` | No | Magic-link origin. Local: `http://portal.localhost:3000`. Prod default `https://portal.nusman.dev`. |
 | `LEAD_NOTIFY_TO` | No | Alert inbox for `/start` leads. Defaults to `ADMIN_EMAIL`. |
-| `DESK_FROM_EMAIL` | No | From-address for lead alerts (falls back to `PORTAL_FROM_EMAIL`). |
-| `DESK_APP_URL` | No | Desk base URL in lead alert links. |
+| `DESK_FROM_EMAIL` | No | From-address for Desk/lead alerts (falls back to `PORTAL_FROM_EMAIL`). |
+| `PRACTICE_CONTACT_EMAIL` | No | Contact line in client emails (defaults to `ADMIN_EMAIL`). |
+| `DESK_APP_URL` | No | Desk base URL in alert links. |
 | `INBOUND_ALLOWED_ORIGINS` | No | Comma-separated Origins for `POST /api/inbound-lead`. |
 | `FORCE_PORTAL` | Local only | `1` treats this process as the Portal host. Do not set in Desk `.env.local`. |
 
 8. Domains on this project: `desk.nusman.dev` (operators) and `portal.nusman.dev` (clients). Same Root Directory `admin`.
-9. Optional Portal mail: `RESEND_API_KEY`, `PORTAL_FROM_EMAIL`. Without them, Desk still creates a copy-paste magic link.
-10. Optional local Portal: `FORCE_PORTAL=1` (or open `portal.localhost`).
+9. Optional Portal mail: `RESEND_API_KEY`, verified `PORTAL_FROM_EMAIL` (domain sender, not unverified personal mail). Powers magic links plus message / schedule / milestone / inbound / portal-access alerts. Without them, Desk still creates a copy-paste magic link.
+10. Optional local Portal: open `portal.localhost:3000` (same `npm run dev`). Avoid `FORCE_PORTAL=1` in Desk `.env.local`.
 
-From `admin/`, `npm run db:migrate` applies schema through `0008_portal.sql` (magic links, portal sessions, messages, visibility flags). Neon automatic snapshots are not enabled on this project plan, so download a copy from Desk `/export` after a real job starts (JSON, YAML, CSV zip with `journal.csv`, Markdown, or HTML). After a new migration, deploy the Desk/Portal app so production matches the new columns.
+From `admin/`, `npm run db:migrate` applies schema through `0011_process_gate_remap.sql`. Neon automatic snapshots are not enabled on this project plan, so download a copy from Desk `/export` after a real job starts (JSON, YAML, CSV zip with `journal.csv`, Markdown, or HTML). After a new migration, deploy the Desk/Portal app so production matches the new columns.
 
 `/avatars/` is public (seeded operator photo). Uploaded photos are stored in the database and served at `/profile/photo/[id]` behind a Desk session. Do not commit `admin/.env.local`.
 

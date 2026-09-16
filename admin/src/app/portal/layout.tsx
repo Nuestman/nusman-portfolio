@@ -4,7 +4,7 @@ import type { Metadata } from "next";
 export const metadata: Metadata = {
   title: "Portal · Numan Usman",
   description:
-    "Client portal for progress, intake, and messages with the nusman.dev practice.",
+    "Client portal for progress, discovery, schedule, and messages with the nusman.dev practice.",
   robots: { index: false, follow: false },
 };
 

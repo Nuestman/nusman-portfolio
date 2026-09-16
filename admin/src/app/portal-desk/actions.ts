@@ -14,8 +14,12 @@ import { recordAudit } from "@/lib/audit";
 import { requireSessionUser } from "@/lib/current-user";
 import { readTrimmed } from "@/lib/forms";
 import { isUuid } from "@/lib/ids";
+import { notifyClientsOfPortalMessage } from "@/lib/notify";
 import { issuePortalMagicLink } from "@/lib/portal-magic";
-import { sendPortalMagicLinkEmail } from "@/lib/portal-email";
+import {
+  sendPortalAccessGrantedEmail,
+  sendPortalMagicLinkEmail,
+} from "@/lib/portal-email";
 
 export type PortalDeskState = {
   error: string | null;
@@ -51,7 +55,12 @@ export async function setPersonPortalEnabledAction(
 
   const person = await getPerson(personId);
   const client = await getClient(clientId);
-  if (!person || !client || person.clientId !== clientId || client.kind === "practice") {
+  if (
+    !person ||
+    !client ||
+    person.clientId !== clientId ||
+    client.kind === "practice"
+  ) {
     return { error: "That person is gone.", link: null, emailed: false };
   }
 
@@ -65,18 +74,42 @@ export async function setPersonPortalEnabledAction(
   }
 
   await setPersonPortalEnabled(personId, enabled);
+
+  let link: string | null = null;
+  let emailed = false;
+  let mailError: string | null = null;
+
+  if (enabled && person.email && !person.portalEnabled) {
+    const issued = await issuePortalMagicLink(personId);
+    link = issued?.url ?? null;
+    const mailed = await sendPortalAccessGrantedEmail({
+      to: person.email,
+      name: person.name,
+      clientName: client.name,
+      magicUrl: link,
+    });
+    emailed = mailed.sent;
+    if (!mailed.sent) {
+      mailError = mailed.configured
+        ? (mailed.error ?? "Could not send the welcome email.")
+        : "Email is not configured (RESEND_API_KEY / FROM address).";
+    }
+  }
+
   await recordAudit({
     action: enabled ? "portal.enable" : "portal.disable",
     summary: enabled
-      ? `Enabled portal for ${person.name}.`
+      ? emailed
+        ? `Enabled portal for ${person.name} and emailed access.`
+        : `Enabled portal for ${person.name}.`
       : `Disabled portal for ${person.name}.`,
     entityType: "person",
     entityId: personId,
     before: { portalEnabled: person.portalEnabled },
-    after: { portalEnabled: enabled },
+    after: { portalEnabled: enabled, emailed },
   });
   revalidatePersonPaths(clientId, personId);
-  return { error: null, link: null, emailed: false };
+  return { error: mailError, link, emailed };
 }
 
 export async function invitePortalPersonAction(
@@ -92,7 +125,12 @@ export async function invitePortalPersonAction(
 
   const person = await getPerson(personId);
   const client = await getClient(clientId);
-  if (!person || !client || person.clientId !== clientId || client.kind === "practice") {
+  if (
+    !person ||
+    !client ||
+    person.clientId !== clientId ||
+    client.kind === "practice"
+  ) {
     return { error: "That person is gone.", link: null, emailed: false };
   }
   if (!person.portalEnabled) {
@@ -136,7 +174,11 @@ export async function invitePortalPersonAction(
   });
   revalidatePersonPaths(clientId, personId);
   return {
-    error: mailed.error ? `Link ready, but email failed: ${mailed.error}` : null,
+    error: mailed.sent
+      ? null
+      : mailed.configured
+        ? `Link ready, but email failed: ${mailed.error ?? "unknown error"}`
+        : "Link ready. Email is not configured (RESEND_API_KEY / FROM address) — copy the link.",
     link: issued.url,
     emailed: mailed.sent,
   };
@@ -157,10 +199,10 @@ export async function setPortalIntakeOpenAction(formData: FormData) {
   const open = formData.get("portalIntakeOpen") === "on";
   await setProjectPortalIntakeOpen(projectId, open);
   await recordAudit({
-    action: open ? "portal.intake-open" : "portal.intake-close",
+    action: open ? "portal.discovery-open" : "portal.discovery-close",
     summary: open
-      ? `Opened portal intake on “${project.title}”.`
-      : `Closed portal intake on “${project.title}”.`,
+      ? `Opened portal discovery form on “${project.title}”.`
+      : `Closed portal discovery form on “${project.title}”.`,
     entityType: "project",
     entityId: projectId,
     projectId,
@@ -203,6 +245,12 @@ export async function replyPortalMessageAction(
     entityType: "portal_message",
     projectId,
     after: { body, authorKind: "operator" },
+  });
+  await notifyClientsOfPortalMessage({
+    clientId: project.clientId,
+    projectId,
+    projectTitle: project.title,
+    body,
   });
   revalidateProjectPaths(projectId, project.clientId);
   redirect(`/messages/${projectId}`);

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getSessionEmail } from "@/lib/auth";
 import {
+  ensureProjectMilestones,
   getClient,
   getLaunch,
   getProject,
@@ -17,7 +18,6 @@ import {
 import { ConfirmDelete } from "@/components/confirm-submit";
 import { DeskShell } from "@/components/desk-shell";
 import { EditableCard } from "@/components/editable-card";
-import { InfoList } from "@/components/info-list";
 import {
   EditLink,
   TableActionsCell,
@@ -25,29 +25,29 @@ import {
 } from "@/components/table-actions";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { QueryNotice } from "@/components/query-notice";
-import { PROJECT_GATES, type ProjectGate } from "@/db/schema";
+import { PROCESS_GATES, type ProcessGate } from "@/db/schema";
 import { isUuid } from "@/lib/ids";
 import {
   gateGuide,
-  gateIndex,
   gateMoveBlockMessage,
+  gatesLocked,
   isGateMoveBlock,
+  processGateIndex,
+  toProcessGate,
 } from "@/lib/gates";
 import { projectStatusLabel, workKindLabel } from "@/lib/labels";
 import { linkClassName } from "@/lib/links";
+import { shouldServePortalUi } from "@/lib/serve-portal";
 import { formatStamp, snippet } from "@/lib/text";
 import { tableClassName, tableFrameClassName } from "@/lib/tables";
-import {
-  deskCopyTemplates,
-  type CopyTemplate,
-} from "@/lib/templates";
 import { PortalProjectControls } from "@/app/portal-desk/project-controls";
-import { CopyTemplates } from "../copy-templates";
+import PortalProjectPage from "@/app/portal/projects/[id]/page";
 import { DeliveryWork } from "../delivery-work";
 import { EarlierStages } from "../earlier-stages";
 import { GateSwitcher } from "../gate-switcher";
+import { JobBriefCard } from "../job-brief-card";
+import { MilestonesPanel } from "../milestones-panel";
 import { NoteForm } from "../note-form";
-import { ProjectDetailsForm } from "../project-details-form";
 import { ProposeAgreeWork } from "../propose-agree-work";
 import { SalesWork } from "../sales-work";
 import { SchedulePanel } from "../schedule-panel";
@@ -76,46 +76,31 @@ function projectNotice(raw: string | undefined): string | null {
   if (raw === "confirm-title") {
     return "Type the title exactly to delete this record.";
   }
+  if (raw === "milestone-order") {
+    return "Complete earlier milestones before ticking this one.";
+  }
+  if (raw === "milestone-reopen") {
+    return "Reopen later milestones first, then this one.";
+  }
   return null;
 }
 
-function templatesForGate(
-  gate: ProjectGate,
-  templates: CopyTemplate[],
-): CopyTemplate[] {
-  switch (gate) {
-    case "qualify":
-      return templates.filter((item) => item.id === "reply");
-    case "intake":
-      return templates.filter(
-        (item) => item.id === "intake" || item.id === "reply",
-      );
-    case "discover":
-      return templates.filter((item) => item.id === "after-call");
-    case "propose":
-    case "agree":
-    case "build":
-    case "launch":
-      return [];
-    default: {
-      const _exhaustive: never = gate;
-      return _exhaustive;
-    }
-  }
-}
-
-function pastGates(current: ProjectGate): ProjectGate[] {
-  const index = gateIndex(current);
+function pastProcessGates(current: ProcessGate): ProcessGate[] {
+  const index = processGateIndex(current);
   if (index <= 0) {
     return [];
   }
-  return PROJECT_GATES.slice(0, index);
+  return [...PROCESS_GATES.slice(0, index)];
 }
 
 export default async function ProjectDetailPage({
   params,
   searchParams,
 }: ProjectDetailPageProps) {
+  if (await shouldServePortalUi()) {
+    return <PortalProjectPage params={params} />;
+  }
+
   const { id } = await params;
   if (!isUuid(id)) {
     notFound();
@@ -127,23 +112,35 @@ export default async function ProjectDetailPage({
   }
 
   const isProduct = project.workKind === "product";
-  const [email, client, people, notes, options, query, gateWork, delivery, portalMessageCount, events] =
-    await Promise.all([
-      getSessionEmail(),
-      getClient(project.clientId),
-      listPeople(project.clientId),
-      listNotes(id),
-      listOptions(id),
-      searchParams,
-      isProduct ? Promise.resolve(null) : getProjectGateWork(id),
-      isProduct
-        ? Promise.all([listChangeRequests(id), listDemos(id), getLaunch(id)]).then(
-            ([changes, demos, launch]) => ({ changes, demos, launch }),
-          )
-        : Promise.resolve(null),
-      isProduct ? Promise.resolve(0) : countPortalMessages(id),
-      isProduct ? Promise.resolve([]) : listProjectEvents(id),
-    ]);
+  const [
+    email,
+    client,
+    people,
+    notes,
+    options,
+    query,
+    gateWork,
+    delivery,
+    portalMessageCount,
+    events,
+    milestones,
+  ] = await Promise.all([
+    getSessionEmail(),
+    getClient(project.clientId),
+    listPeople(project.clientId),
+    listNotes(id),
+    listOptions(id),
+    searchParams,
+    isProduct ? Promise.resolve(null) : getProjectGateWork(id),
+    isProduct
+      ? Promise.all([listChangeRequests(id), listDemos(id), getLaunch(id)]).then(
+          ([changes, demos, launch]) => ({ changes, demos, launch }),
+        )
+      : Promise.resolve(null),
+    isProduct ? Promise.resolve(0) : countPortalMessages(id),
+    isProduct ? Promise.resolve([]) : listProjectEvents(id),
+    isProduct ? Promise.resolve([]) : ensureProjectMilestones(id),
+  ]);
 
   if (!client) {
     notFound();
@@ -152,12 +149,8 @@ export default async function ProjectDetailPage({
   const noticeRaw = Array.isArray(query.notice) ? query.notice[0] : query.notice;
   const notice = projectNotice(noticeRaw);
   const hasSelectedOption = options.some((option) => option.selected);
-  const allTemplates = isProduct
-    ? []
-    : deskCopyTemplates(project.problemSentence);
   const qualify = gateWork?.qualify ?? null;
   const intake = gateWork?.intake ?? [];
-  const agreement = gateWork?.agreement ?? null;
   const changes = gateWork?.changes ?? delivery?.changes ?? [];
   const demos = gateWork?.demos ?? delivery?.demos ?? [];
   const launch = gateWork?.launch ?? delivery?.launch ?? null;
@@ -166,50 +159,11 @@ export default async function ProjectDetailPage({
   const successAnswer =
     intake.find((row) => row.theme === "Success")?.answer ?? null;
 
+  const processGate = toProcessGate(project.currentGate);
   const guide = gateGuide(project.currentGate);
-  const earlier = isProduct ? [] : pastGates(project.currentGate);
-  const stageTemplates = isProduct
-    ? []
-    : templatesForGate(project.currentGate, allTemplates);
-
-  const jobDetailsCard = (
-    <EditableCard
-      title="Job details"
-      hint={
-        isProduct
-          ? undefined
-          : "Problem sentence is needed before you leave Discover."
-      }
-      view={
-        <InfoList
-          items={[
-            { label: "Title", value: project.title },
-            { label: "Problem sentence", value: project.problemSentence },
-            { label: "Success looks like", value: project.successLooksLike },
-            { label: "Budget note", value: project.budgetNote },
-            { label: "Deadline note", value: project.deadlineNote },
-            { label: "Status", value: projectStatusLabel(project.status) },
-          ]}
-        />
-      }
-      form={
-        <ProjectDetailsForm
-          project={{
-            id: project.id,
-            title: project.title,
-            problemSentence: project.problemSentence ?? "",
-            successLooksLike: project.successLooksLike ?? "",
-            budgetNote: project.budgetNote ?? "",
-            deadlineNote: project.deadlineNote ?? "",
-            status: project.status,
-          }}
-          problemHint={
-            isProduct ? undefined : "Needed before you leave Discover."
-          }
-        />
-      }
-    />
-  );
+  const earlier = isProduct ? [] : pastProcessGates(processGate);
+  const disqualified = !isProduct && qualify?.outcome === "no";
+  const pipelineLocked = disqualified || gatesLocked(project.status);
 
   const salesProps = gateWork
     ? {
@@ -237,31 +191,24 @@ export default async function ProjectDetailPage({
     launch,
   };
 
-  function gatePanels(gates: readonly ProjectGate[]) {
+  function stagePanels(gates: readonly ProcessGate[]) {
     if (gates.length === 0) {
       return null;
     }
     return (
       <>
         {salesProps &&
-        gates.some((g) => g === "qualify" || g === "intake" || g === "discover") ? (
+        gates.some((g) => g === "qualify" || g === "discover") ? (
           <SalesWork
             {...salesProps}
             include={gates.filter(
-              (g): g is "qualify" | "intake" | "discover" =>
-                g === "qualify" || g === "intake" || g === "discover",
+              (g): g is "qualify" | "discover" =>
+                g === "qualify" || g === "discover",
             )}
           />
         ) : null}
-        {proposeProps &&
-        gates.some((g) => g === "propose" || g === "agree") ? (
-          <ProposeAgreeWork
-            {...proposeProps}
-            include={gates.filter(
-              (g): g is "propose" | "agree" =>
-                g === "propose" || g === "agree",
-            )}
-          />
+        {proposeProps && gates.includes("plan") ? (
+          <ProposeAgreeWork {...proposeProps} include={["plan"]} />
         ) : null}
         {gates.some((g) => g === "build" || g === "launch") ? (
           <DeliveryWork
@@ -303,104 +250,127 @@ export default async function ProjectDetailPage({
             </>
           )}
         </p>
+        {!isProduct ? (
+          <p className="mt-3 text-xs text-gray-500">
+            <Link
+              href={`/projects/${project.id}/classic`}
+              className="underline decoration-gray-300 underline-offset-2 hover:text-gray-700"
+            >
+              Classic layout
+            </Link>
+          </p>
+        ) : null}
       </div>
 
       <QueryNotice message={notice} />
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Gate</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <GateSwitcher
-            project={{
-              id: project.id,
-              currentGate: project.currentGate,
-              problemSentence: project.problemSentence,
-              status: project.status,
-              workKind: project.workKind,
-            }}
-            people={people}
-            hasSelectedOption={hasSelectedOption}
-            qualifyOutcome={qualify?.outcome ?? "undecided"}
-            intakeProblemAnswer={problemAnswer}
-            intakeSuccessAnswer={successAnswer}
-            depositPaid={agreement?.depositPaid ?? false}
-            agreementConfirmed={agreement?.confirmed ?? false}
-          />
-        </CardContent>
-      </Card>
+      {disqualified ? (
+        <p className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-900">
+          Disqualified — not a real project. The pipeline is closed (status Lost).
+          Change Qualify outcome back to Real or Undecided to reopen.
+        </p>
+      ) : null}
 
-      {jobDetailsCard}
+      {!isProduct ? (
+        <Card>
+          <CardHeader>
+            <CardTitle>Stage</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {pipelineLocked ? (
+              <p className="mb-3 text-sm text-gray-600">
+                Stage moves are locked while this project is{" "}
+                {projectStatusLabel(project.status).toLowerCase()}.
+              </p>
+            ) : null}
+            <GateSwitcher
+              project={{
+                id: project.id,
+                currentGate: project.currentGate,
+                problemSentence: project.problemSentence,
+                status: project.status,
+                workKind: project.workKind,
+              }}
+              people={people}
+              hasSelectedOption={hasSelectedOption}
+              qualifyOutcome={qualify?.outcome ?? "undecided"}
+              intakeProblemAnswer={problemAnswer}
+              intakeSuccessAnswer={successAnswer}
+            />
+            <p className="mt-3 text-sm text-gray-600">{guide.youDo}</p>
+          </CardContent>
+        </Card>
+      ) : null}
 
       {isProduct ? (
+        <JobBriefCard isProduct project={project} />
+      ) : processGate === "qualify" || disqualified ? (
         <>
-          <section className="space-y-4">
-            <div>
-              <h2 className="font-heading text-3xl text-dark-950">
-                Product work
-              </h2>
-              <p className="mt-1 text-sm text-gray-600">
-                Changes, demos, and launch for this own-product record.
-              </p>
-            </div>
-            <DeliveryWork {...deliveryProps} />
-          </section>
+          {stagePanels(["qualify"])}
+          <JobBriefCard
+            isProduct={false}
+            project={project}
+            locked={disqualified}
+          />
         </>
       ) : (
-        <>
-          <section className="space-y-4">
-            <div className="flex flex-wrap items-end justify-between gap-3">
-              <div>
-                <p className="text-xs font-medium uppercase tracking-wide text-gray-500">
-                  Current stage
-                </p>
-                <h2 className="font-heading text-3xl text-dark-950">
-                  {guide.label}
-                </h2>
-                <p className="mt-1 max-w-2xl text-sm text-gray-600">
-                  {guide.youDo}{" "}
-                  <Link href="/playbook" className={linkClassName("inline")}>
-                    Playbook
-                  </Link>
-                </p>
-              </div>
-            </div>
-
-            {gatePanels([project.currentGate])}
-
-            {stageTemplates.length > 0 ? (
-              <Card>
-                <CardHeader>
-                  <CardTitle>Copy for this stage</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="mb-6 text-sm text-gray-600">
-                    From the playbook. Fill the brackets before you send. Full
-                    guide stays on{" "}
-                    <Link href="/playbook" className={linkClassName("inline")}>
-                      Playbook
-                    </Link>
-                    .
-                  </p>
-                  <CopyTemplates templates={stageTemplates} />
-                </CardContent>
-              </Card>
-            ) : null}
-          </section>
-
-          {earlier.length > 0 ? (
-            <EarlierStages>{gatePanels(earlier)}</EarlierStages>
-          ) : null}
-        </>
+        <JobBriefCard isProduct={false} project={project} />
       )}
+
+      {isProduct ? (
+        <section className="space-y-4">
+          <div>
+            <h2 className="font-heading text-3xl text-dark-950">Product work</h2>
+            <p className="mt-1 text-sm text-gray-600">
+              Changes, demos, and launch for this own-product record.
+            </p>
+          </div>
+          <DeliveryWork {...deliveryProps} />
+        </section>
+      ) : null}
+
+      {!isProduct && !disqualified && processGate !== "qualify" ? (
+        <section className="space-y-4">
+          <div>
+            <p className="text-xs font-medium uppercase tracking-wide text-gray-500">
+              Current stage
+            </p>
+            <h2 className="font-heading text-3xl text-dark-950">{guide.label}</h2>
+          </div>
+          {stagePanels([processGate])}
+        </section>
+      ) : null}
+
+      {!isProduct ? (
+        <Card>
+          <CardHeader>
+            <CardTitle>Milestones</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="mb-4 text-sm text-gray-600">
+              {disqualified
+                ? "Checkpoints are frozen while this job is disqualified."
+                : "Tick in order — finish earlier checkpoints before later ones. Payment commitment is a milestone + note for now."}
+            </p>
+            <MilestonesPanel
+              projectId={project.id}
+              milestones={milestones}
+              locked={pipelineLocked}
+            />
+          </CardContent>
+        </Card>
+      ) : null}
+
+      {!isProduct && !disqualified && earlier.length > 0 ? (
+        <EarlierStages>{stagePanels(earlier)}</EarlierStages>
+      ) : null}
 
       <EditableCard
         title="Timeline"
         hint={
           isProduct
-            ? "Notes and gate moves."
-            : "Calls, WhatsApp, gate moves, and the chosen package."
+            ? "Notes and stage moves."
+            : "Calls, WhatsApp, stage moves, and package choices."
         }
         editLabel="Add"
         always={
@@ -457,9 +427,15 @@ export default async function ProjectDetailPage({
         form={<NoteForm projectId={project.id} />}
       />
 
-      {!isProduct ? <SchedulePanel projectId={project.id} events={events} /> : null}
-
       {!isProduct ? (
+        <SchedulePanel
+          projectId={project.id}
+          events={events}
+          locked={pipelineLocked}
+        />
+      ) : null}
+
+      {!isProduct && !disqualified ? (
         <Card>
           <CardHeader>
             <CardTitle>Portal</CardTitle>
@@ -483,7 +459,7 @@ export default async function ProjectDetailPage({
         </CardHeader>
         <CardContent className="space-y-3 text-gray-700">
           <p className="text-sm">
-            Deletes this record and its notes, options, and gate forms.
+            Deletes this record and its notes, options, and stage forms.
           </p>
           <form action={deleteProjectAction}>
             <input type="hidden" name="id" value={project.id} />
@@ -496,7 +472,7 @@ export default async function ProjectDetailPage({
               label={isProduct ? "Delete product" : "Delete project"}
               size="default"
               confirmValue={project.title}
-              message={`Deletes this ${isProduct ? "product" : "project"} and its notes, options, and gate forms. Type the title to confirm.`}
+              message={`Deletes this ${isProduct ? "product" : "project"} and its notes, options, and stage forms. Type the title to confirm.`}
             />
           </form>
         </CardContent>

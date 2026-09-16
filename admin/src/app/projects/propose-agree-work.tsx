@@ -76,10 +76,17 @@ export function ProposeAgreeWork({
     depositPaid: boolean;
     confirmed: boolean;
   } | null;
-  include?: readonly ProjectGate[];
+  /** `plan` shows packages + agreement together. */
+  include?: readonly ("propose" | "agree" | "plan")[];
 }) {
-  const show = (gate: ProjectGate) =>
-    !include || include.includes(gate);
+  const showPackages =
+    !include ||
+    include.includes("propose") ||
+    include.includes("plan");
+  const showAgreement =
+    !include ||
+    include.includes("agree") ||
+    include.includes("plan");
 
   const agreementValues = {
     parties: agreement?.parties ?? "",
@@ -96,7 +103,7 @@ export function ProposeAgreeWork({
 
   return (
     <>
-      {show("propose") ? (
+      {showPackages ? (
         <OptionsPanel
           projectId={projectId}
           options={options}
@@ -104,10 +111,10 @@ export function ProposeAgreeWork({
         />
       ) : null}
 
-      {show("agree") ? (
+      {showAgreement ? (
         <EditableCard
-          title="Agree"
-          hint="One page. Deposit and written confirm before you leave Agree."
+          title="Agreement"
+          hint="One page under Plan. Payment commitment can also be a milestone note."
           view={
             <InfoList
               items={[

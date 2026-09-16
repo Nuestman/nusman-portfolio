@@ -1,12 +1,10 @@
 import { EditableCard } from "@/components/editable-card";
 import { InfoList } from "@/components/info-list";
-import { qualifyOutcomeLabel } from "@/lib/labels";
-import { tableClassName, tableFrameClassName } from "@/lib/tables";
 import { displayText } from "@/lib/text";
-import type { ProjectGate, QualifyOutcome } from "@/db/schema";
-import { QualifyForm } from "./qualify-form";
+import type { ProcessGate, QualifyOutcome } from "@/db/schema";
 import { IntakeForm } from "./intake-form";
 import { DiscoveryForm } from "./discovery-form";
+import { QualifyCard } from "./qualify-card";
 
 type IntakeRow = {
   theme: string;
@@ -27,6 +25,7 @@ export function SalesWork({
     whoFor: string | null;
     painToday: string | null;
     neededBy: string | null;
+    budgetNote: string | null;
     callAt: string | null;
     notes: string | null;
   } | null;
@@ -34,18 +33,14 @@ export function SalesWork({
   discovery: {
     callAt: string | null;
     attendees: string | null;
-    currentProcess: string | null;
     lastExample: string | null;
     inScope: string | null;
     outOfScope: string | null;
-    devicesLanguage: string | null;
-    privacyNotes: string | null;
   } | null;
-  /** Which sales gates to render. Defaults to all three. */
-  include?: readonly ProjectGate[];
+  /** Which process stages to render. */
+  include?: readonly ProcessGate[];
 }) {
-  const show = (gate: ProjectGate) =>
-    !include || include.includes(gate);
+  const show = (gate: ProcessGate) => !include || include.includes(gate);
 
   const intakeRows = intake.map((item) => ({
     theme: item.theme,
@@ -56,117 +51,66 @@ export function SalesWork({
   return (
     <>
       {show("qualify") ? (
-        <EditableCard
-          title="Qualify"
-          hint="15-minute screen. Outcome must be a real project before you leave this gate."
-          view={
-            <InfoList
-              items={[
-                {
-                  label: "Outcome",
-                  value: qualifyOutcomeLabel(qualify?.outcome ?? "undecided"),
-                },
-                { label: "Who it is for", value: qualify?.whoFor },
-                { label: "What is painful today", value: qualify?.painToday },
-                { label: "Needed by", value: qualify?.neededBy },
-                { label: "15-min call", value: qualify?.callAt },
-                { label: "Notes", value: qualify?.notes },
-              ]}
-            />
-          }
-          form={
-            <QualifyForm
-              projectId={projectId}
-              qualify={{
-                outcome: qualify?.outcome ?? "undecided",
-                whoFor: qualify?.whoFor ?? "",
-                painToday: qualify?.painToday ?? "",
-                neededBy: qualify?.neededBy ?? "",
-                callAt: qualify?.callAt ?? "",
-                notes: qualify?.notes ?? "",
-              }}
-            />
-          }
-        />
-      ) : null}
-
-      {show("intake") ? (
-        <EditableCard
-          title="Intake"
-          hint="The eight questions. Problem and Success are needed before you leave Intake."
-          view={
-            intakeRows.length === 0 ? (
-              <p className="text-sm text-gray-600">No intake questions yet.</p>
-            ) : (
-              <div className={tableFrameClassName}>
-                <table className={tableClassName}>
-                  <thead className="bg-gray-50 text-gray-600">
-                    <tr>
-                      <th className="px-4 py-3 font-medium">Theme</th>
-                      <th className="px-4 py-3 font-medium">Question</th>
-                      <th className="px-4 py-3 font-medium">Answer</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {intakeRows.map((item) => (
-                      <tr key={item.theme} className="border-t border-gray-100">
-                        <td className="px-4 py-3 align-top font-medium text-dark-950">
-                          {item.theme}
-                        </td>
-                        <td className="px-4 py-3 align-top text-gray-700">
-                          {item.ask}
-                        </td>
-                        <td className="px-4 py-3 align-top text-gray-700">
-                          {displayText(item.answer)}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )
-          }
-          form={<IntakeForm projectId={projectId} answers={intakeRows} />}
-        />
+        <QualifyCard projectId={projectId} qualify={qualify} />
       ) : null}
 
       {show("discover") ? (
-        <EditableCard
-          title="Discover"
-          hint="Call notes. Write the problem sentence on Job details before you leave Discover."
-          view={
-            <InfoList
-              items={[
-                { label: "Call", value: discovery?.callAt },
-                { label: "Attendees", value: discovery?.attendees },
-                { label: "Current process", value: discovery?.currentProcess },
-                { label: "Last real example", value: discovery?.lastExample },
-                { label: "In scope", value: discovery?.inScope },
-                { label: "Out of scope", value: discovery?.outOfScope },
-                {
-                  label: "Devices, language, literacy",
-                  value: discovery?.devicesLanguage,
-                },
-                { label: "Privacy", value: discovery?.privacyNotes },
-              ]}
-            />
-          }
-          form={
-            <DiscoveryForm
-              projectId={projectId}
-              discovery={{
-                callAt: discovery?.callAt ?? "",
-                attendees: discovery?.attendees ?? "",
-                currentProcess: discovery?.currentProcess ?? "",
-                lastExample: discovery?.lastExample ?? "",
-                inScope: discovery?.inScope ?? "",
-                outOfScope: discovery?.outOfScope ?? "",
-                devicesLanguage: discovery?.devicesLanguage ?? "",
-                privacyNotes: discovery?.privacyNotes ?? "",
-              }}
-            />
-          }
-        />
+        <>
+          <EditableCard
+            title="Discovery answers"
+            hint="The eight themes — fill after the call, or open the portal form for the client."
+            view={
+              intakeRows.length === 0 ? (
+                <p className="text-sm text-gray-600">No discovery themes yet.</p>
+              ) : (
+                <div className="space-y-4">
+                  {intakeRows.map((item) => (
+                    <div
+                      key={item.theme}
+                      className="border-b border-gray-100 pb-4 last:border-0 last:pb-0"
+                    >
+                      <p className="text-xs font-medium uppercase tracking-wide text-gray-500">
+                        {item.theme}
+                      </p>
+                      <p className="mt-1 text-sm text-gray-600">{item.ask}</p>
+                      <p className="mt-2 whitespace-pre-wrap text-sm text-dark-950">
+                        {displayText(item.answer)}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              )
+            }
+            form={<IntakeForm projectId={projectId} answers={intakeRows} />}
+          />
+          <EditableCard
+            title="Call notes & scope"
+            hint="Lock the problem sentence in Brief before leaving Discover."
+            view={
+              <InfoList
+                items={[
+                  { label: "Call", value: discovery?.callAt },
+                  { label: "Attendees", value: discovery?.attendees },
+                  { label: "Last real example", value: discovery?.lastExample },
+                  { label: "In scope", value: discovery?.inScope },
+                  { label: "Out of scope", value: discovery?.outOfScope },
+                ]}
+              />
+            }
+            form={
+              <DiscoveryForm
+                projectId={projectId}
+                discovery={{
+                  callAt: discovery?.callAt ?? "",
+                  attendees: discovery?.attendees ?? "",
+                  lastExample: discovery?.lastExample ?? "",
+                  inScope: discovery?.inScope ?? "",
+                  outOfScope: discovery?.outOfScope ?? "",
+                }}
+              />
+            }
+          />
+        </>
       ) : null}
     </>
   );

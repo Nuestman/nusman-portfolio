@@ -68,7 +68,7 @@ export function isIntakeTheme(value: string): value is IntakeTheme {
 }
 
 export const INTAKE_MESSAGE = [
-  "Quick intake — reply under each line:",
+  "Quick discovery — reply under each line:",
   "",
   ...INTAKE_QUESTIONS.map(
     (item, index) => `${index + 1}. ${item.theme} — ${item.ask}`,
@@ -100,13 +100,13 @@ export function deskCopyTemplates(
     {
       id: "intake",
       title: "Eight questions",
-      hint: "Intake. Send after they confirm it is real.",
+      hint: "Discover. Send after they confirm it is real (or use the portal form).",
       text: INTAKE_MESSAGE,
     },
     {
       id: "after-call",
       title: "After the call",
-      hint: "Discover. Fill in scope, then send options.",
+      hint: "Discover. Confirm scope, then move to Plan with options.",
       text: afterCallMessage(problemSentence),
     },
   ];
@@ -212,9 +212,9 @@ export const PRACTICE_HABITS = [
 
 export const THIS_WEEK_REMINDERS = [
   "Send the framing reply: discovery first, not a build yet.",
-  "Book a 15-min qualify chat.",
+  "Book a qualify chat (or catch the /start brief).",
   "Keep it off work systems unless this is official AGAHF work.",
-  "Send the 8-question intake after they confirm it is real.",
+  "Capture the eight discovery themes after they confirm it is real.",
   "Insist the daily user joins discovery if they are not the buyer.",
   "Write 2–3 options and a price before opening a code editor.",
 ] as const;

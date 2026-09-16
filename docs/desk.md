@@ -430,4 +430,4 @@ Do not add Desk links to `Header` / `Footer` / `sitemap.xml`.
 
 ## Immediate next step
 
-Desk **2.0.0** is the current cut ([desk-2.0.md](./desk-2.0.md)). Desk **1.3.0** included Portal, Messages, and inbound leads from the public `/start` form. Invite a person from Desk, rewrite package summaries for clients, open intake when ready, keep an export after a real job starts. Later: import product databases — only when you choose to, and never by pointing Desk at their `DATABASE_URL`.
+Desk **2.1.0** is the current cut (milestones, Resend alerts, Portal start-project / messages hub; surfaces still follow [desk-2.0.md](./desk-2.0.md)). Invite a person from Desk, rewrite package summaries for clients, open intake when ready, keep an export after a real job starts. Later: Portal routing cleanup ([portal.md](./portal.md#later--routing-cleanup-best-practice)); import product databases — only when you choose to, and never by pointing Desk at their `DATABASE_URL`.
