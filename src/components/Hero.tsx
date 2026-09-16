@@ -24,7 +24,7 @@ const Hero: React.FC = () => {
   }, [texts.length])
 
   return (
-    <section className="min-h-screen flex items-center justify-center relative overflow-hidden hero-pattern pt-20 pb-16">
+    <section className="min-h-screen flex items-center justify-center relative overflow-hidden hero-pattern pt-48 sm:pt-24 md:pt-20 pb-16">
       <div className="absolute inset-0 bg-gradient-to-br from-gold-500/10 to-transparent" />
 
       <div className="container mx-auto px-4 relative z-10">
@@ -55,7 +55,7 @@ const Hero: React.FC = () => {
               transition={{ duration: 1, delay: 0.2 }}
             >
               Hi! I'm{' '}
-              <span className="gradient-text">Numan.</span>
+              <span className="gradient-text">Usman.</span>
             </motion.h1>
 
             <motion.div
@@ -96,10 +96,10 @@ const Hero: React.FC = () => {
               transition={{ duration: 0.8, delay: 0.8 }}
             >
               <Button size="lg" asChild className="px-8 py-4 text-lg">
-                <Link to="/contact">Get In Touch</Link>
+                <Link to="/start">Start a project with me</Link>
               </Button>
               <Button variant="outline" size="lg" asChild className="px-8 py-4 text-lg">
-                <Link to="/about">Learn More</Link>
+                <Link to="/contact">Get in touch</Link>
               </Button>
             </motion.div>
           </motion.div>

@@ -2,6 +2,8 @@
 
 Brand system for **nusman.dev** (public site) and **desk.nusman.dev** (workbench). Tokens live in `tailwind.config.js` and `src/index.css`. Desk copies these tokens into `admin/` rather than importing the marketing CSS at runtime.
 
+The live specimens page is Desk **`/style`**. Keep this file and that page in step.
+
 If marketing and Desk drift, Desk follows this guide. Update this file when a token or rule changes.
 
 ---
@@ -101,7 +103,7 @@ Load from Google Fonts (public `index.html` already does):
 | Use | Classes |
 |---|---|
 | Page section title | `section-heading` → `text-5xl md:text-6xl lg:text-7xl font-heading text-dark-950` |
-| Hero name accent | `gradient-text` on the word “Numan.” |
+| Hero name accent | `gradient-text` on the word “Usman.” |
 | Subhead / rotating line | `text-2xl sm:text-3xl md:text-4xl font-heading` |
 | Body | `text-lg` or `text-xl` `text-gray-700` / `text-dark-950/75` |
 | Nav | `font-heading text-lg` (CSS bumps this to 1.5rem) |
@@ -109,15 +111,18 @@ Load from Google Fonts (public `index.html` already does):
 
 **Desk (workbench)**
 
-Do not use `section-heading` on every screen. It is a landing-page size.
+Same large Odibee titles as the public site. Tables and form labels stay small.
 
 | Use | Classes |
 |---|---|
-| Screen title | `font-heading text-3xl md:text-4xl text-dark-950` |
+| Screen title | `section-heading` → `text-5xl md:text-6xl lg:text-7xl font-heading text-dark-950` |
+| Playbook section title | `section-heading` |
 | Card / panel title | `font-heading text-2xl text-dark-950` |
 | Body | `text-sm md:text-base text-gray-700` |
 | Table | `text-sm` |
 | Meta / labels | `text-sm text-gray-500` |
+
+Do not use `section-heading` inside tables or on buttons. Login stays a compact card (`font-heading text-2xl`).
 
 Name accent on marketing only: `gradient-text` (`from-gold-500 to-gold-600`). Desk does not need gradient headlines.
 
@@ -127,10 +132,10 @@ Name accent on marketing only: `gradient-text` (`from-gold-500 to-gold-600`). De
 
 - Page padding: `container mx-auto px-4`.
 - Marketing sections: `py-20` or `py-24`.
-- Desk pages: `px-4 py-8` (or similar), max width `max-w-6xl` for lists, `max-w-3xl` for forms.
+- Desk pages: `px-4 py-8` (or similar). Chrome and list pages use `max-w-[1400px]` (same as the public container). Forms stay `max-w-3xl`.
 - Page ground: `bg-gray-50` or `gradient-bg` (`from-white via-gray-50 to-gold-50`). Desk: flat `bg-gray-50` is enough.
 - Grid gaps: `gap-4` for cards, `gap-6`–`gap-8` for marketing splits.
-- Header is fixed; public content uses `pt-20`. Desk nav should not steal a full hero — compact top bar or sidebar.
+- Header matches the public bar: `py-4`, logo `h-12`. Nav Odibee is `1.5rem` (`.font-heading.text-lg`). Hamburger below `500px`.
 
 ---
 
@@ -163,7 +168,7 @@ From `src/components/ui/button.tsx`.
 | `outline` | Gold border, gold text, fill gold on hover |
 | `secondary` | Gray-100 |
 | `ghost` | Hover gray-100 |
-| `link` | Gold, underline on hover |
+| `link` | Gold + underline at rest, gold-600 on hover. Not a filled control. |
 | `destructive` | Red-500 — delete only |
 
 Sizes: `sm` `h-9`, `default` `h-10`, `lg` `h-11 px-8` (marketing), `icon` square.
@@ -189,15 +194,55 @@ focus:ring-2 focus:ring-gold-500 focus:border-gold-500
 
 Labels: `text-sm font-medium text-dark-950 mb-2`. Required fields stay required. Errors: red-700 text, red-100 panel — never silent.
 
+### Nav
+
+Header items: `linkClassName("nav")` / `linkClassName("navActive")` in `admin/src/lib/links.ts`.
+
+| State | Look |
+|---|---|
+| Rest | Odibee `font-heading text-lg` (1.5rem), ink `text-dark-950`. No underline |
+| Hover | Gold `text-gold-500`. Still no underline |
+| Current page | Gold `text-gold-500`. No hover shift |
+
+Do not underline nav. Underlines are for links in copy and tables. The live header is the specimen; `/style` #nav shows rest / hover / current.
+
+Compact (`<500px`): hamburger, square logo, no “Desk” wordmark. `500px`–`1023px`: stacked centred logo + wrapping nav (logo stays in normal flow, never absolutely positioned). `1024px+`: one row (logo + nav).
+
+### Account menu (Desk)
+
+Last nav item. Identity, not a marketing caricature.
+
+- Chip: `bg-gray-100 hover:bg-gray-200` (same fill as `secondary`), circular photo, **no gold ring at rest**. Gold ring only on `focus-visible`.
+- Menu: Profile, Journal, Sign out. Ink rows, grey hover. Inline SVG icons (person, book, door) — not lucide, not Framer.
+- Journal lives here, not in the main nav.
+
+The live header is the specimen. `/style` #nav describes it in copy and does not mount a dummy dropdown.
+
 ### Links
 
-- Default text: `text-dark-950 hover:text-gold-500`
-- Active nav: `text-gold-500`
-- On dark: `text-white/80 hover:text-gold-400`
+Desk text links are gold and underlined **at rest**. They must not look like body copy until hover.
+
+Use `linkClassName(kind)` — do not scatter `text-gold-500 underline` by hand.
+
+| Kind | Use | Look |
+|---|---|---|
+| `inline` | Links inside sentences | Gold + underline, gold-600 on hover |
+| `back` | `← Clients` above a title | Same as inline, `text-sm` |
+| `table` | Names in lists and tables | Same as inline, `font-medium` |
+| `chip` / `chipActive` | Jump chips and list filters | Pill. Rest: white, gold border on hover. Active: gold fill, white text |
+| Button `variant="link"` | A `<button>` that should look like inline | Same gold underline. Not a route |
+
+Gold fill or outline that navigates (`buttonClassName()`) is a **button**, not a text link. Skip-to-content stays screen-reader only until focused.
+
+Public site on dark chrome: `text-white/80 hover:text-gold-400`. Public body links can stay the marketing pattern; Desk in-line links must stay gold.
+
+Live specimens: Desk `/style` #links.
 
 ### Tables (Desk)
 
-White frame, `rounded-2xl border border-gray-200`, header `bg-gray-50 text-gray-600`, cells `px-4 py-3`, row borders `border-gray-100`. Selected / current row: `bg-gold-50`. Do not zebra in gold.
+White frame: `desk-table` inside `rounded-2xl border border-gray-200 bg-white shadow-sm`. Header `bg-gray-50 text-gray-600`. Cells `px-4 py-3`. Even rows and hover: `gray-50`. Current row: `gold-50` (`data-current`). Names in cells use `linkClassName("table")`. Last column is Actions: Edit (`linkClassName("back")`) and Remove. Playbook, Style, and Audit tables have no Actions column.
+
+Use `tableFrameClassName` and `tableClassName` from `admin/src/lib/tables.ts`. Do not scatter zebra or hover classes on each `<tr>`.
 
 ### Pills / chips
 
@@ -223,7 +268,7 @@ Scrollbar: 8px, gold thumb, gray track.
 
 **Public:** caricature portraits in `public/images/portraits/`, story photos, logos. They are part of the marketing voice.
 
-**Desk:** logo in the chrome only. No caricatures, collab marquee, or testimonial avatars. Empty states: short sentence + gold button, not an illustration unless we add one later on purpose.
+**Desk:** logo in the chrome, plus the signed-in operator’s photo on Profile and as the last header nav item (account menu). That photo is identity, not marketing. No collab marquee or testimonial avatars. Empty states: short sentence + gold button, not an illustration unless we add one later on purpose.
 
 ---
 
@@ -231,6 +276,7 @@ Scrollbar: 8px, gold thumb, gray track.
 
 - Direct. “Clients”, “Projects”, “Send the intake”, not “Let’s embark on your journey”.
 - Process language matches the site: Discover & Plan, Build & Test, Launch & Support; internally the seven gates.
+- Personal work is **Journal**, never Log (that word collides with sign-in and Audit). The route stays `/log`.
 - Ghana English is fine. No fake startup jargon.
 - Errors say what happened and what to do.
 
@@ -252,13 +298,17 @@ Scrollbar: 8px, gold thumb, gray track.
 - Gold for the one action that matters
 - `dark-950` for type on light
 - Odibee for titles and nav, Inter for data
+- Gold + underline for Desk links in copy
 - Copy tokens into Desk; keep both apps on this palette
 
 **Don’t**
 
 - Introduce a second accent colour
 - Use `section-heading` inside Desk tables
-- Put caricatures on login or project forms
+- Put caricatures on login or project forms (the operator photo belongs on Profile / the account menu)
+- Gold-ring the account photo at rest (grey chip; gold only on focus)
+- Put Journal in the main nav
+- Make body links look like body text (ink until hover)
 - Mix another product’s UI (Mineaid, Uventory, etc.) into this brand
 - Ship gradients on Desk chrome (marketing `gradient-text` / `gradient-bg` only)
 
@@ -268,6 +318,6 @@ Scrollbar: 8px, gold thumb, gray track.
 
 1. Copy gold/dark/font tokens from `tailwind.config.js`.
 2. Copy Inter + Odibee `<link>`s and the `font-heading` / focus / scrollbar rules (not collab-marquee).
-3. Recreate `Button` and `Card` with the same variants.
-4. Screen titles at Desk scale, not `section-heading`.
-5. Check a list page, a form, and login against this file before calling a slice done.
+3. Recreate `Button` and `Card` with the same variants. Tables use `desk-table`.
+4. Screen titles use `section-heading`, same as public pages. Not inside tables.
+5. Check a list page, a form, login, and the header account chip against this file before calling a slice done. The Desk `/style` page is the visual check — it must list every section in this file. The live header is the specimen for the account menu.

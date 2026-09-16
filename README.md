@@ -58,12 +58,17 @@ public/         logos, favicon, story photos, robots, sitemap
 
 | File | What it is |
 | --- | --- |
-| [docs/deploy.md](docs/deploy.md) | Vercel build, env, and SPA rewrites |
-| [docs/changelog.md](docs/changelog.md) | What changed in the Sep 2026 review |
+| [docs/desk.md](docs/desk.md) | Living plan for Desk (desk.nusman.dev) |
+| [docs/portal.md](docs/portal.md) | Living plan for the client portal (portal.nusman.dev) |
+| [docs/desk-status.md](docs/desk-status.md) | What’s live on Desk / Portal vs still open |
+| [docs/archive/](docs/archive/) | Snapshots of plans before major changes |
+| [docs/style-guide.md](docs/style-guide.md) | Brand tokens for the public site and Desk |
+| [docs/deploy.md](docs/deploy.md) | Vercel: public Vite app and Desk/Portal Next app |
+| [docs/changelog.md](docs/changelog.md) | What changed (Sep 2026 review, then Desk / Portal) |
 
 ## Deploy
 
-See [docs/deploy.md](docs/deploy.md). Short version: Vercel, `npm run build`, output `dist`.
+See [docs/deploy.md](docs/deploy.md). Public site: Vercel, `npm run build`, output `dist`. Desk and Portal are one Vercel project (`admin/`, `desk.nusman.dev` + `portal.nusman.dev`) — see that same file.
 
 ## License
 

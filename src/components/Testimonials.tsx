@@ -13,14 +13,14 @@ type Testimonial = {
 
 const testimonials: Testimonial[] = [
   {
-    quote: "Working with Numan has been an absolute pleasure and we'll definitely turn to his expertise for new projects.",
+    quote: "Working with Usman has been an absolute pleasure and we'll definitely turn to his expertise for new projects.",
     author: 'Eric Boateng',
     initials: 'EB',
     position: 'Former Chairman - ENSOG',
     companyName: 'ENSOG',
   },
   {
-    quote: "Numan is great. We worked together really well and we'll definitely contract his services in the future.",
+    quote: "Usman is great. We worked together really well and we'll definitely contract his services in the future.",
     author: 'Kofi Yeboah Anning',
     initials: 'KY',
     position: 'Owner - My Joy Medical',
@@ -57,9 +57,15 @@ const Testimonials: React.FC = () => {
       aria-labelledby="testimonials-heading"
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
+      onFocusCapture={() => setIsPaused(true)}
+      onBlurCapture={(event) => {
+        if (!event.currentTarget.contains(event.relatedTarget as Node | null)) {
+          setIsPaused(false)
+        }
+      }}
     >
       <div className="container mx-auto px-4">
-        <div className="text-center mb-16">
+        <div className="text-center mb-12 md:mb-16">
           <motion.h2
             id="testimonials-heading"
             className="section-heading text-dark-950"
@@ -72,109 +78,111 @@ const Testimonials: React.FC = () => {
           </motion.h2>
         </div>
 
-        <div className="max-w-4xl mx-auto">
-          <div className="relative flex items-center justify-center gap-8">
+        <div className="mx-auto max-w-3xl">
+          <div className="grid" aria-live="off">
+            {testimonials.map((testimonial, index) => {
+              const isActive = index === currentIndex
+              return (
+                <motion.div
+                  key={testimonial.author}
+                  className="col-start-1 row-start-1"
+                  initial={false}
+                  animate={{
+                    opacity: isActive ? 1 : 0,
+                    y: isActive ? 0 : 12,
+                  }}
+                  transition={{ duration: 0.4 }}
+                  style={{ pointerEvents: isActive ? 'auto' : 'none' }}
+                  aria-hidden={!isActive}
+                >
+                  <figure className="px-1 text-center sm:px-4">
+                    <blockquote className="mb-8 text-lg leading-relaxed text-dark-950 sm:text-xl md:text-2xl">
+                      &ldquo;{testimonial.quote}&rdquo;
+                    </blockquote>
+
+                    <figcaption className="flex flex-col items-center gap-4 sm:flex-row sm:justify-center sm:gap-0">
+                      <div className="flex items-center justify-center">
+                        <div
+                          className="flex h-14 w-14 items-center justify-center rounded-full border-4 border-gold-500/20 bg-gold-500 font-heading text-lg font-bold text-white sm:h-16 sm:w-16 md:h-20 md:w-20 md:text-xl"
+                          aria-hidden="true"
+                        >
+                          {testimonial.initials}
+                        </div>
+
+                        <div className="relative -ml-4 flex h-11 w-11 items-center justify-center overflow-hidden rounded-full border-2 border-white bg-dark-950 sm:-ml-5 sm:h-12 sm:w-12 md:-ml-6 md:h-16 md:w-16">
+                          {testimonial.companyLogo ? (
+                            <img
+                              src={testimonial.companyLogo}
+                              alt=""
+                              className="h-7 w-7 object-contain sm:h-8 sm:w-8 md:h-10 md:w-10"
+                            />
+                          ) : (
+                            <span className="px-1 text-center text-[9px] font-bold leading-tight text-white sm:text-[10px]">
+                              {testimonial.companyName}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="text-center sm:ml-3 sm:text-left">
+                        <cite className="not-italic">
+                          <span className="block font-heading text-lg font-bold text-dark-950 sm:text-xl md:text-2xl">
+                            {testimonial.author}
+                          </span>
+                          <span className="mt-0.5 block text-sm text-dark-950/70 md:text-lg">
+                            {testimonial.position}
+                          </span>
+                        </cite>
+                      </div>
+                    </figcaption>
+                  </figure>
+                </motion.div>
+              )
+            })}
+          </div>
+
+          <div className="mt-10 flex items-center justify-center gap-4">
             <motion.button
               type="button"
               onClick={prevTestimonial}
               aria-label="Previous testimonial"
-              className="p-3 rounded-full bg-white hover:bg-gray-100 transition-colors duration-300 group"
-              whileHover={{ scale: 1.1 }}
+              className="rounded-full bg-white p-2.5 transition-colors duration-300 hover:bg-gray-100 group sm:p-3"
+              whileHover={{ scale: 1.08 }}
               whileTap={{ scale: 0.95 }}
             >
-              <ChevronLeft className="w-6 h-6 text-dark-950 group-hover:text-gold-500 transition-colors" />
+              <ChevronLeft className="h-5 w-5 text-dark-950 transition-colors group-hover:text-gold-500 sm:h-6 sm:w-6" />
             </motion.button>
 
-            <div className="flex-1 max-w-2xl" aria-live="off">
-              <div className="grid">
-                {testimonials.map((testimonial, index) => {
-                  const isActive = index === currentIndex
-                  return (
-                    <motion.div
-                      key={testimonial.author}
-                      className="col-start-1 row-start-1"
-                      initial={false}
-                      animate={{
-                        opacity: isActive ? 1 : 0,
-                        x: isActive ? 0 : index < currentIndex ? -24 : 24,
-                      }}
-                      transition={{ duration: 0.45 }}
-                      style={{ pointerEvents: isActive ? 'auto' : 'none' }}
-                      aria-hidden={!isActive}
-                    >
-                      <div className="h-full p-4 md:p-8 text-center">
-                          <blockquote className="text-xl md:text-2xl text-dark-950 mb-8 leading-relaxed">
-                            "{testimonial.quote}"
-                          </blockquote>
-
-                          <div className="flex items-center justify-center">
-                            <div
-                              className="w-16 h-16 md:w-20 md:h-20 rounded-full border-4 border-gold-500/20 bg-gold-500 text-white flex items-center justify-center text-lg md:text-xl font-bold font-heading"
-                              aria-hidden="true"
-                            >
-                              {testimonial.initials}
-                            </div>
-
-                            <div className="w-12 h-12 md:w-16 md:h-16 rounded-full bg-dark-950 flex items-center justify-center border-2 border-white -ml-5 md:-ml-6 overflow-hidden">
-                              {testimonial.companyLogo ? (
-                                <img
-                                  src={testimonial.companyLogo}
-                                  alt=""
-                                  className="w-8 h-8 md:w-10 md:h-10 object-contain"
-                                />
-                              ) : (
-                                <span className="text-[10px] font-bold text-white px-1 text-center">
-                                  {testimonial.companyName}
-                                </span>
-                              )}
-                            </div>
-
-                            <div className="text-left ml-3">
-                              <h3 className="text-xl md:text-2xl font-bold text-dark-950 font-heading">
-                                {testimonial.author}
-                              </h3>
-                              <p className="text-sm md:text-lg text-dark-950/70">
-                                {testimonial.position}
-                              </p>
-                            </div>
-                          </div>
-                      </div>
-                    </motion.div>
-                  )
-                })}
-              </div>
+            <div className="flex gap-2.5" role="tablist" aria-label="Testimonial slides">
+              {testimonials.map((testimonial, index) => (
+                <motion.button
+                  key={testimonial.author}
+                  type="button"
+                  role="tab"
+                  aria-selected={index === currentIndex}
+                  aria-label={`Show testimonial from ${testimonial.author}`}
+                  onClick={() => setCurrentIndex(index)}
+                  className={`h-2.5 w-2.5 rounded-full transition-all duration-300 sm:h-3 sm:w-3 ${
+                    index === currentIndex
+                      ? 'scale-125 bg-gold-500'
+                      : 'bg-dark-950/30 hover:bg-dark-950/50'
+                  }`}
+                  whileHover={{ scale: 1.2 }}
+                  whileTap={{ scale: 0.9 }}
+                />
+              ))}
             </div>
 
             <motion.button
               type="button"
               onClick={nextTestimonial}
               aria-label="Next testimonial"
-              className="p-3 rounded-full bg-white hover:bg-gray-100 transition-colors duration-300 group"
-              whileHover={{ scale: 1.1 }}
+              className="rounded-full bg-white p-2.5 transition-colors duration-300 hover:bg-gray-100 group sm:p-3"
+              whileHover={{ scale: 1.08 }}
               whileTap={{ scale: 0.95 }}
             >
-              <ChevronRight className="w-6 h-6 text-dark-950 group-hover:text-gold-500 transition-colors" />
+              <ChevronRight className="h-5 w-5 text-dark-950 transition-colors group-hover:text-gold-500 sm:h-6 sm:w-6" />
             </motion.button>
-          </div>
-
-          <div className="flex justify-center gap-3 mt-8" role="tablist" aria-label="Testimonial slides">
-            {testimonials.map((testimonial, index) => (
-              <motion.button
-                key={testimonial.author}
-                type="button"
-                role="tab"
-                aria-selected={index === currentIndex}
-                aria-label={`Show testimonial from ${testimonial.author}`}
-                onClick={() => setCurrentIndex(index)}
-                className={`w-3 h-3 rounded-full transition-all duration-300 ${
-                  index === currentIndex
-                    ? 'bg-gold-500 scale-125'
-                    : 'bg-dark-950/30 hover:bg-dark-950/50'
-                }`}
-                whileHover={{ scale: 1.2 }}
-                whileTap={{ scale: 0.9 }}
-              />
-            ))}
           </div>
         </div>
       </div>

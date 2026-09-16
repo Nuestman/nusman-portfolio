@@ -13,7 +13,13 @@ const NotFoundPage: React.FC = () => {
   return (
     <div className="min-h-screen pt-20 flex items-center justify-center px-4">
       <div className="text-center max-w-xl">
-        <p className="text-gold-500 font-heading text-2xl mb-4">404</p>
+        <img
+          src="/images/portraits/numan-caricature-404.png"
+          alt="Usman sitting downcast holding a 404 sign"
+          className="mx-auto mb-6 h-56 w-auto sm:h-72 object-contain"
+          width={288}
+          height={288}
+        />
         <h1 className="section-heading text-dark-950 mb-6">
           This page does not exist
         </h1>

@@ -2,11 +2,13 @@ import React from 'react'
 import { motion } from 'framer-motion'
 import { Link } from 'react-router-dom'
 import { Github, Linkedin, Facebook } from 'lucide-react'
+import { portalAppUrl } from '../lib/portal-url'
 
 export const footerNavItems = [
   { href: '/about', label: 'About Me' },
   { href: '/portfolio', label: 'Portfolio' },
   { href: '/contact', label: 'Contact' },
+  { href: portalAppUrl(), label: 'Portal', external: true },
 ] as const
 
 const Footer: React.FC = () => {
@@ -43,21 +45,31 @@ const Footer: React.FC = () => {
 
         <motion.nav
           aria-label="Footer"
-          className="flex justify-center space-x-8 mb-8"
+          className="flex flex-wrap justify-center gap-x-8 gap-y-3 mb-8"
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6, delay: 0.1 }}
         >
-          {footerNavItems.map((item) => (
-            <Link
-              key={item.href}
-              to={item.href}
-              className="text-white/80 hover:text-gold-400 transition-colors duration-300 font-medium font-heading text-lg"
-            >
-              {item.label}
-            </Link>
-          ))}
+          {footerNavItems.map((item) =>
+            'external' in item && item.external ? (
+              <a
+                key={item.href}
+                href={item.href}
+                className="text-white/80 hover:text-gold-400 transition-colors duration-300 font-medium font-heading text-lg"
+              >
+                {item.label}
+              </a>
+            ) : (
+              <Link
+                key={item.href}
+                to={item.href}
+                className="text-white/80 hover:text-gold-400 transition-colors duration-300 font-medium font-heading text-lg"
+              >
+                {item.label}
+              </Link>
+            ),
+          )}
         </motion.nav>
 
         <div className="border-t border-white/20 pt-8">

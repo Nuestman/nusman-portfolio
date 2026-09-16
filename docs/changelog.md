@@ -1,5 +1,49 @@
 # Changelog
 
+## 15 Sep 2026 — Desk 1.3.0 / Portal 1.0 · public 4.1.0
+
+### Desk / Portal (`admin/` → **1.3.0**)
+
+- **Portal 1.0** on the same Next app as Desk (`portal.nusman.dev` / `portal.localhost`). Magic-link login for `people`, progress, intake when open, messages. Migration `0008_portal.sql`.
+- **Desk `/messages`** inbox + `/messages/[projectId]` chat UI (conversation list, bubbles, composer). Project “Client portal” card links out instead of nesting replies.
+- **Portal chrome** matches Desk header (account chip → Profile / Sign out). Portal `/profile` is read-only person details.
+- **Options:** Desk package cards show price, timeline, in/out scope; client summary is required and cannot be the Desk coaching starter. Portal shows **Your package** with client-facing fields only.
+- Standalone “Numan” addressing → **Usman** in UI copy (full name **Numan Usman** unchanged).
+- **Public inbound:** `POST /api/inbound-lead` from nusman.dev `/start` (CORS, honeypot, rate limit) creates client, buyer, qualify project, note, audit, optional Resend alert.
+
+Prior plan snapshot: [archive/desk-1.1.md](./archive/desk-1.1.md). Living portal plan: [portal.md](./portal.md). Status: [desk-status.md](./desk-status.md).
+
+### Public site (**4.1.0**)
+
+- `/start` — Start a project form → Desk inbound API. Hero + ReadyToBuild CTAs point here; Contact stays Formspree/mailto.
+- Portal link in header/footer (`VITE_PORTAL_URL`). Hero accent **Usman.**
+
+---
+
+## 15 Sep 2026 — Desk 1.1.0
+
+Auth harden (Phase 13).
+
+- Env `ADMIN_PASSWORD` is bootstrap-only: after the owner hash exists, only the scrypt hash signs in.
+- Proxy, pages, and mutations require a live `sessions` row; revoked cookies stop working immediately.
+- Optional TOTP authenticator on Profile (QR setup, recovery codes). Login asks for a code after the password when enabled. `drizzle/0007_totp.sql`.
+- Node pinned to `24.x`; `allowScripts` for install-script deps; esbuild override for the nested advisory.
+- Vercel CI: layout types without `LayoutProps`, no `setState` in effects for menus / confirm portals.
+
+Status: [desk-status.md](./desk-status.md). Plan: [desk.md](./desk.md).
+
+---
+
+## 15 Sep 2026 — Desk 1.0.0
+
+Private workbench at `desk.nusman.dev` (`admin/`, Next.js). Neon **nusmandotdev** only.
+
+Hiring jobs with gate records, Journal (route `/log`), audit with before/after and confirm-on-delete, multi-format export, own products as records, operator Profile with photo and devices (`sessions`), account menu in the header (grey chip; Profile / Journal / Sign out). Phases 0–12.
+
+What’s live vs still open: [desk-status.md](./desk-status.md). Plan: [desk.md](./desk.md).
+
+---
+
 ## 13 Sep 2026 — Review fixes
 
 Live checks used `http://localhost:5173`.

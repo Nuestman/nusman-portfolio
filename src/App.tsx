@@ -6,8 +6,8 @@ import HomePage from './pages/HomePage'
 
 const AboutPage = lazy(() => import('./pages/AboutPage'))
 const ContactPage = lazy(() => import('./pages/ContactPage'))
+const StartPage = lazy(() => import('./pages/StartPage'))
 const PortfolioPage = lazy(() => import('./pages/PortfolioPage'))
-const PlaybookPage = lazy(() => import('./pages/PlaybookPage'))
 const NotFoundPage = lazy(() => import('./pages/NotFoundPage'))
 
 function RouteFallback() {
@@ -25,7 +25,7 @@ function App() {
               <Route path="about" element={<AboutPage />} />
               <Route path="portfolio" element={<PortfolioPage />} />
               <Route path="contact" element={<ContactPage />} />
-              <Route path="playbook" element={<PlaybookPage />} />
+              <Route path="start" element={<StartPage />} />
               <Route path="*" element={<NotFoundPage />} />
             </Route>
           </Routes>

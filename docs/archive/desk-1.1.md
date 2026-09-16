@@ -1,10 +1,10 @@
 # Desk — admin app plan
 
-Living plan for **Desk** — Numan Usman’s private workbench at **desk.nusman.dev**. Update this file when a decision changes. Visual rules: [style-guide.md](./style-guide.md). What’s live vs still open: [desk-status.md](./desk-status.md). Client portal: [portal.md](./portal.md). Snapshot before Portal: [archive/desk-1.1.md](./archive/desk-1.1.md).
+Living plan for **Desk** — Numan Usman’s private workbench at **desk.nusman.dev**. Update this file when a decision changes. Visual rules: [style-guide.md](./style-guide.md). What’s live vs still open: [desk-status.md](./desk-status.md).
 
 Public site: `https://nusman.dev` (this repo’s root Vite app).  
-Admin: `https://desk.nusman.dev` and `https://portal.nusman.dev` (same `admin/` Next app, host-based).  
-Database: Neon project **nusmandotdev** (`sparkling-art-67399165`, `aws-eu-west-2`, Postgres 18). In use as of 15 Sep 2026. This is the **only** database Desk and Portal use. Other Neon projects (Mineaid, Uventory, church, etc.) are separate products to migrate onto Desk later — not to query from here.
+Admin: `https://desk.nusman.dev` (`admin/` in this same repo).  
+Database: Neon project **nusmandotdev** (`sparkling-art-67399165`, `aws-eu-west-2`, Postgres 18). In use as of 15 Sep 2026. This is the **only** database Desk uses. Other Neon projects (Mineaid, Uventory, church, etc.) are separate products to migrate onto Desk later — not to query from here.
 
 ---
 
@@ -18,11 +18,11 @@ The gap: work has usually started the moment someone asked — no intake, no wri
 
 Favours, corridor promises, and a notes box on a public page are not the operating system.
 
-## Non-goals (Desk)
+## Non-goals (v1)
 
-- Not a page on nusman.dev. Desk itself is not linked from public nav or footer. Clients reach **Portal** via [portal.nusman.dev](https://portal.nusman.dev) (linked from the public site). Public **Start a project** (`/start` on nusman.dev) posts to Desk `POST /api/inbound-lead` only — it does not expose Desk UI.
+- Not a page on nusman.dev. No admin link in public nav or footer.
 - Not AGAHF, Mineaid, Uventory, or any other existing app/database. Desk does not query those systems. Own products appear on Desk as records only until a later data import.
-- Not where clients log in. Clients use **Portal** ([portal.md](./portal.md)). Desk is Usman’s (and operators’) workbench.
+- Not a client portal. Clients do not log in. This is Usman’s workbench.
 - Not a rewrite of the marketing site.
 - Not `npx neon@latest init` in the **repo root**. That would mix `DATABASE_URL` into the public Vite app.
 
@@ -34,13 +34,12 @@ Favours, corridor promises, and a notes box on a public page are not the operati
 |---|---|
 | Location | `admin/` in this repo. No new GitHub repo. |
 | Public site | Unchanged root Vite + current Vercel project. |
-| Admin host | Second Vercel project, **Root Directory = `admin`**, domains `desk.nusman.dev` and `portal.nusman.dev`. |
+| Admin host | Second Vercel project, **Root Directory = `admin`**, domain `desk.nusman.dev`. |
 | Framework | Next.js App Router in `admin/` (React + TS we already use; server routes so the DB never reaches the browser). |
 | Styling | Same brand as the public site. Follow [style-guide.md](./style-guide.md). Copy tokens into `admin/`; do not import marketing CSS at runtime. |
 | Data | Neon `nusmandotdev` only. Other Neon projects stay isolated. Phase 8 records the products on Desk; it does not import their databases. |
 | ORM | Drizzle + SQL migrations in `admin/drizzle`. |
-| Auth (Desk) | Operators in `users`. Env `ADMIN_EMAIL` / `ADMIN_PASSWORD` bootstraps the owner. Session rows can be revoked. |
-| Auth (Portal) | Clients as `people` via magic link. See [portal.md](./portal.md). |
+| Auth | Operators in `users`. Env `ADMIN_EMAIL` / `ADMIN_PASSWORD` bootstraps the owner. Session rows can be revoked. No “secret URL” as security. |
 | Secrets | `admin/.env.local` (gitignored). Same names on the Vercel admin project. Never `VITE_*` for the database. |
 | SEO | `noindex, nofollow`. Not in the public sitemap. |
 
@@ -162,10 +161,9 @@ Dated notes on a project (calls, WhatsApp decisions, scope changes).
 
 - project_id
 - kind: `light` | `recommended` | `later`
-- summary (client-facing; Desk coaching starters must be rewritten before save/choose), price_note, timeline_note, in_scope, out_of_scope
+- summary, price_note, timeline_note, in_scope, out_of_scope
 - selected: boolean
 
-Chosen package fields (except raw coaching starters) show on Portal as **Your package**.
 **project_qualify** (Qualify, 1:1 hiring job)
 
 - project_id (unique)
@@ -257,7 +255,6 @@ Every list table has an Actions column (Edit + Remove). Playbook and Style table
 
 | Route | Purpose |
 |---|---|
-| `/api/inbound-lead` | Public POST from nusman.dev `/start` (CORS + honeypot + rate limit) |
 | `/login` | Sign in |
 | `/` | Today: active projects, current gate, journal, templates |
 | `/log` | Journal: personal work that is not a client job |
@@ -268,8 +265,6 @@ Every list table has an Actions column (Edit + Remove). Playbook and Style table
 | `/clients/[id]` | Client, people, their projects |
 | `/projects` | Hiring jobs. Filter by gate/status |
 | `/projects/[id]` | Gate plus read-only records. Edit on a card reveals that form |
-| `/messages` | Portal conversation inbox (one thread per hiring project) |
-| `/messages/[projectId]` | Conversation view + reply |
 | `/projects/new` | Pick/create client, title, first gate = qualify |
 | `/projects/[id]/notes/[noteId]/edit` | Edit a timeline note |
 | `/projects/[id]/changes/[changeId]/edit` | Edit a change request |
@@ -385,10 +380,6 @@ Done: `/profile` is the signed-in operator. Users store a photo, title, phone, r
 
 Done: env password is bootstrap-only. Proxy, pages, and mutations require a live `sessions` row. Optional authenticator on Profile. `drizzle/0007_totp.sql`.
 
-### Phase 14 — client portal
-
-Done (with Portal): same `admin/` app serves **portal.nusman.dev**. Clients (`people`) sign in with magic links; progress, intake when open, and messages. Desk invites and visibility controls. Plan: [portal.md](./portal.md). Prior Desk-only plan: [archive/desk-1.1.md](./archive/desk-1.1.md). `drizzle/0008_portal.sql`.
-
 ---
 
 ## Open gaps (v1)
@@ -428,4 +419,4 @@ Do not add Desk links to `Header` / `Footer` / `sitemap.xml`.
 
 ## Immediate next step
 
-Desk **1.3.0** includes Portal, Messages, and inbound leads from the public `/start` form. Invite a person from Desk, rewrite package summaries for clients, open intake when ready, keep an export after a real job starts. Later: import product databases — only when you choose to, and never by pointing Desk at their `DATABASE_URL`.
+Desk **1.1.0** is usable for hiring jobs, journal, audit, export, products-as-records, operators, live session revoke, and optional authenticator. Next work is not a new phase unless you choose one: turn on Authenticator under Profile if you want it, add other operators from Profile, keep an export after a real job starts, then later import product databases — only when you choose to, and never by pointing Desk at their `DATABASE_URL`.
