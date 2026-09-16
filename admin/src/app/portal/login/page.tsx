@@ -40,7 +40,7 @@ export default async function PortalLoginPage({
               />
               <h1 className="font-heading text-2xl text-dark-950">Portal</h1>
               <p className="text-sm text-gray-600">
-                Progress, intake, and messages for your project.
+                Progress, discovery, and messages for your project.
               </p>
             </CardHeader>
             <CardContent className="space-y-4">

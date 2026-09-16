@@ -4,6 +4,7 @@ import {
   GATE_GUIDES,
   gateMoveBlock,
   gateMoveBlockMessage,
+  toProcessGate,
 } from "@/lib/gates";
 import type {
   PersonRole,
@@ -27,8 +28,6 @@ type GateSwitcherProps = {
   qualifyOutcome: QualifyOutcome | null;
   intakeProblemAnswer: string | null;
   intakeSuccessAnswer: string | null;
-  depositPaid: boolean;
-  agreementConfirmed: boolean;
 };
 
 export function GateSwitcher({
@@ -38,9 +37,9 @@ export function GateSwitcher({
   qualifyOutcome,
   intakeProblemAnswer,
   intakeSuccessAnswer,
-  depositPaid,
-  agreementConfirmed,
 }: GateSwitcherProps) {
+  const current = toProcessGate(project.currentGate);
+
   return (
     <div className="flex flex-wrap gap-2">
       {GATE_GUIDES.map((item) => {
@@ -55,10 +54,8 @@ export function GateSwitcher({
           qualifyOutcome,
           intakeProblemAnswer,
           intakeSuccessAnswer,
-          depositPaid,
-          agreementConfirmed,
         });
-        const active = item.id === project.currentGate;
+        const active = item.id === current;
         if (active) {
           return (
             <span
@@ -87,7 +84,7 @@ export function GateSwitcher({
             <ConfirmClick
               message={`Move to ${item.label}?`}
               className={cn(
-                "rounded-full border border-gray-200 bg-white px-3 py-1.5 text-sm text-dark-950 hover:border-gold-500",
+                "cursor-pointer rounded-full border border-gray-200 bg-white px-3 py-1.5 text-sm text-dark-950 hover:border-gold-500",
               )}
             >
               {item.label}

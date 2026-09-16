@@ -261,7 +261,7 @@ const StartProjectForm: React.FC = () => {
 
                   <div>
                     <label htmlFor="start-who-for" className="block text-sm font-medium text-dark-950 mb-2">
-                      Who is it for?
+                      Who is it for (the users)?
                     </label>
                     <textarea
                       id="start-who-for"

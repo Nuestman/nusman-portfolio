@@ -58,16 +58,37 @@ Magic link rows: hashed token, person_id, expires_at, used_at. One-time use.
 | `/auth/magic` | Consume token |
 | `/profile` | Person details (read-only) |
 | `/projects` | Hiring projects for this client |
-| `/projects/[id]` | Progress, your package (client-facing fields only), client-visible notes |
+| `/projects/new` | Start a project (brief → Desk at Qualify) |
+| `/projects/[id]` | Progress, milestones, your package (client-facing fields only), client-visible notes |
 | `/projects/[id]/intake` | Edit intake when open |
-| `/projects/[id]/messages` | Message thread (client). Operators use Desk `/messages` |
+| `/projects/[id]/schedule` | Project-scoped schedule |
+| `/messages`, `/messages/[projectId]` | Messages hub + thread |
+| `/schedule` | Client schedule hub |
 
 ---
 
-## Schema (migration `0008_portal`)
+## Schema
 
-- `portal_magic_links`, `portal_sessions`, `portal_messages`
-- `people.portal_enabled`, `projects.portal_intake_open`, `project_notes.client_visible`
+- Migration `0008_portal`: `portal_magic_links`, `portal_sessions`, `portal_messages`; `people.portal_enabled`, `projects.portal_intake_open`, `project_notes.client_visible`
+- Later Desk migrations also affect Portal surfaces: `0009_project_events` (schedule), `0010`/`0011` (milestones + gate remap) — see [desk-status.md](./desk-status.md)
+
+---
+
+## Later — routing cleanup (best practice)
+
+**Symptom (fixed pragmatically Sep 2026):** Portal `/projects/[id]` soft-nav 404s after magic links / host fixes worked. Full refresh was fine; list → detail Link clicks were not.
+
+**Cause:** Public URLs (`/projects`, `/projects/[id]`, …) exist in **two** App Router trees (`app/projects/…` and `app/portal/projects/…`). Proxy rewrite to `/portal/…` works on document loads; soft navigations resolve the **desk** module from the browser URL and collide with the rewrite.
+
+**Current workaround (keep until cleanup):** For `/projects*`, proxy uses `NextResponse.next()` (no rewrite). Desk pages branch with `shouldServePortalUi()` (`admin/src/lib/serve-portal.ts`) and render Portal UI. Thin aliases exist for intake/schedule under `app/projects/[id]/…`. Desk-only paths are not rewritten when a portal cookie is live on localhost.
+
+**Preferred later fix (pick one):**
+
+1. **One module per public URL** — host/session chooses Desk vs Portal UI inside a single page tree; drop duplicate `app/portal/projects/[id]` (and peers) + stop rewriting those paths, **or**
+2. **No overlapping paths** — Portal-only URL prefixes that Desk does not also own, **or**
+3. **Separate apps** — Portal not sharing Desk’s `/projects/[id]` in the same App Router tree.
+
+Do not add more dual-mode + rewrite pairs for `/messages`, `/schedule`, etc., without either extending the same pattern or doing this cleanup.
 
 ---
 
@@ -123,6 +144,7 @@ Add domain `portal.nusman.dev` on the same Vercel project as Desk. Magic links u
 7. Desk messages inbox + chat UI — done  
 8. Client-facing package summaries — done  
 9. Portal profile / account chip — done  
+10. Start project, messages hub, Resend alerts, `/projects*` soft-nav dual-mode — done (Portal **1.1** / Desk **2.1.0**)  
 
 ---
 

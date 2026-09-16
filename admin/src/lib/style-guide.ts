@@ -249,7 +249,7 @@ export const VOICE_DO = [
   "dark-950 for type on light.",
   "Odibee for titles and nav, Inter for data.",
   "Gold + underline for Desk links in copy.",
-  "“Clients”, “Projects”, “Send the intake”.",
+  "“Clients”, “Projects”, “Send discovery questions”.",
   "Process language: Discover & Plan, Build & Test, Launch & Support; internally the seven gates.",
   "Ghana English is fine. No fake startup jargon.",
   "Errors say what happened and what to do.",

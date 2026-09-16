@@ -13,6 +13,7 @@ const NAV = [
   { href: "/", label: "Home" },
   { href: "/projects", label: "Projects" },
   { href: "/schedule", label: "Schedule" },
+  { href: "/messages", label: "Messages" },
 ] as const;
 
 const PORTAL_ACCOUNT_LINKS = [

@@ -26,12 +26,46 @@ function isDeskPublicApiPath(pathname: string) {
   return pathname === "/api/inbound-lead";
 }
 
+/**
+ * Paths that exist in both the desk tree and `/portal/...`. Soft navigations
+ * resolve the desk module from the browser URL; rewriting those requests to
+ * `/portal/...` makes Next return 404. Serve them with NextResponse.next() and
+ * branch inside the page via shouldServePortalUi().
+ *
+ * Keep this list tight: only routes that already have a dual-mode (or portal)
+ * page at the public path. Other portal URLs still rewrite to `/portal/...`.
+ */
+function isSharedDeskPortalPath(pathname: string) {
+  return pathname === "/projects" || pathname.startsWith("/projects/");
+}
+
+function isDeskExclusivePath(pathname: string) {
+  return (
+    pathname.startsWith("/clients") ||
+    pathname.startsWith("/users") ||
+    pathname.startsWith("/products") ||
+    pathname.startsWith("/journal") ||
+    pathname.startsWith("/activities") ||
+    pathname.startsWith("/audit") ||
+    pathname.startsWith("/export") ||
+    pathname.startsWith("/log") ||
+    pathname.startsWith("/portal-desk") ||
+    pathname.startsWith("/settings")
+  );
+}
+
 async function handlePortal(request: NextRequest) {
   const { pathname, search } = request.nextUrl;
   const portalOrigin = `${portalPublicBaseUrl()}/`;
 
   if (pathname.startsWith("/_next") || pathname.startsWith("/favicon")) {
     return NextResponse.next();
+  }
+
+  // Desk-only URLs on a portal session (same-origin local) must not rewrite to
+  // `/portal/clients/...` etc. Fall through to desk handling instead.
+  if (isDeskExclusivePath(pathname)) {
+    return null;
   }
 
   const portalToken = await readPortalSessionToken(
@@ -59,6 +93,14 @@ async function handlePortal(request: NextRequest) {
   if (live && pathname === "/login") {
     const response = NextResponse.redirect(new URL("/projects", portalOrigin));
     response.cookies.delete(SESSION_COOKIE);
+    return response;
+  }
+
+  if (isSharedDeskPortalPath(pathname)) {
+    const response = NextResponse.next();
+    if (request.cookies.has(SESSION_COOKIE)) {
+      response.cookies.delete(SESSION_COOKIE);
+    }
     return response;
   }
 
@@ -124,14 +166,22 @@ export async function proxy(request: NextRequest) {
   }
 
   if (requestIsPortal(request)) {
-    return handlePortal(request);
+    const portalResponse = await handlePortal(request);
+    if (portalResponse) {
+      return portalResponse;
+    }
+    // Desk-exclusive path on the portal host — send them to Portal home.
+    return NextResponse.redirect(new URL("/projects", `${portalPublicBaseUrl()}/`));
   }
 
   // Local / same-origin: magic link and live portal sessions use Portal chrome
   // on localhost so we do not depend on portal.localhost DNS.
   if (process.env.NODE_ENV !== "production") {
     if (isMagicPath(request.nextUrl.pathname)) {
-      return handlePortal(request);
+      const portalResponse = await handlePortal(request);
+      if (portalResponse) {
+        return portalResponse;
+      }
     }
     const portalToken = await readPortalSessionToken(
       request.cookies.get(PORTAL_SESSION_COOKIE)?.value,
@@ -140,7 +190,11 @@ export async function proxy(request: NextRequest) {
       ? await portalSessionIsLive(portalToken.sessionId).catch(() => false)
       : false;
     if (portalLive) {
-      return handlePortal(request);
+      const portalResponse = await handlePortal(request);
+      if (portalResponse) {
+        return portalResponse;
+      }
+      // Desk-exclusive path while a portal cookie is live: prefer Desk.
     }
   } else if (isMagicPath(request.nextUrl.pathname)) {
     // Production Desk host: send magic links to the Portal domain.

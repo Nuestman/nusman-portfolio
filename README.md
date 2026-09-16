@@ -18,7 +18,7 @@ Live site: [nusman.dev](https://nusman.dev)
 
 | Path | Page |
 | --- | --- |
-| `/` | Home — hero, services, skills, process, testimonials, collaborations, FAQ |
+| `/` | Home — hero, What I Do, skills, process, testimonials, collaborations, FAQ |
 | `/about` | Background, education, and photo story tabs |
 | `/portfolio` | Current stack; case studies coming later |
 | `/contact` | Contact details and form |

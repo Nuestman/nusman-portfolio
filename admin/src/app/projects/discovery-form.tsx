@@ -8,6 +8,7 @@ import { saveDiscoveryAction, type FormState } from "./actions";
 
 const initialState: FormState = { error: null };
 
+/** Call meta + scope only — eight themes live in the discovery answers form. */
 export function DiscoveryForm({
   projectId,
   discovery,
@@ -16,12 +17,9 @@ export function DiscoveryForm({
   discovery: {
     callAt: string;
     attendees: string;
-    currentProcess: string;
     lastExample: string;
     inScope: string;
     outOfScope: string;
-    devicesLanguage: string;
-    privacyNotes: string;
   };
 }) {
   const [state, action, pending] = useActionState(
@@ -59,18 +57,6 @@ export function DiscoveryForm({
         </div>
       </div>
       <div>
-        <label htmlFor="discovery-currentProcess" className={labelClassName}>
-          Current process
-        </label>
-        <textarea
-          id="discovery-currentProcess"
-          name="currentProcess"
-          rows={3}
-          defaultValue={discovery.currentProcess}
-          className={fieldClassName}
-        />
-      </div>
-      <div>
         <label htmlFor="discovery-lastExample" className={labelClassName}>
           Last real example
         </label>
@@ -106,33 +92,9 @@ export function DiscoveryForm({
           className={fieldClassName}
         />
       </div>
-      <div>
-        <label htmlFor="discovery-devicesLanguage" className={labelClassName}>
-          Devices, language, literacy
-        </label>
-        <textarea
-          id="discovery-devicesLanguage"
-          name="devicesLanguage"
-          rows={2}
-          defaultValue={discovery.devicesLanguage}
-          className={fieldClassName}
-        />
-      </div>
-      <div>
-        <label htmlFor="discovery-privacyNotes" className={labelClassName}>
-          Privacy
-        </label>
-        <textarea
-          id="discovery-privacyNotes"
-          name="privacyNotes"
-          rows={2}
-          defaultValue={discovery.privacyNotes}
-          className={fieldClassName}
-        />
-      </div>
       <FormError>{state.error}</FormError>
       <Button type="submit" disabled={pending}>
-        {pending ? "Saving…" : "Save discovery"}
+        {pending ? "Saving…" : "Save call notes"}
       </Button>
     </form>
   );

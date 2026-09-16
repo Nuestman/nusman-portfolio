@@ -56,6 +56,22 @@ export function PortalPersonControls({
             : "Add an email on this person before enabling portal."}
         </p>
         <FormError>{enableState.error}</FormError>
+        {enableState.emailed ? (
+          <p className="text-sm text-gray-700">
+            Welcome email with a sign-in link was sent.
+          </p>
+        ) : null}
+        {enableState.link && !enableState.emailed ? (
+          <div className="space-y-3 rounded-lg bg-gray-50 px-4 py-3">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <p className="text-xs font-medium uppercase tracking-wide text-gray-500">
+                One-time link
+              </p>
+              <CopyButton text={enableState.link} label="Copy link" />
+            </div>
+            <p className="break-all text-sm text-dark-950">{enableState.link}</p>
+          </div>
+        ) : null}
         <Button type="submit" variant="secondary" disabled={enablePending}>
           {enablePending ? "Saving…" : "Save portal access"}
         </Button>

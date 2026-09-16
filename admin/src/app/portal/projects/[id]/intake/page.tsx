@@ -49,11 +49,11 @@ export default async function PortalIntakePage({
         >
           ← {project.title}
         </Link>
-        <h1 className="mt-3 section-heading">Intake</h1>
+        <h1 className="mt-3 section-heading">Discovery</h1>
         <p className="mt-2 text-gray-700">
           {project.portalIntakeOpen
-            ? "Answer these so discovery stays focused."
-            : "Read-only for now."}
+            ? "Answer these so we can plan with the right picture."
+            : "Read-only for now — Usman opens this when answers are needed."}
         </p>
       </div>
 

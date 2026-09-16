@@ -16,8 +16,10 @@ import { GATE_GUIDES, gateGuide, isProjectGate } from "@/lib/gates";
 import { isProjectStatus, projectStatusLabel } from "@/lib/labels";
 import { PROJECT_STATUSES } from "@/db/schema";
 import { linkClassName } from "@/lib/links";
+import { shouldServePortalUi } from "@/lib/serve-portal";
 import { tableClassName, tableFrameClassName } from "@/lib/tables";
 import type { ProjectGate, ProjectStatus } from "@/db/schema";
+import PortalProjectsPage from "@/app/portal/projects/page";
 import { deleteProjectAction } from "./actions";
 
 export const dynamic = "force-dynamic";
@@ -31,6 +33,10 @@ function firstParam(value: string | string[] | undefined): string | undefined {
 }
 
 export default async function ProjectsPage({ searchParams }: ProjectsPageProps) {
+  if (await shouldServePortalUi()) {
+    return <PortalProjectsPage />;
+  }
+
   const email = await getSessionEmail();
   const query = await searchParams;
   const gateRaw = firstParam(query.gate);

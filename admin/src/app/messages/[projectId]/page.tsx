@@ -102,6 +102,7 @@ export default async function DeskConversationPage({
           conversations={conversationsForList}
           activeProjectId={project.id}
           showListOnMobile={false}
+          composeHref="/messages/new"
         >
           <header className="shrink-0 border-b border-gray-100 px-4 py-4">
             <div className="flex items-start gap-3">

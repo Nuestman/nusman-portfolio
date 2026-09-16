@@ -10,7 +10,8 @@ import {
 } from "@/db/queries";
 import { recordAuditSafe } from "@/lib/audit";
 import { looksLikeEmail } from "@/lib/forms";
-import { sendInboundLeadEmail } from "@/lib/inbound-email";
+import { sendInboundLeadEmail, sendInboundLeadReceiptEmail } from "@/lib/inbound-email";
+import { deskNotifyRecipients } from "@/lib/mail";
 import {
   inboundIsBlocked,
   recordInboundAttempt,
@@ -123,15 +124,7 @@ function clientIp(request: NextRequest): string {
 }
 
 function notifyRecipients(): string[] {
-  const raw =
-    process.env.LEAD_NOTIFY_TO?.trim() || process.env.ADMIN_EMAIL?.trim();
-  if (!raw) {
-    return [];
-  }
-  return raw
-    .split(",")
-    .map((item) => item.trim())
-    .filter((item) => looksLikeEmail(item));
+  return deskNotifyRecipients();
 }
 
 function projectTitle(name: string, organisation: string | null, summary: string) {
@@ -277,10 +270,10 @@ export async function POST(request: NextRequest) {
       whoFor,
       painToday: problem,
       neededBy: timeline,
+      budgetNote: budget,
       callAt: null,
       notes: [
         "Inbound lead — contact ASAP.",
-        budget ? `Budget note: ${budget}` : null,
         phone ? `Phone: ${phone}` : null,
       ]
         .filter(Boolean)
@@ -337,6 +330,22 @@ export async function POST(request: NextRequest) {
 
     if (!mail.sent && mail.error) {
       console.error("Inbound lead email failed", mail.error);
+    }
+
+    const receipt = await sendInboundLeadReceiptEmail({
+      to: email,
+      name: oneLine(name),
+      organisation: organisation ? oneLine(organisation) : null,
+      problem,
+      whoFor,
+      successLooksLike,
+      timeline,
+      budget,
+      phone,
+    });
+
+    if (!receipt.sent && receipt.error) {
+      console.error("Inbound lead receipt email failed", receipt.error);
     }
 
     // Do not return internal IDs to the public site.

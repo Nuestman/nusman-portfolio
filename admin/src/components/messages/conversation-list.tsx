@@ -20,16 +20,22 @@ export type ConversationListItem = {
 export function ConversationList({
   conversations,
   activeProjectId,
+  hrefBase = "/messages",
+  perspective = "desk",
 }: {
   conversations: ConversationListItem[];
   activeProjectId?: string | null;
+  hrefBase?: string;
+  perspective?: "desk" | "portal";
 }) {
   if (conversations.length === 0) {
     return (
       <div className="flex h-full flex-col items-center justify-center gap-2 px-6 py-16 text-center">
         <p className="text-sm font-medium text-dark-950">No conversations yet</p>
         <p className="text-sm text-gray-500">
-          When a client messages from the portal, it shows up here.
+          {perspective === "portal"
+            ? "When you message Usman on a project, it shows up here."
+            : "When a client messages from the portal, it shows up here."}
         </p>
       </div>
     );
@@ -39,16 +45,24 @@ export function ConversationList({
     <ul className="divide-y divide-gray-100">
       {conversations.map((row) => {
         const active = row.projectId === activeProjectId;
+        const title =
+          perspective === "portal" ? row.projectTitle : row.clientName;
+        const subtitle =
+          perspective === "portal" ? "Usman" : row.projectTitle;
         const preview =
-          row.lastAuthorKind === "operator"
-            ? `You: ${snippet(row.lastBody, 56)}`
-            : snippet(row.lastBody, 64);
+          perspective === "portal"
+            ? row.lastAuthorKind === "client"
+              ? `You: ${snippet(row.lastBody, 56)}`
+              : snippet(row.lastBody, 64)
+            : row.lastAuthorKind === "operator"
+              ? `You: ${snippet(row.lastBody, 56)}`
+              : snippet(row.lastBody, 64);
         return (
           <li key={row.projectId}>
             <Link
-              href={`/messages/${row.projectId}`}
+              href={`${hrefBase}/${row.projectId}`}
               className={cn(
-                "flex gap-3 px-4 py-3 transition-colors hover:bg-gray-50",
+                "flex cursor-pointer gap-3 px-4 py-3 transition-colors hover:bg-gray-50",
                 active && "bg-gray-100 hover:bg-gray-100",
               )}
             >
@@ -59,19 +73,19 @@ export function ConversationList({
                 )}
                 aria-hidden
               >
-                {initialsFromName(row.clientName)}
+                {initialsFromName(title)}
               </span>
               <span className="min-w-0 flex-1">
                 <span className="flex items-baseline justify-between gap-2">
                   <span className="truncate font-medium text-dark-950">
-                    {row.clientName}
+                    {title}
                   </span>
                   <span className="shrink-0 text-xs text-gray-500">
                     {formatChatTime(row.lastAt)}
                   </span>
                 </span>
                 <span className="mt-0.5 block truncate text-sm text-gray-600">
-                  {row.projectTitle}
+                  {subtitle}
                 </span>
                 <span className="mt-0.5 block truncate text-sm text-gray-500">
                   {preview}

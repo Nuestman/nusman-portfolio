@@ -20,6 +20,7 @@ export function QualifyForm({
     whoFor: string;
     painToday: string;
     neededBy: string;
+    budgetNote: string;
     callAt: string;
     notes: string;
   };
@@ -28,10 +29,22 @@ export function QualifyForm({
     saveQualifyAction,
     initialState,
   );
+  const fieldsLocked = qualify.outcome === "no";
 
   return (
-    <form action={action} className="space-y-4">
+    <form action={action} className="space-y-5">
       <input type="hidden" name="projectId" value={projectId} />
+      {fieldsLocked ? (
+        <>
+          <input type="hidden" name="whoFor" value={qualify.whoFor} />
+          <input type="hidden" name="painToday" value={qualify.painToday} />
+          <input type="hidden" name="neededBy" value={qualify.neededBy} />
+          <input type="hidden" name="budgetNote" value={qualify.budgetNote} />
+          <input type="hidden" name="callAt" value={qualify.callAt} />
+          <input type="hidden" name="notes" value={qualify.notes} />
+        </>
+      ) : null}
+
       <div>
         <label htmlFor="qualify-outcome" className={labelClassName}>
           Outcome
@@ -48,7 +61,28 @@ export function QualifyForm({
             </option>
           ))}
         </select>
+        <p className="mt-2 text-sm text-gray-500">
+          {fieldsLocked
+            ? "Change outcome away from Not a project to reopen the pipeline."
+            : "Real project required before Discover."}
+        </p>
       </div>
+
+      <div>
+        <label htmlFor="qualify-painToday" className={labelClassName}>
+          What is painful today
+        </label>
+        <textarea
+          id="qualify-painToday"
+          name="painToday"
+          rows={4}
+          defaultValue={qualify.painToday}
+          className={fieldClassName}
+          placeholder="What is broken or slow?"
+          disabled={fieldsLocked}
+        />
+      </div>
+
       <div>
         <label htmlFor="qualify-whoFor" className={labelClassName}>
           Who it is for
@@ -58,21 +92,12 @@ export function QualifyForm({
           name="whoFor"
           defaultValue={qualify.whoFor}
           className={fieldClassName}
+          placeholder="Buyer, daily users, organisation…"
+          disabled={fieldsLocked}
         />
       </div>
-      <div>
-        <label htmlFor="qualify-painToday" className={labelClassName}>
-          What is painful today
-        </label>
-        <textarea
-          id="qualify-painToday"
-          name="painToday"
-          rows={3}
-          defaultValue={qualify.painToday}
-          className={fieldClassName}
-        />
-      </div>
-      <div className="grid gap-4 sm:grid-cols-2">
+
+      <div className="grid gap-4 sm:grid-cols-3">
         <div>
           <label htmlFor="qualify-neededBy" className={labelClassName}>
             Needed by
@@ -82,21 +107,38 @@ export function QualifyForm({
             name="neededBy"
             defaultValue={qualify.neededBy}
             className={fieldClassName}
+            placeholder="Timeline"
+            disabled={fieldsLocked}
+          />
+        </div>
+        <div>
+          <label htmlFor="qualify-budgetNote" className={labelClassName}>
+            Budget
+          </label>
+          <input
+            id="qualify-budgetNote"
+            name="budgetNote"
+            defaultValue={qualify.budgetNote}
+            className={fieldClassName}
+            placeholder="e.g. under $2k"
+            disabled={fieldsLocked}
           />
         </div>
         <div>
           <label htmlFor="qualify-callAt" className={labelClassName}>
-            15-min call
+            Call / window
           </label>
           <input
             id="qualify-callAt"
             name="callAt"
             defaultValue={qualify.callAt}
             className={fieldClassName}
-            placeholder="Date or window"
+            placeholder="When to talk"
+            disabled={fieldsLocked}
           />
         </div>
       </div>
+
       <div>
         <label htmlFor="qualify-notes" className={labelClassName}>
           Notes
@@ -107,8 +149,11 @@ export function QualifyForm({
           rows={3}
           defaultValue={qualify.notes}
           className={fieldClassName}
+          placeholder="Anything else from the screen or /start"
+          disabled={fieldsLocked}
         />
       </div>
+
       <FormError>{state.error}</FormError>
       <Button type="submit" disabled={pending}>
         {pending ? "Saving…" : "Save qualify"}

@@ -1,6 +1,7 @@
 import {
   boolean,
   index,
+  integer,
   jsonb,
   pgEnum,
   pgTable,
@@ -24,16 +25,28 @@ export type ClientKind = (typeof CLIENT_KINDS)[number];
 export const PERSON_ROLES = ["buyer", "user", "other"] as const;
 export type PersonRole = (typeof PERSON_ROLES)[number];
 
+/** Full DB enum — includes legacy intake / propose / agree for old rows. */
 export const PROJECT_GATES = [
   "qualify",
   "intake",
   "discover",
   "propose",
   "agree",
+  "plan",
   "build",
   "launch",
 ] as const;
 export type ProjectGate = (typeof PROJECT_GATES)[number];
+
+/** Active process strip: Qualify → Discover → Plan → Build → Launch. */
+export const PROCESS_GATES = [
+  "qualify",
+  "discover",
+  "plan",
+  "build",
+  "launch",
+] as const;
+export type ProcessGate = (typeof PROCESS_GATES)[number];
 
 export const PROJECT_STATUSES = [
   "active",
@@ -269,10 +282,35 @@ export const projectQualify = pgTable("project_qualify", {
   whoFor: text("who_for"),
   painToday: text("pain_today"),
   neededBy: text("needed_by"),
+  budgetNote: text("budget_note"),
   callAt: text("call_at"),
   notes: text("notes"),
   ...timestamps,
 });
+
+export const projectMilestones = pgTable(
+  "project_milestones",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    projectId: uuid("project_id")
+      .notNull()
+      .references(() => projects.id, { onDelete: "cascade" }),
+    key: text("key").notNull(),
+    label: text("label").notNull(),
+    stage: text("stage").notNull(),
+    sortOrder: integer("sort_order").notNull().default(0),
+    doneAt: timestamp("done_at", { withTimezone: true }),
+    note: text("note"),
+    ...timestamps,
+  },
+  (table) => [
+    uniqueIndex("project_milestones_project_key_idx").on(
+      table.projectId,
+      table.key,
+    ),
+    index("project_milestones_project_id_idx").on(table.projectId),
+  ],
+);
 
 export const projectIntakeAnswers = pgTable(
   "project_intake_answers",

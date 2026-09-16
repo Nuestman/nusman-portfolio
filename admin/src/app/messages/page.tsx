@@ -20,8 +20,9 @@ export default async function MessagesInboxPage() {
         <MessagesWorkspace
           conversations={loaded.data}
           showListOnMobile
+          composeHref="/messages/new"
         >
-          <MessagesEmptyPane />
+          <MessagesEmptyPane composeHref="/messages/new" />
         </MessagesWorkspace>
       )}
     </DeskShell>

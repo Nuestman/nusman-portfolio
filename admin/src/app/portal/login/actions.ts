@@ -94,12 +94,16 @@ export async function requestPortalMagicLink(
     actorEmail: email,
   });
 
+  if (mailed.sent) {
+    return { error: null, sent: true, emailed: true };
+  }
+
   return {
-    error: mailed.error
-      ? `Link ready, but email failed: ${mailed.error}. Ask Usman to paste the link.`
-      : null,
+    error: mailed.configured
+      ? `Could not send the email: ${mailed.error ?? "unknown error"}. Ask Usman to paste a magic link from Desk.`
+      : "Email is not configured on this server yet. Ask Usman to send or paste the magic link.",
     sent: true,
-    emailed: mailed.sent,
+    emailed: false,
   };
 }
 

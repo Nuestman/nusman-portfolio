@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import {
   addNote,
   addPortalMessage,
+  createProject,
   createProjectEvent,
   ensureIntakeAnswers,
   getPerson,
@@ -12,6 +13,7 @@ import {
   getProjectEvent,
   saveIntakeAnswers,
   setProjectEventStatus,
+  upsertQualify,
 } from "@/db/queries";
 import { requirePortalPerson } from "@/lib/current-person";
 import { recordAuditSafe } from "@/lib/audit";
@@ -21,7 +23,16 @@ import {
   isProjectEventKind,
   projectEventKindLabel,
 } from "@/lib/labels";
-import { parseDatetimeLocal } from "@/lib/text";
+import {
+  notifyDeskOfPortalMessage,
+  notifyDeskOfSchedule,
+} from "@/lib/notify";
+import {
+  deskNotifyRecipients,
+  deskPublicBaseUrl,
+  sendPortalProjectStartedNotifyEmail,
+} from "@/lib/notify-email";
+import { parseDatetimeLocal, formatEventWhen } from "@/lib/text";
 import { INTAKE_QUESTIONS } from "@/lib/templates";
 
 export type PortalFormState = {
@@ -34,6 +45,7 @@ function revalidatePortalProject(projectId: string) {
   revalidatePath(`/portal/projects/${projectId}/messages`);
   revalidatePath(`/portal/projects/${projectId}/schedule`);
   revalidatePath(`/portal/schedule`);
+  revalidatePath(`/portal/projects`);
   revalidatePath(`/projects/${projectId}`);
   revalidatePath(`/projects/${projectId}/intake`);
   revalidatePath(`/projects/${projectId}/messages`);
@@ -41,6 +53,127 @@ function revalidatePortalProject(projectId: string) {
   revalidatePath(`/schedule`);
   revalidatePath(`/messages`);
   revalidatePath(`/messages/${projectId}`);
+  revalidatePath(`/projects`);
+}
+
+function oneLine(value: string, max = 160): string {
+  return value.replace(/[\r\n\u0000-\u001f\u007f]/g, " ").trim().slice(0, max);
+}
+
+function portalProjectTitle(
+  clientName: string,
+  organisation: string | null,
+  problem: string,
+): string {
+  if (organisation) {
+    return oneLine(`${organisation} — new request`, 120);
+  }
+  const snippet = problem.replace(/\s+/g, " ").slice(0, 48).trim();
+  if (snippet.length >= 12) {
+    return oneLine(snippet.endsWith(".") ? snippet.slice(0, -1) : snippet, 120);
+  }
+  return oneLine(`Project for ${clientName}`, 120);
+}
+
+export async function startPortalProjectAction(
+  _previous: PortalFormState,
+  formData: FormData,
+): Promise<PortalFormState> {
+  const { person, client } = await requirePortalPerson();
+
+  const problem = readTrimmed(formData, "problem");
+  const whoFor = readTrimmed(formData, "whoFor");
+  const successLooksLike = readTrimmed(formData, "successLooksLike");
+  const timeline = readOptional(formData, "timeline");
+  const budget = readOptional(formData, "budget");
+
+  if (problem.length < 10) {
+    return {
+      error: "Tell us what the problem is (at least a short sentence).",
+    };
+  }
+  if (whoFor.length < 5) {
+    return { error: "Tell us who this is for." };
+  }
+  if (successLooksLike.length < 10) {
+    return { error: "Tell us what success looks like." };
+  }
+  if (problem.length > 2000 || whoFor.length > 500 || successLooksLike.length > 2000) {
+    return { error: "One of the answers is too long." };
+  }
+
+  const title = portalProjectTitle(
+    client.name,
+    client.organisation,
+    problem,
+  );
+
+  const projectId = await createProject({
+    clientId: client.id,
+    title,
+    problemSentence: problem.slice(0, 2000),
+    successLooksLike: successLooksLike.slice(0, 2000),
+    deadlineNote: timeline,
+  });
+
+  await upsertQualify(projectId, {
+    outcome: "undecided",
+    whoFor: whoFor.slice(0, 500),
+    painToday: problem.slice(0, 2000),
+    neededBy: timeline,
+    budgetNote: budget,
+    callAt: null,
+    notes: [
+      "Requested from client portal by logged-in person.",
+      `Contact: ${person.name}${person.email ? ` <${person.email}>` : ""}`,
+    ].join("\n"),
+  });
+
+  await addNote(
+    projectId,
+    [
+      "Opened from client portal (Start a project).",
+      "",
+      `Requested by: ${person.name}${person.email ? ` <${person.email}>` : ""}`,
+      client.organisation ? `Organisation: ${client.organisation}` : null,
+      timeline ? `Timeline: ${timeline}` : null,
+      budget ? `Budget: ${budget}` : null,
+      "",
+      `Problem: ${problem}`,
+      `Who for: ${whoFor}`,
+      `Success: ${successLooksLike}`,
+    ]
+      .filter((line) => line !== null)
+      .join("\n"),
+  );
+
+  await recordAuditSafe({
+    action: "portal.project-start",
+    summary: `${person.name} started project “${title}” from the portal.`,
+    entityType: "project",
+    entityId: projectId,
+    projectId,
+    actorEmail: person.email,
+    after: {
+      clientId: client.id,
+      projectId,
+      source: "portal/projects/new",
+    },
+  });
+
+  await sendPortalProjectStartedNotifyEmail({
+    to: deskNotifyRecipients(),
+    personName: person.name,
+    clientName: client.name,
+    projectTitle: title,
+    problem,
+    projectUrl: `${deskPublicBaseUrl()}/projects/${projectId}`,
+  }).catch((error) => {
+    console.error("Portal project start notify failed", error);
+  });
+
+  revalidatePortalProject(projectId);
+  redirect(`/projects/${projectId}`);
 }
 
 export async function savePortalIntakeAction(
@@ -58,7 +191,7 @@ export async function savePortalIntakeAction(
     return { error: "That project is gone." };
   }
   if (!project.portalIntakeOpen) {
-    return { error: "Intake is closed. Ask Usman if you need to change answers." };
+    return { error: "Discovery is closed. Ask Usman if you need to change answers." };
   }
 
   await ensureIntakeAnswers(projectId);
@@ -70,8 +203,8 @@ export async function savePortalIntakeAction(
   await saveIntakeAnswers(projectId, next);
   await recordAuditSafe({
     action: "portal.intake-save",
-    summary: `${person.name} saved portal intake on “${project.title}”.`,
-    entityType: "intake",
+    summary: `${person.name} saved portal discovery answers on “${project.title}”.`,
+    entityType: "discovery",
     projectId,
     actorEmail: person.email,
   });
@@ -113,8 +246,14 @@ export async function postPortalMessageAction(
     actorEmail: person.email,
     after: { body },
   });
+  await notifyDeskOfPortalMessage({
+    projectId,
+    projectTitle: project.title,
+    authorName: person.name,
+    body,
+  });
   revalidatePortalProject(projectId);
-  redirect(`/projects/${projectId}/messages`);
+  redirect(`/messages/${projectId}`);
 }
 
 export async function confirmPortalEventAction(formData: FormData) {
@@ -150,6 +289,15 @@ export async function confirmPortalEventAction(formData: FormData) {
     actorEmail: person.email,
     before: { status: event.status },
     after: { status: "confirmed" },
+  });
+  await notifyDeskOfSchedule({
+    projectId,
+    projectTitle: project.title,
+    headline: `${person.name} confirmed “${event.title}”.`,
+    details: [
+      "Status: confirmed",
+      `When: ${formatEventWhen(event.startsAt)}`,
+    ],
   });
   revalidatePortalProject(projectId);
   redirect("/schedule");
@@ -188,6 +336,12 @@ export async function declinePortalEventAction(formData: FormData) {
     actorEmail: person.email,
     before: { status: event.status },
     after: { status: "cancelled" },
+  });
+  await notifyDeskOfSchedule({
+    projectId,
+    projectTitle: project.title,
+    headline: `${person.name} declined “${event.title}”.`,
+    details: ["Status: cancelled", `When: ${formatEventWhen(event.startsAt)}`],
   });
   revalidatePortalProject(projectId);
   redirect("/schedule");
@@ -230,6 +384,12 @@ export async function cancelPortalEventAction(formData: FormData) {
     actorEmail: person.email,
     before: { status: event.status },
     after: { status: "cancelled" },
+  });
+  await notifyDeskOfSchedule({
+    projectId,
+    projectTitle: project.title,
+    headline: `${person.name} cancelled “${event.title}”.`,
+    details: ["Status: cancelled", `When: ${formatEventWhen(event.startsAt)}`],
   });
   revalidatePortalProject(projectId);
   redirect("/schedule");
@@ -308,6 +468,16 @@ export async function requestPortalEventAction(
       notes,
       personId: forPerson.id,
     },
+  });
+  await notifyDeskOfSchedule({
+    projectId,
+    projectTitle: project.title,
+    headline: `${person.name} requested a ${projectEventKindLabel(kindRaw).toLowerCase()}.`,
+    details: [
+      `Title: ${title}`,
+      `When: ${formatEventWhen(startsAt)}`,
+      notes ? `Notes: ${notes}` : null,
+    ].filter((line): line is string => Boolean(line)),
   });
   revalidatePortalProject(projectId);
   redirect("/schedule");

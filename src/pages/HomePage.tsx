@@ -1,7 +1,7 @@
 import React from 'react'
 import Hero from '../components/Hero'
 import Skills from '../components/Skills'
-import WhatICanDo from '../components/WhatICanDo'
+import WhatIDo from '../components/WhatIDo'
 import MyProcess from '../components/MyProcess'
 import Testimonials from '../components/Testimonials'
 import Collaborations from '../components/Collaborations'
@@ -19,7 +19,7 @@ const HomePage: React.FC = () => {
   return (
     <>
       <Hero />
-      <WhatICanDo />
+      <WhatIDo />
       <MyProcess />
       <Skills />
       <Testimonials />

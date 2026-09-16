@@ -67,7 +67,7 @@ export function IntakeForm({
       </div>
       <FormError>{state.error}</FormError>
       <Button type="submit" disabled={pending}>
-        {pending ? "Saving…" : "Save answers"}
+        {pending ? "Saving…" : "Save discovery answers"}
       </Button>
     </form>
   );
