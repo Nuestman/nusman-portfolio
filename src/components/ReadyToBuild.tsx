@@ -24,10 +24,10 @@ const ReadyToBuild: React.FC = () => {
             I'm here to help you succeed.
           </p>
           <Link
-            to="/contact"
+            to="/start"
             className="inline-block bg-gold-500 text-white px-8 py-4 rounded-full font-bold text-lg font-heading hover:bg-gold-600 transition-colors duration-300"
           >
-            Let's Talk About Your Project
+            Start a project with me
           </Link>
         </motion.div>
       </div>

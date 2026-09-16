@@ -2,6 +2,8 @@
 
 interface ImportMetaEnv {
   readonly VITE_FORMSPREE_ID?: string
+  /** Override Portal URL. Local default: http://portal.localhost:3000 */
+  readonly VITE_PORTAL_URL?: string
 }
 
 interface ImportMeta {

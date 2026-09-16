@@ -29,7 +29,7 @@ const PortfolioPage: React.FC = () => {
               of my current React, TypeScript, and Tailwind work.
             </p>
             <Button asChild className="bg-white text-gold-600 hover:bg-gray-100">
-              <Link to="/contact">Discuss a project</Link>
+              <Link to="/start">Start a project with me</Link>
             </Button>
           </motion.div>
         </div>

@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { Card, CardContent } from './ui/card'
 import { Button } from './ui/button'
@@ -95,7 +96,12 @@ const Contact: React.FC = () => {
         >
           <h1 className="section-heading mb-6 text-dark-950">Get In Touch</h1>
           <p className="text-xl text-gray-700 max-w-2xl mx-auto">
-            Let's discuss your project and how I can help bring your ideas to life
+            Let&apos;s discuss your project and how I can help bring your ideas to life.
+            Ready to kick something off?{' '}
+            <Link to="/start" className="text-gold-600 font-semibold hover:underline">
+              Start a project with me
+            </Link>
+            .
           </p>
         </motion.div>
 

@@ -1,6 +1,6 @@
 {
   "name": "numan-usman-portfolio",
-  "version": "4.0.0",
+  "version": "4.1.0",
   "private": true,
   "type": "module",
   "description": "Personal site for Numan Usman — emergency nurse and web developer in Obuasi, Ghana.",
@@ -31,8 +31,12 @@
     "obuasi"
   ],
   "engines": {
-    "node": "^20.19.0 || >=22.12.0",
+    "node": "24.x",
     "npm": ">=10"
+  },
+  "allowScripts": {
+    "esbuild@0.28.2": true,
+    "fsevents@2.3.3": true
   },
   "scripts": {
     "dev": "vite",
