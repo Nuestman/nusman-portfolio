@@ -4,6 +4,8 @@ import {
   CLIENT_SOURCES,
   OPTION_KINDS,
   PERSON_ROLES,
+  PROJECT_EVENT_KINDS,
+  PROJECT_EVENT_STATUSES,
   PROJECT_STATUSES,
   QUALIFY_OUTCOMES,
   WORK_KINDS,
@@ -11,6 +13,8 @@ import {
   type ClientSource,
   type OptionKind,
   type PersonRole,
+  type ProjectEventKind,
+  type ProjectEventStatus,
   type ProjectStatus,
   type QualifyOutcome,
   type UserRole,
@@ -168,6 +172,52 @@ export function userRoleLabel(role: UserRole): string {
       return "Operator";
     default: {
       const _exhaustive: never = role;
+      return _exhaustive;
+    }
+  }
+}
+
+export function isProjectEventKind(value: string): value is ProjectEventKind {
+  return (PROJECT_EVENT_KINDS as readonly string[]).includes(value);
+}
+
+export function projectEventKindLabel(kind: ProjectEventKind): string {
+  switch (kind) {
+    case "call":
+      return "Call";
+    case "meeting":
+      return "Meeting";
+    case "demo":
+      return "Demo";
+    case "other":
+      return "Other";
+    default: {
+      const _exhaustive: never = kind;
+      return _exhaustive;
+    }
+  }
+}
+
+export function isProjectEventStatus(
+  value: string,
+): value is ProjectEventStatus {
+  return (PROJECT_EVENT_STATUSES as readonly string[]).includes(value);
+}
+
+export function projectEventStatusLabel(status: ProjectEventStatus): string {
+  switch (status) {
+    case "requested":
+      return "Requested";
+    case "proposed":
+      return "Proposed";
+    case "confirmed":
+      return "Confirmed";
+    case "cancelled":
+      return "Cancelled";
+    case "completed":
+      return "Completed";
+    default: {
+      const _exhaustive: never = status;
       return _exhaustive;
     }
   }

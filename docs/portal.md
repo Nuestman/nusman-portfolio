@@ -4,6 +4,8 @@ Living plan for the **client portal** at **portal.nusman.dev**. Same Next app as
 
 Operator workbench: [desk.md](./desk.md). Prior Desk plan (no portal): [archive/desk-1.1.md](./archive/desk-1.1.md).
 
+**Next major cut (thin portal + scheduler):** [desk-2.0.md](./desk-2.0.md) — **that file wins** where it conflicts with this one.
+
 ---
 
 ## Why this exists

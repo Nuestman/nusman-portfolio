@@ -2,6 +2,8 @@
 
 Living plan for **Desk** — Numan Usman’s private workbench at **desk.nusman.dev**. Update this file when a decision changes. Visual rules: [style-guide.md](./style-guide.md). What’s live vs still open: [desk-status.md](./desk-status.md). Client portal: [portal.md](./portal.md). Snapshot before Portal: [archive/desk-1.1.md](./archive/desk-1.1.md).
 
+**Next major cut (surfaces, project page reshape, Portal scheduler):** [desk-2.0.md](./desk-2.0.md) — **that file wins** where it conflicts with this one.
+
 Public site: `https://nusman.dev` (this repo’s root Vite app).  
 Admin: `https://desk.nusman.dev` and `https://portal.nusman.dev` (same `admin/` Next app, host-based).  
 Database: Neon project **nusmandotdev** (`sparkling-art-67399165`, `aws-eu-west-2`, Postgres 18). In use as of 15 Sep 2026. This is the **only** database Desk and Portal use. Other Neon projects (Mineaid, Uventory, church, etc.) are separate products to migrate onto Desk later — not to query from here.
@@ -428,4 +430,4 @@ Do not add Desk links to `Header` / `Footer` / `sitemap.xml`.
 
 ## Immediate next step
 
-Desk **1.3.0** includes Portal, Messages, and inbound leads from the public `/start` form. Invite a person from Desk, rewrite package summaries for clients, open intake when ready, keep an export after a real job starts. Later: import product databases — only when you choose to, and never by pointing Desk at their `DATABASE_URL`.
+Desk **2.0.0** is the current cut ([desk-2.0.md](./desk-2.0.md)). Desk **1.3.0** included Portal, Messages, and inbound leads from the public `/start` form. Invite a person from Desk, rewrite package summaries for clients, open intake when ready, keep an export after a real job starts. Later: import product databases — only when you choose to, and never by pointing Desk at their `DATABASE_URL`.

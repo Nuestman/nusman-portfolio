@@ -12,6 +12,7 @@ import { portalLogout } from "@/app/portal/login/actions";
 const NAV = [
   { href: "/", label: "Home" },
   { href: "/projects", label: "Projects" },
+  { href: "/schedule", label: "Schedule" },
 ] as const;
 
 const PORTAL_ACCOUNT_LINKS = [

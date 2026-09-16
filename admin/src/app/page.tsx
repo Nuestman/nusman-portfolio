@@ -7,6 +7,7 @@ import {
   getOperator,
   listActiveProjects,
   listActivities,
+  listUpcomingDeskScheduleEvents,
 } from "@/db/queries";
 import { buttonClassName } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -19,8 +20,13 @@ import {
   TableActionsHeader,
 } from "@/components/table-actions";
 import { gateGuide } from "@/lib/gates";
+import {
+  projectEventKindLabel,
+  projectEventStatusLabel,
+} from "@/lib/labels";
 import { linkClassName } from "@/lib/links";
 import { tableClassName, tableFrameClassName } from "@/lib/tables";
+import { formatEventWhen } from "@/lib/text";
 import { deskCopyTemplates } from "@/lib/templates";
 import { CopyTemplates } from "@/app/projects/copy-templates";
 import { deleteProjectAction } from "@/app/projects/actions";
@@ -46,13 +52,14 @@ const PROCESS_STEPS = [
 
 async function loadDeskStats() {
   return loadFromDb(async () => {
-    const [projectCount, clientCount, operator, active, recentLog] =
+    const [projectCount, clientCount, operator, active, recentLog, upcoming] =
       await Promise.all([
         countProjects(),
         countClients(),
         getOperator(),
         listActiveProjects(),
         listActivities(5),
+        listUpcomingDeskScheduleEvents(7),
       ]);
     return {
       projectCount,
@@ -60,6 +67,7 @@ async function loadDeskStats() {
       operatorName: operator?.name ?? null,
       active,
       recentLog,
+      upcoming,
     };
   });
 }
@@ -149,6 +157,61 @@ export default async function HomePage() {
               </tbody>
             </table>
           </div>
+        ) : null}
+
+        {stats.kind === "ok" ? (
+          <Card>
+            <CardHeader>
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <CardTitle>Next 7 days</CardTitle>
+                <Link href="/schedule" className={linkClassName("back")}>
+                  Open schedule
+                </Link>
+              </div>
+            </CardHeader>
+            <CardContent>
+              {stats.data.upcoming.length === 0 ? (
+                <p className="text-sm text-gray-600">
+                  No meetings or client requests in the next week.
+                </p>
+              ) : (
+                <ul className="space-y-3">
+                  {stats.data.upcoming.map((event) => (
+                    <li
+                      key={event.id}
+                      className="flex flex-wrap items-baseline justify-between gap-2 text-sm text-gray-700"
+                    >
+                      <div>
+                        <Link
+                          href={
+                            event.status === "requested"
+                              ? `/projects/${event.projectId}/events/${event.id}/edit`
+                              : `/projects/${event.projectId}`
+                          }
+                          className="font-medium text-dark-950 hover:text-gold-600"
+                        >
+                          {event.title}
+                        </Link>
+                        {" · "}
+                        {projectEventKindLabel(event.kind)} ·{" "}
+                        {projectEventStatusLabel(event.status)}
+                        {" · "}
+                        <Link
+                          href={`/clients/${event.clientId}`}
+                          className={linkClassName("nav")}
+                        >
+                          {event.clientName}
+                        </Link>
+                      </div>
+                      <span className="text-gray-500">
+                        {formatEventWhen(event.startsAt)}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </CardContent>
+          </Card>
         ) : null}
 
         {stats.kind === "ok" ? (

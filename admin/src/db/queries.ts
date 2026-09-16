@@ -1,4 +1,4 @@
-import { and, count, desc, eq, inArray, ne, sql, type SQL } from "drizzle-orm";
+import { and, asc, count, desc, eq, gte, inArray, isNull, lte, ne, or, sql, type SQL } from "drizzle-orm";
 import { getDb } from "./index";
 import {
   OPTION_KINDS,
@@ -13,6 +13,7 @@ import {
   projectChangeRequests,
   projectDemos,
   projectDiscovery,
+  projectEvents,
   projectIntakeAnswers,
   projectLaunch,
   projectNotes,
@@ -29,6 +30,9 @@ import type {
   OptionKind,
   PersonRole,
   PortalMessageAuthor,
+  ProjectEventActor,
+  ProjectEventKind,
+  ProjectEventStatus,
   ProjectGate,
   ProjectStatus,
   QualifyOutcome,
@@ -440,6 +444,23 @@ export async function listPeople(clientId: string) {
       sql`case when ${people.role} = 'buyer' then 0 when ${people.role} = 'user' then 1 else 2 end`,
       people.name,
     );
+}
+
+export async function listPeopleByClientIds(clientIds: string[]) {
+  if (clientIds.length === 0) {
+    return [];
+  }
+  const db = getDb();
+  return db
+    .select({
+      id: people.id,
+      clientId: people.clientId,
+      name: people.name,
+      role: people.role,
+    })
+    .from(people)
+    .where(inArray(people.clientId, clientIds))
+    .orderBy(people.name);
 }
 
 export async function getPerson(id: string) {
@@ -1100,6 +1121,221 @@ export async function updateDemo(
 export async function deleteDemo(id: string) {
   const db = getDb();
   await db.delete(projectDemos).where(eq(projectDemos.id, id));
+}
+
+export async function listProjectEvents(projectId: string) {
+  const db = getDb();
+  return db
+    .select()
+    .from(projectEvents)
+    .where(eq(projectEvents.projectId, projectId))
+    .orderBy(desc(projectEvents.startsAt), desc(projectEvents.createdAt));
+}
+
+export async function listDeskScheduleEvents() {
+  const db = getDb();
+  return db
+    .select({
+      id: projectEvents.id,
+      projectId: projectEvents.projectId,
+      kind: projectEvents.kind,
+      title: projectEvents.title,
+      status: projectEvents.status,
+      startsAt: projectEvents.startsAt,
+      endsAt: projectEvents.endsAt,
+      location: projectEvents.location,
+      notes: projectEvents.notes,
+      createdByKind: projectEvents.createdByKind,
+      createdAt: projectEvents.createdAt,
+      projectTitle: projects.title,
+      clientId: clients.id,
+      clientName: clients.name,
+    })
+    .from(projectEvents)
+    .innerJoin(projects, eq(projects.id, projectEvents.projectId))
+    .innerJoin(clients, eq(clients.id, projects.clientId))
+    .where(eq(projects.workKind, "client"))
+    .orderBy(asc(projectEvents.startsAt), desc(projectEvents.createdAt));
+}
+
+/** Open events for Today: client requests + items starting in the next N days. */
+export async function listUpcomingDeskScheduleEvents(withinDays = 7) {
+  const db = getDb();
+  const now = new Date();
+  const until = new Date(now.getTime() + withinDays * 24 * 60 * 60 * 1000);
+  return db
+    .select({
+      id: projectEvents.id,
+      projectId: projectEvents.projectId,
+      kind: projectEvents.kind,
+      title: projectEvents.title,
+      status: projectEvents.status,
+      startsAt: projectEvents.startsAt,
+      endsAt: projectEvents.endsAt,
+      projectTitle: projects.title,
+      clientId: clients.id,
+      clientName: clients.name,
+    })
+    .from(projectEvents)
+    .innerJoin(projects, eq(projects.id, projectEvents.projectId))
+    .innerJoin(clients, eq(clients.id, projects.clientId))
+    .where(
+      and(
+        eq(projects.workKind, "client"),
+        inArray(projectEvents.status, ["requested", "proposed", "confirmed"]),
+        or(
+          eq(projectEvents.status, "requested"),
+          and(
+            gte(projectEvents.startsAt, now),
+            lte(projectEvents.startsAt, until),
+          ),
+          and(
+            isNull(projectEvents.startsAt),
+            inArray(projectEvents.status, ["proposed", "confirmed"]),
+          ),
+        ),
+      ),
+    )
+    .orderBy(asc(projectEvents.startsAt), desc(projectEvents.createdAt))
+    .limit(8);
+}
+
+export async function listPortalScheduleEventsForClient(clientId: string) {
+  const db = getDb();
+  return db
+    .select({
+      id: projectEvents.id,
+      projectId: projectEvents.projectId,
+      kind: projectEvents.kind,
+      title: projectEvents.title,
+      status: projectEvents.status,
+      startsAt: projectEvents.startsAt,
+      endsAt: projectEvents.endsAt,
+      location: projectEvents.location,
+      notes: projectEvents.notes,
+      createdAt: projectEvents.createdAt,
+      projectTitle: projects.title,
+    })
+    .from(projectEvents)
+    .innerJoin(projects, eq(projects.id, projectEvents.projectId))
+    .where(
+      and(eq(projects.clientId, clientId), eq(projects.workKind, "client")),
+    )
+    .orderBy(asc(projectEvents.startsAt), desc(projectEvents.createdAt));
+}
+
+export async function getProjectEvent(id: string) {
+  const db = getDb();
+  const [row] = await db
+    .select()
+    .from(projectEvents)
+    .where(eq(projectEvents.id, id))
+    .limit(1);
+  return row ?? null;
+}
+
+export async function createProjectEvent(
+  projectId: string,
+  values: {
+    kind: ProjectEventKind;
+    title: string;
+    status: ProjectEventStatus;
+    startsAt: Date | null;
+    endsAt: Date | null;
+    location: string | null;
+    notes: string | null;
+    createdByKind: ProjectEventActor;
+    personId?: string | null;
+  },
+) {
+  const db = getDb();
+  const [row] = await db
+    .insert(projectEvents)
+    .values({
+      projectId,
+      kind: values.kind,
+      title: values.title,
+      status: values.status,
+      startsAt: values.startsAt,
+      endsAt: values.endsAt,
+      location: values.location,
+      notes: values.notes,
+      createdByKind: values.createdByKind,
+      personId: values.personId ?? null,
+      confirmedAt: values.status === "confirmed" ? new Date() : null,
+      cancelledAt: values.status === "cancelled" ? new Date() : null,
+    })
+    .returning({ id: projectEvents.id });
+  if (!row) {
+    throw new Error("Could not create project event");
+  }
+  return row.id;
+}
+
+export async function updateProjectEvent(
+  id: string,
+  values: {
+    kind: ProjectEventKind;
+    title: string;
+    status: ProjectEventStatus;
+    startsAt: Date | null;
+    endsAt: Date | null;
+    location: string | null;
+    notes: string | null;
+  },
+) {
+  const db = getDb();
+  const existing = await getProjectEvent(id);
+  if (!existing) {
+    return;
+  }
+
+  const confirmedAt =
+    values.status === "confirmed"
+      ? (existing.confirmedAt ?? new Date())
+      : null;
+  const cancelledAt =
+    values.status === "cancelled"
+      ? (existing.cancelledAt ?? new Date())
+      : null;
+
+  await db
+    .update(projectEvents)
+    .set({
+      ...values,
+      confirmedAt,
+      cancelledAt,
+      updatedAt: new Date(),
+    })
+    .where(eq(projectEvents.id, id));
+}
+
+export async function setProjectEventStatus(
+  id: string,
+  status: ProjectEventStatus,
+) {
+  const db = getDb();
+  const existing = await getProjectEvent(id);
+  if (!existing) {
+    return;
+  }
+
+  await db
+    .update(projectEvents)
+    .set({
+      status,
+      confirmedAt:
+        status === "confirmed" ? (existing.confirmedAt ?? new Date()) : null,
+      cancelledAt:
+        status === "cancelled" ? (existing.cancelledAt ?? new Date()) : null,
+      updatedAt: new Date(),
+    })
+    .where(eq(projectEvents.id, id));
+}
+
+export async function deleteProjectEvent(id: string) {
+  const db = getDb();
+  await db.delete(projectEvents).where(eq(projectEvents.id, id));
 }
 
 export async function getLaunch(projectId: string) {

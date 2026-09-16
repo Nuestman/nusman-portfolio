@@ -1,8 +1,9 @@
 "use client";
 
 import { useActionState } from "react";
-import { Button } from "@/components/ui/button";
+import { ConfirmClick } from "@/components/confirm-submit";
 import { FormError } from "@/components/form-error";
+import { buttonClassName } from "@/components/ui/button";
 import {
   recordKnownProductsAction,
   type FormState,
@@ -19,22 +20,14 @@ export function RecordKnownProducts() {
   return (
     <form action={action} className="space-y-3">
       <FormError>{state.error}</FormError>
-      <Button
-        type="submit"
-        variant="outline"
+      <ConfirmClick
+        message="Record the known products that are not on Desk yet?"
+        confirmLabel="Record"
+        className={buttonClassName("outline")}
         disabled={pending}
-        onClick={(event) => {
-          if (
-            !window.confirm(
-              "Record the known products that are not on Desk yet?",
-            )
-          ) {
-            event.preventDefault();
-          }
-        }}
       >
         {pending ? "Recording…" : "Record known products"}
-      </Button>
+      </ConfirmClick>
     </form>
   );
 }

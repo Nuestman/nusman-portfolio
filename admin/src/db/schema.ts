@@ -67,6 +67,26 @@ export type UserRole = (typeof USER_ROLES)[number];
 export const PORTAL_MESSAGE_AUTHORS = ["client", "operator"] as const;
 export type PortalMessageAuthor = (typeof PORTAL_MESSAGE_AUTHORS)[number];
 
+export const PROJECT_EVENT_KINDS = [
+  "call",
+  "meeting",
+  "demo",
+  "other",
+] as const;
+export type ProjectEventKind = (typeof PROJECT_EVENT_KINDS)[number];
+
+export const PROJECT_EVENT_STATUSES = [
+  "requested",
+  "proposed",
+  "confirmed",
+  "cancelled",
+  "completed",
+] as const;
+export type ProjectEventStatus = (typeof PROJECT_EVENT_STATUSES)[number];
+
+export const PROJECT_EVENT_ACTORS = ["operator", "client"] as const;
+export type ProjectEventActor = (typeof PROJECT_EVENT_ACTORS)[number];
+
 export const clientSourceEnum = pgEnum("client_source", CLIENT_SOURCES);
 export const clientKindEnum = pgEnum("client_kind", CLIENT_KINDS);
 export const personRoleEnum = pgEnum("person_role", PERSON_ROLES);
@@ -80,6 +100,18 @@ export const userRoleEnum = pgEnum("user_role", USER_ROLES);
 export const portalMessageAuthorEnum = pgEnum(
   "portal_message_author",
   PORTAL_MESSAGE_AUTHORS,
+);
+export const projectEventKindEnum = pgEnum(
+  "project_event_kind",
+  PROJECT_EVENT_KINDS,
+);
+export const projectEventStatusEnum = pgEnum(
+  "project_event_status",
+  PROJECT_EVENT_STATUSES,
+);
+export const projectEventActorEnum = pgEnum(
+  "project_event_actor",
+  PROJECT_EVENT_ACTORS,
 );
 
 const timestamps = {
@@ -415,4 +447,34 @@ export const portalMessages = pgTable(
       .notNull(),
   },
   (table) => [index("portal_messages_project_id_idx").on(table.projectId)],
+);
+
+export const projectEvents = pgTable(
+  "project_events",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    projectId: uuid("project_id")
+      .notNull()
+      .references(() => projects.id, { onDelete: "cascade" }),
+    kind: projectEventKindEnum("kind").notNull(),
+    title: text("title").notNull(),
+    status: projectEventStatusEnum("status").notNull().default("proposed"),
+    startsAt: timestamp("starts_at", { withTimezone: true }),
+    endsAt: timestamp("ends_at", { withTimezone: true }),
+    location: text("location"),
+    notes: text("notes"),
+    createdByKind: projectEventActorEnum("created_by_kind").notNull(),
+    personId: uuid("person_id").references(() => people.id, {
+      onDelete: "set null",
+    }),
+    confirmedAt: timestamp("confirmed_at", { withTimezone: true }),
+    cancelledAt: timestamp("cancelled_at", { withTimezone: true }),
+    ...timestamps,
+  },
+  (table) => [
+    index("project_events_project_starts_at_idx").on(
+      table.projectId,
+      table.startsAt,
+    ),
+  ],
 );

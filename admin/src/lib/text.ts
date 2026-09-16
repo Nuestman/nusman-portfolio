@@ -13,6 +13,41 @@ export function formatStamp(value: Date): string {
   return value.toISOString().slice(0, 16).replace("T", " ");
 }
 
+/** Value for `<input type="datetime-local">` in the browser's local zone. */
+export function toDatetimeLocalValue(value: Date | null | undefined): string {
+  if (!value) {
+    return "";
+  }
+  const local = new Date(value.getTime() - value.getTimezoneOffset() * 60_000);
+  return local.toISOString().slice(0, 16);
+}
+
+/** Parse `datetime-local` form value into a Date, or null if empty/invalid. */
+export function parseDatetimeLocal(value: string | null | undefined): Date | null {
+  const raw = value?.trim() ?? "";
+  if (!raw) {
+    return null;
+  }
+  const parsed = new Date(raw);
+  if (Number.isNaN(parsed.getTime())) {
+    return null;
+  }
+  return parsed;
+}
+
+export function formatEventWhen(value: Date | null | undefined): string {
+  if (!value) {
+    return "Time TBD";
+  }
+  return value.toLocaleString(undefined, {
+    weekday: "short",
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  });
+}
+
 /** Short relative / clock time for chat lists and bubbles. */
 export function formatChatTime(value: Date, now = new Date()): string {
   const ms = now.getTime() - value.getTime();

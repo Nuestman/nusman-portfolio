@@ -8,11 +8,13 @@ import {
   createDemo,
   createOption,
   createProject,
+  createProjectEvent,
   deleteChangeRequest,
   deleteDemo,
   deleteNote,
   deleteOption,
   deleteProject,
+  deleteProjectEvent,
   findOptionByKind,
   getAgreement,
   getChangeRequest,
@@ -22,18 +24,22 @@ import {
   getLaunch,
   getNote,
   getOption,
+  getPerson,
   getProject,
+  getProjectEvent,
   getQualify,
   listIntakeAnswers,
   listOptions,
   listPeople,
   saveIntakeAnswers,
   selectOption,
+  setProjectEventStatus,
   updateChangeRequest,
   updateDemo,
   updateNote,
   updateOption,
   updateProject,
+  updateProjectEvent,
   updateProjectGate,
   upsertAgreement,
   upsertDiscovery,
@@ -54,13 +60,24 @@ import { safeInternalPath } from "@/lib/paths";
 import {
   isChangeStatus,
   isOptionKind,
+  isProjectEventKind,
+  isProjectEventStatus,
   isProjectStatus,
   isQualifyOutcome,
   optionKindLabel,
+  projectEventKindLabel,
+  projectEventStatusLabel,
   qualifyOutcomeLabel,
 } from "@/lib/labels";
+import { parseDatetimeLocal } from "@/lib/text";
 import { INTAKE_QUESTIONS, isOptionStarterSummary } from "@/lib/templates";
-import type { OptionKind, ProjectStatus, WorkKind } from "@/db/schema";
+import type {
+  OptionKind,
+  ProjectEventKind,
+  ProjectEventStatus,
+  ProjectStatus,
+  WorkKind,
+} from "@/db/schema";
 
 export type FormState = {
   error: string | null;
@@ -70,9 +87,13 @@ function revalidateProject(projectId: string, clientId: string) {
   revalidatePath("/");
   revalidatePath("/projects");
   revalidatePath("/products");
+  revalidatePath("/schedule");
   revalidatePath(`/projects/${projectId}`);
+  revalidatePath(`/projects/${projectId}/schedule`);
   revalidatePath(`/clients/${clientId}`);
   revalidatePath(`/portal/projects/${projectId}`);
+  revalidatePath(`/portal/projects/${projectId}/schedule`);
+  revalidatePath(`/portal/schedule`);
 }
 
 function projectListPath(formData: FormData, workKind: WorkKind): string {
@@ -950,6 +971,227 @@ export async function deleteDemoAction(formData: FormData) {
     entityId: id,
     projectId,
     before: demo,
+    reason: readDeleteReason(formData),
+  });
+  revalidateProject(projectId, project.clientId);
+  redirect(`/projects/${projectId}`);
+}
+
+function parseEventFields(formData: FormData):
+  | {
+      ok: true;
+      values: {
+        kind: ProjectEventKind;
+        title: string;
+        status: ProjectEventStatus;
+        startsAt: Date | null;
+        endsAt: Date | null;
+        location: string | null;
+        notes: string | null;
+      };
+    }
+  | { ok: false; error: string } {
+  const kindRaw = readTrimmed(formData, "kind");
+  if (!isProjectEventKind(kindRaw)) {
+    return { ok: false, error: "Choose a kind." };
+  }
+
+  const title = readTrimmed(formData, "title");
+  if (!title) {
+    return { ok: false, error: "Title is required." };
+  }
+
+  const statusRaw = readTrimmed(formData, "status");
+  if (!isProjectEventStatus(statusRaw)) {
+    return { ok: false, error: "Choose a status." };
+  }
+
+  const startsAt = parseDatetimeLocal(readOptional(formData, "startsAt"));
+  const endsAt = parseDatetimeLocal(readOptional(formData, "endsAt"));
+
+  if (statusRaw !== "requested" && !startsAt) {
+    return { ok: false, error: "Set a start time, or keep status as Requested." };
+  }
+
+  if (startsAt && endsAt && endsAt.getTime() < startsAt.getTime()) {
+    return { ok: false, error: "End time must be after the start." };
+  }
+
+  return {
+    ok: true,
+    values: {
+      kind: kindRaw,
+      title,
+      status: statusRaw,
+      startsAt,
+      endsAt,
+      location: readOptional(formData, "location"),
+      notes: readOptional(formData, "notes"),
+    },
+  };
+}
+
+export async function createProjectEventAction(
+  _previous: FormState,
+  formData: FormData,
+): Promise<FormState> {
+  await requireSessionUser();
+  const projectId = readTrimmed(formData, "projectId");
+  if (!isUuid(projectId)) {
+    return { error: "Project is missing." };
+  }
+
+  const project = await getProject(projectId);
+  if (!project) {
+    return { error: "That project is gone." };
+  }
+  if (project.workKind === "product") {
+    return { error: "Schedule is for client projects." };
+  }
+
+  const parsed = parseEventFields(formData);
+  if (!parsed.ok) {
+    return { error: parsed.error };
+  }
+
+  const personIdRaw = readTrimmed(formData, "personId");
+  let personId: string | null = null;
+  if (personIdRaw) {
+    if (!isUuid(personIdRaw)) {
+      return { error: "Pick a valid person." };
+    }
+    const person = await getPerson(personIdRaw);
+    if (!person || person.clientId !== project.clientId) {
+      return { error: "That person is not on this client." };
+    }
+    personId = person.id;
+  }
+
+  const id = await createProjectEvent(projectId, {
+    ...parsed.values,
+    createdByKind: "operator",
+    personId,
+  });
+  await addNote(
+    projectId,
+    `Scheduled ${projectEventKindLabel(parsed.values.kind).toLowerCase()}: ${parsed.values.title} (${projectEventStatusLabel(parsed.values.status).toLowerCase()}).`,
+  );
+  await recordAudit({
+    action: "event.create",
+    summary: `Scheduled “${parsed.values.title}” on “${project.title}”.`,
+    entityType: "event",
+    entityId: id,
+    projectId,
+    after: { ...parsed.values, personId },
+  });
+  revalidateProject(projectId, project.clientId);
+  const next = readTrimmed(formData, "next");
+  redirect(next === "/schedule" ? "/schedule" : `/projects/${projectId}`);
+}
+
+export async function updateProjectEventAction(
+  _previous: FormState,
+  formData: FormData,
+): Promise<FormState> {
+  await requireSessionUser();
+  const id = readTrimmed(formData, "id");
+  const projectId = readTrimmed(formData, "projectId");
+  if (!isUuid(id) || !isUuid(projectId)) {
+    return { error: "Event is missing." };
+  }
+
+  const project = await getProject(projectId);
+  const event = await getProjectEvent(id);
+  if (!project || !event || event.projectId !== projectId) {
+    return { error: "That event is gone." };
+  }
+
+  const parsed = parseEventFields(formData);
+  if (!parsed.ok) {
+    return { error: parsed.error };
+  }
+
+  await updateProjectEvent(id, parsed.values);
+  if (event.status !== parsed.values.status) {
+    await addNote(
+      projectId,
+      `Event “${parsed.values.title}” → ${projectEventStatusLabel(parsed.values.status).toLowerCase()}.`,
+    );
+  }
+  await recordAudit({
+    action: "event.update",
+    summary: `Updated “${parsed.values.title}” on “${project.title}”.`,
+    entityType: "event",
+    entityId: id,
+    projectId,
+    before: event,
+    after: parsed.values,
+  });
+  revalidateProject(projectId, project.clientId);
+  redirect(`/projects/${projectId}`);
+}
+
+export async function setProjectEventStatusAction(formData: FormData) {
+  await requireSessionUser();
+  const id = readTrimmed(formData, "id");
+  const projectId = readTrimmed(formData, "projectId");
+  const statusRaw = readTrimmed(formData, "status");
+  if (!isUuid(id) || !isUuid(projectId) || !isProjectEventStatus(statusRaw)) {
+    redirect("/projects");
+  }
+
+  const project = await getProject(projectId);
+  const event = await getProjectEvent(id);
+  if (!project || !event || event.projectId !== projectId) {
+    redirect("/projects");
+  }
+
+  if (event.status === statusRaw) {
+    redirect("/schedule");
+  }
+
+  await setProjectEventStatus(id, statusRaw);
+  await addNote(
+    projectId,
+    `Event “${event.title}” → ${projectEventStatusLabel(statusRaw).toLowerCase()}.`,
+  );
+  await recordAudit({
+    action: "event.status",
+    summary: `Marked “${event.title}” ${projectEventStatusLabel(statusRaw).toLowerCase()} on “${project.title}”.`,
+    entityType: "event",
+    entityId: id,
+    projectId,
+    before: { status: event.status },
+    after: { status: statusRaw },
+  });
+  revalidateProject(projectId, project.clientId);
+  redirect("/schedule");
+}
+
+export async function deleteProjectEventAction(formData: FormData) {
+  await requireSessionUser();
+  const id = readTrimmed(formData, "id");
+  const projectId = readTrimmed(formData, "projectId");
+  if (!isUuid(id) || !isUuid(projectId)) {
+    redirect("/projects");
+  }
+
+  const project = await getProject(projectId);
+  const event = await getProjectEvent(id);
+  if (!project || !event || event.projectId !== projectId) {
+    redirect("/projects");
+  }
+
+  bounceIfNotConfirmed(formData, `/projects/${projectId}`);
+  await deleteProjectEvent(id);
+  await addNote(projectId, `Removed schedule item “${event.title}”.`);
+  await recordAudit({
+    action: "event.delete",
+    summary: `Removed “${event.title}” on “${project.title}”.`,
+    entityType: "event",
+    entityId: id,
+    projectId,
+    before: event,
     reason: readDeleteReason(formData),
   });
   revalidateProject(projectId, project.clientId);
