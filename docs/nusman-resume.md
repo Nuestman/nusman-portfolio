@@ -68,7 +68,7 @@ PROFESSIONAL DEVELOPMENT & CERTIFICATIONS
 AGA – Cyanide Drills & Evacuation Management Obuasi, Jul 2024
 AGA – Heavy Metals Management Obuasi, Jul 2024
 BLS Provider & Ambulance Training EMS, AGAG Obuasi Mine, May 2024
-St. John Basic First Aid Training SCBC (UMA) – AGAG Obuasi, Apr 2025
+St. John First Aid at Work – St John Ambulance Kumasi, Jun 2026
 3
 AHA Certified BLS Provider American Heart Association, 2021–2023
 Medical Evacuation – Survival Flight 37 Military Camp, Accra, Oct 2023
