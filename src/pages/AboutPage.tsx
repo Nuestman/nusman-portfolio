@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+import { Link } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Download } from 'lucide-react'
 import { Button } from '../components/ui/button'
@@ -35,12 +36,17 @@ const AboutPage: React.FC = () => {
           <p className="text-xl text-gray-700 max-w-3xl mx-auto mb-8">
             Health informatician, emergency nurse, and web developer — building safer care with people and systems
           </p>
-          <Button asChild size="lg" className="px-8">
-            <a href={RESUME_HREF} download>
-              <Download className="w-5 h-5 mr-2" aria-hidden="true" />
-              Download Resume
-            </a>
-          </Button>
+          <div className="flex flex-col items-center justify-center gap-3 sm:flex-row sm:gap-4">
+            <Button asChild size="lg" className="px-8">
+              <Link to="/start">Start a project with me</Link>
+            </Button>
+            <Button asChild variant="outline" size="lg" className="px-8">
+              <a href={RESUME_HREF} download>
+                <Download className="w-5 h-5 mr-2" aria-hidden="true" />
+                Download Resume
+              </a>
+            </Button>
+          </div>
         </motion.div>
 
         <motion.div
