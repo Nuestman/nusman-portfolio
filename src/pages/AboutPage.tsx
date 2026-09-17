@@ -1,12 +1,9 @@
 import React, { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Download } from 'lucide-react'
 import { Button } from '../components/ui/button'
 import { storyTabs, type StoryTabId } from '../data/story'
 import { usePageMeta } from '../hooks/usePageMeta'
-
-const RESUME_HREF = '/docs/Numan-Usman-Resume-June-2026.pdf'
 
 const AboutPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<StoryTabId>('history')
@@ -41,10 +38,7 @@ const AboutPage: React.FC = () => {
               <Link to="/start">Start a project with me</Link>
             </Button>
             <Button asChild variant="outline" size="lg" className="px-8">
-              <a href={RESUME_HREF} download>
-                <Download className="w-5 h-5 mr-2" aria-hidden="true" />
-                Download Resume
-              </a>
+              <Link to="/resume">View Resume</Link>
             </Button>
           </div>
         </motion.div>

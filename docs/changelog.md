@@ -13,6 +13,7 @@
 - **What I Do** intro copy kept; section intros removed from FAQ, What Clients Say, and What I Work With.
 - Testimonials heading: **What Clients Say**.
 - Portfolio link hidden from header, footer, and sitemap until case studies ship (`/portfolio` route kept).
+- Dedicated `/resume` page from CV content; About links to it; PDF download lives on the resume page.
 
 ---
 

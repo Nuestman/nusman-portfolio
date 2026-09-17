@@ -20,6 +20,7 @@ Live site: [nusman.dev](https://nusman.dev)
 | --- | --- |
 | `/` | Home — hero, What I Do, skills, process, testimonials, collaborations, FAQ |
 | `/about` | Background, education, and photo story tabs |
+| `/resume` | Full CV from resume data; PDF download |
 | `/contact` | Contact details and form |
 | `/start` | Start a project form → Desk inbound API |
 | any other path | 404 |

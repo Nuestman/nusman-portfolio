@@ -5,6 +5,7 @@ import Layout from './components/Layout'
 import HomePage from './pages/HomePage'
 
 const AboutPage = lazy(() => import('./pages/AboutPage'))
+const ResumePage = lazy(() => import('./pages/ResumePage'))
 const ContactPage = lazy(() => import('./pages/ContactPage'))
 const StartPage = lazy(() => import('./pages/StartPage'))
 const PortfolioPage = lazy(() => import('./pages/PortfolioPage'))
@@ -23,6 +24,7 @@ function App() {
             <Route path="/" element={<Layout />}>
               <Route index element={<HomePage />} />
               <Route path="about" element={<AboutPage />} />
+              <Route path="resume" element={<ResumePage />} />
               <Route path="portfolio" element={<PortfolioPage />} />
               <Route path="contact" element={<ContactPage />} />
               <Route path="start" element={<StartPage />} />
