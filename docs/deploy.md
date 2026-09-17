@@ -22,7 +22,7 @@ Output directory: `dist`.
 
 Node.js: `package.json` sets `"engines": { "node": "24.x" }` so Vercel stays on 24 and does not jump to the next major. Set Project Settings → Node.js Version to **24.x** so it matches.
 
-SPA routes (`/about`, `/portfolio`, `/contact`, 404) are rewritten to `index.html`. Hashed files under `/assets/` are cached for one year.
+SPA routes (`/about`, `/resume`, `/contact`, `/start`, `/portfolio`, 404) are rewritten to `index.html`. Hashed files under `/assets/` are cached for one year.
 
 ## Environment
 
