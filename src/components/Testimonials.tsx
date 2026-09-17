@@ -65,7 +65,7 @@ const Testimonials: React.FC = () => {
       }}
     >
       <div className="container mx-auto px-4">
-        <div className="text-center mb-12 md:mb-16">
+        <div className="mx-auto mb-12 max-w-3xl text-center md:mb-16">
           <motion.h2
             id="testimonials-heading"
             className="section-heading text-dark-950"
@@ -74,7 +74,7 @@ const Testimonials: React.FC = () => {
             viewport={{ once: true }}
             transition={{ duration: 0.6 }}
           >
-            Testimonials
+            What Clients Say
           </motion.h2>
         </div>
 

@@ -137,7 +137,7 @@ const StartProjectForm: React.FC = () => {
         >
           <h1 className="section-heading mb-6 text-dark-950">Start a project with me</h1>
           <p className="text-xl text-gray-700">
-            Tell me what you need. I&apos;ll open it on my Desk and get back to you quickly.
+            Tell me what you need, and I&apos;ll get back to you soon.
             For a quick hello, use{' '}
             <Link to="/contact" className="text-gold-600 font-semibold hover:underline">
               Contact

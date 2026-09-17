@@ -292,9 +292,9 @@ The public `/playbook` scratch page is gone. The playbook lives on Desk only. Pu
 
 ## Chrome
 
-Main nav: Today, Audit, Clients, Projects, Products, Playbook, Style, Export. **Journal is not in the main nav** — it lives in the account menu with Profile and Sign out, so it is not confused with sign-in or Audit.
+Main nav: Today, Audit, Clients, Projects, Schedule, Messages, Products, Style, Export. **Journal, Notifications, and Playbook are not in the main nav** — they live in the account menu with Profile and Sign out.
 
-The last nav item is the operator photo in a grey chip (`bg-gray-100`, same fill as a secondary button). No gold ring except focus. It opens Profile, Journal, and Sign out. Icons on those rows: person, book, door.
+The last nav item is the operator photo in a grey chip (`bg-gray-100`, same fill as a secondary button). No gold ring except focus. It opens Notifications, Playbook, Profile, Journal, and Sign out.
 
 Header layout:
 
@@ -430,4 +430,4 @@ Do not add Desk links to `Header` / `Footer` / `sitemap.xml`.
 
 ## Immediate next step
 
-Desk **2.1.0** is the current cut (milestones, Resend alerts, Portal start-project / messages hub; surfaces still follow [desk-2.0.md](./desk-2.0.md)). Invite a person from Desk, rewrite package summaries for clients, open intake when ready, keep an export after a real job starts. Later: Portal routing cleanup ([portal.md](./portal.md#later--routing-cleanup-best-practice)); import product databases — only when you choose to, and never by pointing Desk at their `DATABASE_URL`.
+Desk **2.2.0** is the current cut (in-app notifications, on-brand Resend emails, milestones; surfaces still follow [desk-2.0.md](./desk-2.0.md)). Invite a person from Desk, rewrite package summaries for clients, open intake when ready, keep an export after a real job starts. Later: Portal routing cleanup ([portal.md](./portal.md#later--routing-cleanup-best-practice)); import product databases — only when you choose to, and never by pointing Desk at their `DATABASE_URL`.

@@ -77,7 +77,11 @@ import {
 } from "@/lib/labels";
 import { parseDatetimeLocal, formatEventWhen } from "@/lib/text";
 import { INTAKE_QUESTIONS, isOptionStarterSummary } from "@/lib/templates";
-import { notifyClientsOfMilestone, notifyClientsOfSchedule } from "@/lib/notify";
+import {
+  notifyClientsOfMilestone,
+  notifyClientsOfSchedule,
+  notifyClientsOfStage,
+} from "@/lib/notify";
 import type {
   OptionKind,
   ProjectEventKind,
@@ -118,15 +122,15 @@ function bounceIfNotConfirmed(formData: FormData, href: string) {
   }
 }
 
-/** Keep the first checkpoint in sync with Qualify → Real. */
+/** Keep the first checkpoint in sync with Qualify → Real. Returns a mail cue when state changed. */
 async function syncQualifiedMilestoneFromOutcome(
   projectId: string,
   outcome: QualifyOutcome,
-) {
+): Promise<{ label: string; done: boolean } | null> {
   const milestones = await ensureProjectMilestones(projectId);
   const qualified = milestones.find((row) => row.key === "qualified");
   if (!qualified) {
-    return;
+    return null;
   }
 
   const ordered = [...milestones].sort(
@@ -139,19 +143,20 @@ async function syncQualifiedMilestoneFromOutcome(
 
   if (outcome === "real") {
     if (qualified.doneAt) {
-      return;
+      return null;
     }
     await setMilestoneDone(qualified.id, true);
     await addNote(projectId, `Milestone done: ${qualified.label}.`);
-    return;
+    return { label: qualified.label, done: true };
   }
 
   if (!qualified.doneAt || laterDone) {
-    return;
+    return null;
   }
 
   await setMilestoneDone(qualified.id, false);
   await addNote(projectId, `Milestone reopened: ${qualified.label}.`);
+  return { label: qualified.label, done: false };
 }
 
 export async function createProjectAction(
@@ -324,17 +329,28 @@ export async function moveGateAction(formData: FormData) {
     redirect(`/projects/${id}?notice=${block}`);
   }
 
+  const fromLabel = gateGuide(project.currentGate).label;
+  const toLabel = gateGuide(toRaw).label;
   await updateProjectGate(id, toRaw);
-  await addNote(id, `Moved to ${gateGuide(toRaw).label}.`);
+  await addNote(id, `Moved to ${toLabel}.`);
   await recordAudit({
     action: "gate.move",
-    summary: `Moved “${project.title}” to ${gateGuide(toRaw).label}.`,
+    summary: `Moved “${project.title}” to ${toLabel}.`,
     entityType: "project",
     entityId: id,
     projectId: id,
     before: { currentGate: project.currentGate },
     after: { currentGate: toRaw },
   });
+  if (project.workKind === "client") {
+    await notifyClientsOfStage({
+      clientId: project.clientId,
+      projectId: id,
+      projectTitle: project.title,
+      fromLabel,
+      toLabel,
+    });
+  }
   revalidateProject(id, project.clientId);
   redirect(`/projects/${id}`);
 }
@@ -683,7 +699,10 @@ export async function saveQualifyAction(
     );
   }
 
-  await syncQualifiedMilestoneFromOutcome(projectId, outcomeRaw);
+  const milestoneMail = await syncQualifiedMilestoneFromOutcome(
+    projectId,
+    outcomeRaw,
+  );
 
   await recordAudit({
     action: "qualify.save",
@@ -694,6 +713,15 @@ export async function saveQualifyAction(
     before: previousQualify,
     after: nextQualify,
   });
+  if (milestoneMail && project.workKind === "client") {
+    await notifyClientsOfMilestone({
+      clientId: project.clientId,
+      projectId,
+      projectTitle: project.title,
+      milestoneLabel: milestoneMail.label,
+      done: milestoneMail.done,
+    });
+  }
   revalidateProject(projectId, project.clientId);
   redirect(`/projects/${projectId}`);
 }

@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import {
   addNote,
   addPortalMessage,
+  createDeskNotificationsForActiveUsers,
   createProject,
   createProjectEvent,
   ensureIntakeAnswers,
@@ -159,6 +160,17 @@ export async function startPortalProjectAction(
       projectId,
       source: "portal/projects/new",
     },
+  });
+
+  await createDeskNotificationsForActiveUsers({
+    kind: "project_started",
+    title: `Portal project: ${title}`,
+    body: `${person.name} (${client.name}): ${problem.slice(0, 280)}`,
+    href: `/projects/${projectId}`,
+    clientId: client.id,
+    projectId,
+  }).catch((error) => {
+    console.error("Portal project start in-app notify failed", error);
   });
 
   await sendPortalProjectStartedNotifyEmail({

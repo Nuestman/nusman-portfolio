@@ -40,10 +40,7 @@ const Skills: React.FC = () => {
           viewport={{ once: true }}
           transition={{ duration: 0.7 }}
         >
-          <h2 className="section-heading mb-6 text-dark-950">What I Work With</h2>
-          <p className="text-lg md:text-xl text-gray-700 max-w-2xl mx-auto">
-            Technologies I use to design, build, and ship websites and web apps
-          </p>
+          <h2 className="section-heading text-dark-950">What I Work With</h2>
         </motion.div>
 
         <div className="grid md:grid-cols-3 gap-10 lg:gap-12 max-w-6xl mx-auto">

@@ -21,6 +21,7 @@ import {
   projectOptions,
   projectQualify,
   projects,
+  notifications,
   sessions,
   users,
 } from "./schema";
@@ -28,6 +29,7 @@ import type {
   ChangeStatus,
   ClientKind,
   ClientSource,
+  NotificationKind,
   OptionKind,
   PersonRole,
   PortalMessageAuthor,
@@ -2009,4 +2011,213 @@ export async function addPortalMessage(values: {
     throw new Error("Could not create portal message");
   }
   return row.id;
+}
+
+export async function listActiveUsers() {
+  const db = getDb();
+  return db
+    .select(USER_PUBLIC)
+    .from(users)
+    .where(eq(users.active, true))
+    .orderBy(users.createdAt);
+}
+
+export async function listPortalEnabledPeople(clientId: string) {
+  const rows = await listPeople(clientId);
+  return rows.filter((person) => person.portalEnabled);
+}
+
+export async function listDeskNotifications(userId: string) {
+  const db = getDb();
+  return db
+    .select()
+    .from(notifications)
+    .where(
+      and(
+        eq(notifications.audience, "desk"),
+        or(eq(notifications.userId, userId), isNull(notifications.userId)),
+      ),
+    )
+    .orderBy(desc(notifications.createdAt));
+}
+
+export async function listPortalNotifications(personId: string) {
+  const db = getDb();
+  return db
+    .select()
+    .from(notifications)
+    .where(
+      and(
+        eq(notifications.audience, "portal"),
+        eq(notifications.personId, personId),
+      ),
+    )
+    .orderBy(desc(notifications.createdAt));
+}
+
+export async function getNotification(id: string) {
+  const db = getDb();
+  const [row] = await db
+    .select()
+    .from(notifications)
+    .where(eq(notifications.id, id))
+    .limit(1);
+  return row ?? null;
+}
+
+export async function createNotification(values: {
+  audience: "desk" | "portal";
+  kind: NotificationKind;
+  title: string;
+  body: string;
+  href?: string | null;
+  userId?: string | null;
+  personId?: string | null;
+  clientId?: string | null;
+  projectId?: string | null;
+  createdByUserId?: string | null;
+}) {
+  const db = getDb();
+  const [row] = await db
+    .insert(notifications)
+    .values({
+      audience: values.audience,
+      kind: values.kind,
+      title: values.title,
+      body: values.body,
+      href: values.href ?? null,
+      userId: values.userId ?? null,
+      personId: values.personId ?? null,
+      clientId: values.clientId ?? null,
+      projectId: values.projectId ?? null,
+      createdByUserId: values.createdByUserId ?? null,
+    })
+    .returning({ id: notifications.id });
+  if (!row) {
+    throw new Error("Could not create notification");
+  }
+  return row.id;
+}
+
+export async function createDeskNotificationsForActiveUsers(values: {
+  kind: NotificationKind;
+  title: string;
+  body: string;
+  href?: string | null;
+  clientId?: string | null;
+  projectId?: string | null;
+  createdByUserId?: string | null;
+}) {
+  const active = await listActiveUsers();
+  if (active.length === 0) {
+    return [];
+  }
+  const db = getDb();
+  const rows = await db
+    .insert(notifications)
+    .values(
+      active.map((user) => ({
+        audience: "desk" as const,
+        kind: values.kind,
+        title: values.title,
+        body: values.body,
+        href: values.href ?? null,
+        userId: user.id,
+        clientId: values.clientId ?? null,
+        projectId: values.projectId ?? null,
+        createdByUserId: values.createdByUserId ?? null,
+      })),
+    )
+    .returning({ id: notifications.id });
+  return rows.map((row) => row.id);
+}
+
+export async function createPortalNotificationsForPeople(
+  personIds: string[],
+  values: {
+    kind: NotificationKind;
+    title: string;
+    body: string;
+    href?: string | null;
+    clientId?: string | null;
+    projectId?: string | null;
+    createdByUserId?: string | null;
+  },
+) {
+  if (personIds.length === 0) {
+    return [];
+  }
+  const db = getDb();
+  const rows = await db
+    .insert(notifications)
+    .values(
+      personIds.map((personId) => ({
+        audience: "portal" as const,
+        kind: values.kind,
+        title: values.title,
+        body: values.body,
+        href: values.href ?? null,
+        personId,
+        clientId: values.clientId ?? null,
+        projectId: values.projectId ?? null,
+        createdByUserId: values.createdByUserId ?? null,
+      })),
+    )
+    .returning({ id: notifications.id });
+  return rows.map((row) => row.id);
+}
+
+export async function updateNotification(
+  id: string,
+  patch: {
+    title?: string;
+    body?: string;
+    href?: string | null;
+    readAt?: Date | null;
+  },
+) {
+  const db = getDb();
+  await db
+    .update(notifications)
+    .set({ ...patch, updatedAt: new Date() })
+    .where(eq(notifications.id, id));
+}
+
+export async function setNotificationRead(id: string, read: boolean) {
+  await updateNotification(id, { readAt: read ? new Date() : null });
+}
+
+export async function deleteNotification(id: string) {
+  const db = getDb();
+  await db.delete(notifications).where(eq(notifications.id, id));
+}
+
+export async function countUnreadDeskNotifications(userId: string) {
+  const db = getDb();
+  const [row] = await db
+    .select({ value: count() })
+    .from(notifications)
+    .where(
+      and(
+        eq(notifications.audience, "desk"),
+        or(eq(notifications.userId, userId), isNull(notifications.userId)),
+        isNull(notifications.readAt),
+      ),
+    );
+  return row?.value ?? 0;
+}
+
+export async function countUnreadPortalNotifications(personId: string) {
+  const db = getDb();
+  const [row] = await db
+    .select({ value: count() })
+    .from(notifications)
+    .where(
+      and(
+        eq(notifications.audience, "portal"),
+        eq(notifications.personId, personId),
+        isNull(notifications.readAt),
+      ),
+    );
+  return row?.value ?? 0;
 }

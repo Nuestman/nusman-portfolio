@@ -18,7 +18,7 @@ export const storyTabs: StoryTab[] = [
     icon: Monitor,
     image: '/images/story/story-history.png',
     imageAlt: 'Caricature of Usman tinkering with a computer',
-    body: "Computers caught my attention early — as a teenager in high school I was already opening machines, fixing software problems, and helping anyone who asked. That curiosity turned into over a decade of freelance PC and software repair. When I began building websites and web apps, something clicked: the same instinct to diagnose a broken system could improve how clinics and emergency teams share information. That thread — from tinkering to tools that serve care — is what pulled me into health informatics.",
+    body: "Computers caught my attention early as a teenager in high school, and I was already opening machines, fixing software problems, and helping anyone who asked. That curiosity turned into over a decade of freelance PC and software repair. When I began building websites and web apps, i felt the same instinct to diagnose a broken system could improve how clinics and emergency teams share information. That thread — from tinkering to tools that serve care — is what pulled me into health informatics.",
   },
   {
     id: 'education',
@@ -34,7 +34,7 @@ export const storyTabs: StoryTab[] = [
     icon: Briefcase,
     image: '/images/story/story-experience.png',
     imageAlt: 'Caricature of Usman in safety helmet and reflective emergency gear with radio and first aid kit',
-    body: "My career grew from the casualty floor upward. At Sampa Government Hospital I helped build and run emergency services with limited resources — establishing triage, training staff for mass-casualty roles, and shaping day-to-day protocols. At AGAHF in Obuasi I moved from emergency nurse to Senior Nursing Officer and Supervisor of the Emergency Response Unit, overseeing first aid posts, inventory, patient data, and incident reporting for the mine and community. I've modernized response workflows with digital tools, facilitated BLS training, completed underground familiarization, and was named the 2025 GRNMA District Best Nurse for Obuasi. Through the Usmaniyya Foundation I also take bystander CPR and basic emergency care into the community.",
+    body: "My career grew from the casualty floor upward. At Sampa Government Hospital I helped establish the Casualty Unit and run emergency services with limited resources — establishing triage, training staff for mass-casualty roles, and shaping day-to-day protocols. At AGAHF in Obuasi I am currently the Supervisor of the Emergency Response Unit where I've modernized response workflows with digital tools, facilitated BLS training, under mine rescue training, and was named the 2025 GRNMA District Best Nurse for Obuasi East District. Through the Usmaniyya Foundation I also take bystander CPR and basic emergency care into the community.",
   },
   {
     id: 'emnurse',

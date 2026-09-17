@@ -2,6 +2,7 @@ import {
   USER_ROLES,
   CHANGE_STATUSES,
   CLIENT_SOURCES,
+  NOTIFICATION_KINDS,
   OPTION_KINDS,
   PERSON_ROLES,
   PROJECT_EVENT_KINDS,
@@ -11,6 +12,7 @@ import {
   WORK_KINDS,
   type ChangeStatus,
   type ClientSource,
+  type NotificationKind,
   type OptionKind,
   type PersonRole,
   type ProjectEventKind,
@@ -218,6 +220,37 @@ export function projectEventStatusLabel(status: ProjectEventStatus): string {
       return "Completed";
     default: {
       const _exhaustive: never = status;
+      return _exhaustive;
+    }
+  }
+}
+
+export function isNotificationKind(value: string): value is NotificationKind {
+  return (NOTIFICATION_KINDS as readonly string[]).includes(value);
+}
+
+export function notificationKindLabel(kind: NotificationKind): string {
+  switch (kind) {
+    case "message":
+      return "Message";
+    case "schedule":
+      return "Schedule";
+    case "milestone":
+      return "Milestone";
+    case "stage":
+      return "Stage";
+    case "project_started":
+      return "Project started";
+    case "portal_access":
+      return "Portal access";
+    case "inbound":
+      return "Inbound";
+    case "manual":
+      return "Notice";
+    case "system":
+      return "System";
+    default: {
+      const _exhaustive: never = kind;
       return _exhaustive;
     }
   }

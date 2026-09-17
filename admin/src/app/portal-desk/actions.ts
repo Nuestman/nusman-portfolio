@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import {
   addPortalMessage,
+  createNotification,
   getClient,
   getPerson,
   getProject,
@@ -82,6 +83,17 @@ export async function setPersonPortalEnabledAction(
   if (enabled && person.email && !person.portalEnabled) {
     const issued = await issuePortalMagicLink(personId);
     link = issued?.url ?? null;
+    await createNotification({
+      audience: "portal",
+      kind: "portal_access",
+      title: "Portal access is ready",
+      body: `You can sign in for ${client.name} and follow progress, schedule, and messages.`,
+      href: "/login",
+      personId,
+      clientId: client.id,
+    }).catch((error) => {
+      console.error("Portal access in-app notify failed", error);
+    });
     const mailed = await sendPortalAccessGrantedEmail({
       to: person.email,
       name: person.name,

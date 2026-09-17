@@ -1,5 +1,21 @@
 # Changelog
 
+## 17 Sep 2026 — Desk 2.2.0 / Portal 1.2 · public 4.1.2
+
+### Desk / Portal (`admin/` → **2.2.0**)
+
+- **In-app notifications** — migration `0012_notifications`; Desk + Portal `/notifications` (feed + table views). System events that email also write inbox rows; Desk can compose manual notices. Edit only if you sent it; Portal is mark-read / delete only.
+- **Email branding** — shared HTML wrapper + CID-attached square logo (`email-brand.ts`); stage and milestone alerts use the same on-brand layout and logging.
+- **Chrome** — Notifications and Playbook live in the account menu (not main nav). Portal account menu includes Notifications.
+
+### Public site (**4.1.2**)
+
+- **What I Do** intro copy kept; section intros removed from FAQ, What Clients Say, and What I Work With.
+- Testimonials heading: **What Clients Say**.
+- Portfolio link hidden from header, footer, and sitemap until case studies ship (`/portfolio` route kept).
+
+---
+
 ## 16 Sep 2026 — Desk 2.1.0 / Portal 1.1 · public 4.1.1
 
 ### Desk / Portal (`admin/` → **2.1.0**)
