@@ -17,6 +17,7 @@ const NAV = [
 ] as const;
 
 const PORTAL_ACCOUNT_LINKS = [
+  { href: "/notifications", label: "Notifications", icon: "notifications" as const },
   { href: "/profile", label: "Profile", icon: "profile" as const },
 ] as const;
 

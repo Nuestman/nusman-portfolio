@@ -2,6 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import {
   addNote,
   createClient,
+  createDeskNotificationsForActiveUsers,
   createPerson,
   createProject,
   deleteClient,
@@ -313,6 +314,19 @@ export async function POST(request: NextRequest) {
     });
 
     const base = deskPublicBaseUrl();
+    await createDeskNotificationsForActiveUsers({
+      kind: "inbound",
+      title: `Inbound lead: ${oneLine(name)}`,
+      body: organisation
+        ? `${oneLine(organisation)} — ${problem.slice(0, 240)}`
+        : problem.slice(0, 280),
+      href: `/projects/${projectId}`,
+      clientId,
+      projectId,
+    }).catch((error) => {
+      console.error("Inbound lead in-app notify failed", error);
+    });
+
     const mail = await sendInboundLeadEmail({
       to: notifyRecipients(),
       name: oneLine(name),

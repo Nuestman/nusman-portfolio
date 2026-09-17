@@ -1,5 +1,7 @@
 /** Shared Resend helpers for Desk + Portal transactional email. */
 
+import { emailLogoAttachment } from "@/lib/email-brand";
+
 export type SendEmailResult = {
   sent: boolean;
   configured: boolean;
@@ -70,7 +72,10 @@ export async function sendResendEmail(input: {
   to: string | string[];
   subject: string;
   text: string;
+  html?: string;
   replyTo?: string | null;
+  /** When true (default if html set), attach the brand logo as a CID inline image. */
+  attachLogo?: boolean;
 }): Promise<SendEmailResult> {
   const apiKey = resendApiKey();
   const from = mailFromAddress();
@@ -85,6 +90,20 @@ export async function sendResendEmail(input: {
     return { sent: false, configured: true, error: "No recipients." };
   }
 
+  const attachLogo = input.attachLogo ?? Boolean(input.html);
+  const attachments: Array<{
+    filename: string;
+    content: string;
+    content_id: string;
+    content_type: string;
+  }> = [];
+  if (attachLogo && input.html) {
+    const logo = await emailLogoAttachment();
+    if (logo) {
+      attachments.push(logo);
+    }
+  }
+
   try {
     const response = await fetch("https://api.resend.com/emails", {
       method: "POST",
@@ -97,6 +116,8 @@ export async function sendResendEmail(input: {
         to,
         subject: input.subject,
         text: input.text,
+        ...(input.html ? { html: input.html } : {}),
+        ...(attachments.length > 0 ? { attachments } : {}),
         ...(input.replyTo ? { reply_to: input.replyTo } : {}),
       }),
     });

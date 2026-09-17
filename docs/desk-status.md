@@ -1,14 +1,14 @@
 # Desk status
 
-Checked 16 Sep 2026 against the code in `admin/`. Product version: **2.1.0** (`admin/package.json`). Product rules: [desk-2.0.md](./desk-2.0.md) (wins) and [desk.md](./desk.md). Portal: [portal.md](./portal.md). Archive: [archive/desk-1.1.md](./archive/desk-1.1.md). Visual: [style-guide.md](./style-guide.md). Deploy: [deploy.md](./deploy.md). Update this file when something ships or an open item is closed.
+Checked 17 Sep 2026 against the code in `admin/`. Product version: **2.2.0** (`admin/package.json`). Product rules: [desk-2.0.md](./desk-2.0.md) (wins) and [desk.md](./desk.md). Portal: [portal.md](./portal.md). Archive: [archive/desk-1.1.md](./archive/desk-1.1.md). Visual: [style-guide.md](./style-guide.md). Deploy: [deploy.md](./deploy.md). Update this file when something ships or an open item is closed.
 
-Desk **2.1.0** / Portal **1.1** are usable. Public site **4.1.1** posts `/start` leads into Desk.
+Desk **2.2.0** / Portal **1.2** are usable. Public site **4.1.2** posts `/start` leads into Desk.
 
 ---
 
 ## Live
 
-Hiring jobs with gate records, **process milestones**, table-row edit/remove, playbook on Desk, multi-format export, own products as records, an audit trail with before/after, operator profiles, sessions for device revoke, **Portal** (magic link + start project), **Messages** inbox (compose new), **Schedule** hubs (Cards/Calendar), **Resend alerts** (messages, schedule, milestones, inbound receipt, portal access), and **inbound leads** from the public `/start` form.
+Hiring jobs with gate records, **process milestones**, table-row edit/remove, playbook on Desk, multi-format export, own products as records, an audit trail with before/after, operator profiles, sessions for device revoke, **Portal** (magic link + start project), **Messages** inbox (compose new), **Schedule** hubs (Cards/Calendar), **Resend alerts** (on-brand HTML + CID logo; messages, schedule, milestones, stages, inbound receipt, portal access), **in-app notifications** (feed + table; complements email), and **inbound leads** from the public `/start` form.
 
 ### Routes
 
@@ -22,6 +22,7 @@ Hiring jobs with gate records, **process milestones**, table-row edit/remove, pl
 | `/schedule` | Live. Hub: Cards / Calendar; create/edit still on project |
 | `/projects` … gate records, notes, options, changes, demos, **milestones** | Live. Current gate first; earlier stages collapsed; timeline; **Schedule** (`project_events`); portal strip; Qualify Real ↔ qualified milestone |
 | `/messages`, `/messages/new`, `/messages/[projectId]` | Live. Chat-style portal conversation inbox, compose, reply |
+| `/notifications`, `/notifications/new`, `/notifications/[id]/edit` | Live. Feed + table; compose + edit only if you sent it |
 | `/products`, `/products/new` | Live. Own-product records only |
 | `/playbook` | Live on Desk. Public scratch page is gone |
 | `/style` | Live specimens. Live header is the account-menu specimen |
@@ -39,6 +40,7 @@ Hiring jobs with gate records, **process milestones**, table-row edit/remove, pl
 | `/projects`, `/projects/new`, `/projects/[id]` | Live. List, start project, progress / package / updates / milestones strip |
 | `/projects/[id]/intake`, `/projects/[id]/schedule` | Live |
 | `/messages`, `/messages/[projectId]` | Live. Hub + thread (aligned with Desk messages UX) |
+| `/notifications` | Live. Feed + table — mark read / delete only (account menu) |
 | `/schedule` | Live. Wide hub: Cards / Calendar; confirm/decline/cancel; request |
 
 `/projects*` uses dual-mode pages (no proxy rewrite) so soft-nav does not 404 — cleanup note in [portal.md](./portal.md#later--routing-cleanup-best-practice).
@@ -61,6 +63,7 @@ Migrations on Neon **nusmandotdev** (`sparkling-art-67399165`) only:
 | `0009_project_events` | Scheduler events |
 | `0010_process_milestones` | `project_milestones`; `plan` gate enum; qualify `budget_note` |
 | `0011_process_gate_remap` | Remap intake→discover, propose/agree→plan |
+| `0012_notifications` | `notifications` inbox for Desk + Portal |
 
 Apply from `admin/` with `npm run db:migrate`. Do not point `DATABASE_URL` at Mineaid, Uventory, church, or any other Neon project.
 
@@ -78,11 +81,11 @@ Apply from `admin/` with `npm run db:migrate`. Do not point `DATABASE_URL` at Mi
 
 ### Chrome (as built)
 
-Main nav: Today, Audit, Clients, Projects, **Schedule**, Messages, Products, Playbook, Style, Export.
+Main nav: Today, Audit, Clients, Projects, **Schedule**, Messages, Products, Style, Export.
 
-Account menu (last nav item): grey chip (`bg-gray-100 hover:bg-gray-200`), no gold ring except focus. Opens Profile, Journal, Sign out. Inline SVG icons (person, book, door). Journal is not in the main nav so it is not confused with sign-in or Audit.
+Account menu (last nav item): grey chip (`bg-gray-100 hover:bg-gray-200`), no gold ring except focus. Opens **Notifications**, **Playbook**, Profile, Journal, Sign out. Inline SVG icons. Journal, Notifications, and Playbook are not in the main nav.
 
-Portal header mirrors Desk chrome; account chip opens Profile and Sign out.
+Portal header mirrors Desk chrome; account chip opens Notifications, Profile, and Sign out.
 
 Header: hamburger `<500px`; stacked centred logo + wrapping nav `500–1023px` (logo in normal flow); one row `1024px+`.
 
@@ -108,10 +111,11 @@ These are leftover product work, not bugs in the last UI pass.
 
 ### Portal / messages
 
-- No unread badges on new portal messages (email alerts ship when Resend is configured).
+- No unread badges on new portal messages or the notifications account-menu entry (email + inbox rows ship when Resend / notify helpers run).
 - Operator replies do not store which operator wrote them (`author_kind` only).
 - Chosen package with leftover coaching text in `summary` must be rewritten on Desk before Choose / before Portal looks complete.
 - **Routing cleanup (later):** collapse Desk/Portal overlapping `/projects*` trees so soft-nav does not need dual-mode. See [portal.md](./portal.md#later--routing-cleanup-best-practice).
+- **Stages vs milestones (later):** the process strip (Qualify → … → Launch) and the milestone checklist read as two copies of the same progress story. Decide one client-facing progress model (stage-only, milestones-only, or a single merged control) and stop maintaining both as parallel UI. Keep Qualify Real ↔ `qualified` sync until that cleanup; do not add more stage↔milestone pairs until then.
 
 ### Security (intentional for v1)
 
@@ -140,4 +144,4 @@ Not a new phase unless you choose one:
 3. Add other operators from Profile when you need them.
 4. Later, import product databases — only when you choose to, and never by pointing Desk at their `DATABASE_URL`.
 
-Possible later work if you ask for it: Portal routing cleanup (one module per public URL — [portal.md](./portal.md#later--routing-cleanup-best-practice)); unread message badges; operator identity on replies; owner edit / password-reset for other operators; sweep expired sessions; require authenticator for all operators; Neon snapshots; product-data import.
+Possible later work if you ask for it: Portal routing cleanup (one module per public URL — [portal.md](./portal.md#later--routing-cleanup-best-practice)); stages/milestones duplication cleanup (one progress model); unread badges on messages / notifications; operator identity on replies; owner edit / password-reset for other operators; sweep expired sessions; require authenticator for all operators; Neon snapshots; product-data import.

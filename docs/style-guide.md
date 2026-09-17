@@ -213,8 +213,8 @@ Compact (`<500px`): hamburger, square logo, no “Desk” wordmark. `500px`–`1
 Last nav item. Identity, not a marketing caricature.
 
 - Chip: `bg-gray-100 hover:bg-gray-200` (same fill as `secondary`), circular photo, **no gold ring at rest**. Gold ring only on `focus-visible`.
-- Menu: Profile, Journal, Sign out. Ink rows, grey hover. Inline SVG icons (person, book, door) — not lucide, not Framer.
-- Journal lives here, not in the main nav.
+- Menu: Notifications, Playbook, Profile, Journal, Sign out. Ink rows, grey hover. Inline SVG icons — not lucide, not Framer.
+- Journal, Notifications, and Playbook live here, not in the main nav. Portal account menu: Notifications, Profile, Sign out.
 
 The live header is the specimen. `/style` #nav describes it in copy and does not mount a dummy dropdown.
 

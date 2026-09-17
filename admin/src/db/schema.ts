@@ -516,3 +516,68 @@ export const projectEvents = pgTable(
     ),
   ],
 );
+
+export const NOTIFICATION_AUDIENCES = ["desk", "portal"] as const;
+export type NotificationAudience = (typeof NOTIFICATION_AUDIENCES)[number];
+
+export const NOTIFICATION_KINDS = [
+  "message",
+  "schedule",
+  "milestone",
+  "stage",
+  "project_started",
+  "portal_access",
+  "inbound",
+  "manual",
+  "system",
+] as const;
+export type NotificationKind = (typeof NOTIFICATION_KINDS)[number];
+
+export const notificationAudienceEnum = pgEnum(
+  "notification_audience",
+  NOTIFICATION_AUDIENCES,
+);
+export const notificationKindEnum = pgEnum(
+  "notification_kind",
+  NOTIFICATION_KINDS,
+);
+
+export const notifications = pgTable(
+  "notifications",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    audience: notificationAudienceEnum("audience").notNull(),
+    kind: notificationKindEnum("kind").notNull().default("system"),
+    userId: uuid("user_id").references(() => users.id, { onDelete: "cascade" }),
+    personId: uuid("person_id").references(() => people.id, {
+      onDelete: "cascade",
+    }),
+    clientId: uuid("client_id").references(() => clients.id, {
+      onDelete: "set null",
+    }),
+    projectId: uuid("project_id").references(() => projects.id, {
+      onDelete: "set null",
+    }),
+    title: text("title").notNull(),
+    body: text("body").notNull(),
+    href: text("href"),
+    readAt: timestamp("read_at", { withTimezone: true }),
+    createdByUserId: uuid("created_by_user_id").references(() => users.id, {
+      onDelete: "set null",
+    }),
+    ...timestamps,
+  },
+  (table) => [
+    index("notifications_desk_user_idx").on(
+      table.audience,
+      table.userId,
+      table.createdAt,
+    ),
+    index("notifications_portal_person_idx").on(
+      table.audience,
+      table.personId,
+      table.createdAt,
+    ),
+    index("notifications_read_at_idx").on(table.readAt),
+  ],
+);

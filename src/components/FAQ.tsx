@@ -56,10 +56,9 @@ const FAQ: React.FC = () => {
       />
 
       <div className="container mx-auto px-4 relative z-10">
-        {/* Header */}
-        <div className="text-center mb-16">
+        <div className="mb-16 text-center">
           <motion.h2
-            className="section-heading mb-6 text-dark-950"
+            className="section-heading text-dark-950"
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
@@ -67,15 +66,6 @@ const FAQ: React.FC = () => {
           >
             Frequently Asked Questions
           </motion.h2>
-          <motion.p
-            className="text-xl md:text-2xl text-dark-950/80 font-medium max-w-3xl mx-auto"
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6, delay: 0.2 }}
-          >
-            We curated responses to some of the most frequent queries here for you; have a look at them.
-          </motion.p>
         </div>
 
         {/* FAQ Grid */}

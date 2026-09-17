@@ -63,6 +63,7 @@ Magic link rows: hashed token, person_id, expires_at, used_at. One-time use.
 | `/projects/[id]/intake` | Edit intake when open |
 | `/projects/[id]/schedule` | Project-scoped schedule |
 | `/messages`, `/messages/[projectId]` | Messages hub + thread |
+| `/notifications` | In-app inbox (mark read / delete; account menu) |
 | `/schedule` | Client schedule hub |
 
 ---
@@ -70,7 +71,7 @@ Magic link rows: hashed token, person_id, expires_at, used_at. One-time use.
 ## Schema
 
 - Migration `0008_portal`: `portal_magic_links`, `portal_sessions`, `portal_messages`; `people.portal_enabled`, `projects.portal_intake_open`, `project_notes.client_visible`
-- Later Desk migrations also affect Portal surfaces: `0009_project_events` (schedule), `0010`/`0011` (milestones + gate remap) — see [desk-status.md](./desk-status.md)
+- Later Desk migrations also affect Portal surfaces: `0009_project_events` (schedule), `0010`/`0011` (milestones + gate remap), `0012_notifications` (in-app inbox) — see [desk-status.md](./desk-status.md)
 
 ---
 
@@ -145,6 +146,7 @@ Add domain `portal.nusman.dev` on the same Vercel project as Desk. Magic links u
 8. Client-facing package summaries — done  
 9. Portal profile / account chip — done  
 10. Start project, messages hub, Resend alerts, `/projects*` soft-nav dual-mode — done (Portal **1.1** / Desk **2.1.0**)  
+11. In-app notifications (feed + table; mark read / delete) + on-brand email shell — done (Portal **1.2** / Desk **2.2.0**)  
 
 ---
 

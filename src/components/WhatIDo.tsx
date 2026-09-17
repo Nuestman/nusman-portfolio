@@ -15,15 +15,27 @@ const WhatIDo: React.FC = () => {
   return (
     <section id="what-i-do" className="py-24 bg-gray-50">
       <div className="container mx-auto px-4">
-        <motion.h2
-          className="section-heading text-center text-dark-950 mb-16"
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6 }}
-        >
-          What I Do
-        </motion.h2>
+        <div className="mx-auto mb-16 max-w-3xl text-center">
+          <motion.h2
+            className="section-heading mb-6 text-dark-950"
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+          >
+            What I Do
+          </motion.h2>
+          <motion.p
+            className="mx-auto max-w-xl text-lg leading-relaxed text-dark-950/75 md:text-xl"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5, delay: 0.1 }}
+          >
+            I build practical systems and tools for people and organizations
+            that help teams care, sell, serve, and stay organised.
+          </motion.p>
+        </div>
 
         <div className="grid grid-cols-2 md:grid-cols-3 gap-4 max-w-3xl mx-auto">
           {services.map((service, index) => {

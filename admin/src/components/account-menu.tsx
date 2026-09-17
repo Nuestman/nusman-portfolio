@@ -9,9 +9,11 @@ import { cn } from "@/lib/utils";
 
 export type AccountMenuVariant = "panel" | "menu";
 
-type AccountIconKind = "profile" | "journal" | "signOut";
+type AccountIconKind = "profile" | "journal" | "notifications" | "playbook" | "signOut";
 
 const ACCOUNT_LINKS = [
+  { href: "/notifications", label: "Notifications", icon: "notifications" },
+  { href: "/playbook", label: "Playbook", icon: "playbook" },
   { href: "/profile", label: "Profile", icon: "profile" },
   { href: "/log", label: "Journal", icon: "journal" },
 ] as const;
@@ -54,6 +56,20 @@ function AccountIcon({
           <path d="M5 4h11a2 2 0 0 1 2 2v14H8a3 3 0 0 0-3 3V4z" />
           <path d="M5 4a3 3 0 0 0-3 3v14" />
           <path d="M9 9h6M9 13h6" />
+        </svg>
+      );
+    case "notifications":
+      return (
+        <svg {...shared}>
+          <path d="M6 9a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9" />
+          <path d="M10.3 20a1.7 1.7 0 0 0 3.4 0" />
+        </svg>
+      );
+    case "playbook":
+      return (
+        <svg {...shared}>
+          <path d="M4 5a2 2 0 0 1 2-2h9l5 5v11a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V5z" />
+          <path d="M14 3v5h5M8 13h8M8 17h5" />
         </svg>
       );
     case "signOut":
