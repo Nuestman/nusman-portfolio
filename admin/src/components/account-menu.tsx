@@ -167,16 +167,39 @@ function iconSize(variant: AccountMenuVariant): number {
   }
 }
 
+function unreadLabel(count: number): string {
+  if (count > 99) {
+    return "99+";
+  }
+  return String(count);
+}
+
+function CountBubble({ count }: { count: number }) {
+  if (count < 1) {
+    return null;
+  }
+  return (
+    <span
+      aria-hidden="true"
+      className="absolute -right-1.5 -top-1.5 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-gold-500 px-1 text-[10px] font-semibold leading-none text-white"
+    >
+      {unreadLabel(count)}
+    </span>
+  );
+}
+
 export function AccountMenu({
   profile,
   pathname,
   variant,
+  unreadCount = 0,
   links = ACCOUNT_LINKS,
   logoutAction = logout,
 }: {
   profile: { name: string; imageSrc: string | null } | null;
   pathname: string;
   variant: AccountMenuVariant;
+  unreadCount?: number;
   links?: ReadonlyArray<{
     href: string;
     label: string;
@@ -245,24 +268,44 @@ export function AccountMenu({
     <li ref={rootRef} className="relative shrink-0">
       <button
         type="button"
-        className="inline-flex items-center gap-1.5 rounded-md bg-gray-100 py-1 pl-1 pr-2 text-gray-900 transition-colors duration-300 hover:bg-gray-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold-500 focus-visible:ring-offset-2"
-        aria-label="Account"
+        className="inline-flex items-center gap-1.5 overflow-visible rounded-md bg-gray-100 py-1 pl-1 pr-2 text-gray-900 transition-colors duration-300 hover:bg-gray-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold-500 focus-visible:ring-offset-2"
+        aria-label={
+          unreadCount > 0
+            ? `Account, ${unreadCount} unread`
+            : "Account"
+        }
         aria-haspopup="true"
         aria-expanded={open}
         aria-controls={open ? menuId : undefined}
         onClick={() => setOpen((current) => !current)}
       >
         <UserAvatar name={profile.name} src={profile.imageSrc} size={32} />
+        <span className="relative mr-0.5 inline-flex text-dark-950">
+          <AccountIcon kind="notifications" size={18} />
+          <CountBubble count={unreadCount} />
+        </span>
         <Chevron open={open} />
       </button>
       {open ? (
         <ul id={menuId} className={listClass(variant)}>
           {links.map((item) => {
             const active = accountLinkIsActive(pathname, item.href);
+            const showUnread = item.icon === "notifications" && unreadCount > 0;
             return (
               <li key={item.href}>
-                <Link href={item.href} className={itemClass(variant, active)}>
-                  <AccountIcon kind={item.icon} size={glyph} />
+                <Link
+                  href={item.href}
+                  className={itemClass(variant, active)}
+                  aria-label={
+                    showUnread
+                      ? `${item.label}, ${unreadCount} unread`
+                      : undefined
+                  }
+                >
+                  <span className="relative inline-flex">
+                    <AccountIcon kind={item.icon} size={glyph} />
+                    {showUnread ? <CountBubble count={unreadCount} /> : null}
+                  </span>
                   {item.label}
                 </Link>
               </li>

@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import {
   listPeople,
   listPortalProjectsForClient,
@@ -11,6 +12,10 @@ import { PortalRequestMeetingForm } from "@/app/portal/projects/request-meeting-
 import { PortalScheduleList } from "@/app/portal/projects/schedule-list";
 
 export const dynamic = "force-dynamic";
+
+export const metadata: Metadata = {
+  title: "Schedule",
+};
 
 export default async function PortalScheduleHubPage() {
   const { person, client } = await requirePortalPerson();
@@ -32,7 +37,7 @@ export default async function PortalScheduleHubPage() {
   }));
 
   return (
-    <PortalShell width="6xl">
+    <PortalShell>
       <div>
         <h1 className="section-heading">Schedule</h1>
         <p className="mt-2 max-w-2xl text-gray-700">

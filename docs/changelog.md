@@ -1,5 +1,26 @@
 # Changelog
 
+## 20 Sep 2026 — Desk 2.4.0 / Portal 1.4 · public 4.1.3
+
+### Desk / Portal (`admin/` → **2.4.0**)
+
+- **Canvas** — Desk and Portal share a `max-w-[1400px]` frame (`PAGE_FRAME_CLASS`). PageSpread (intro + optional rail) on most screens; Portal brief / questions stay a centered `max-w-3xl` reading column.
+- **Project page** — work column plus sticky notes timeline (`project-timeline` + `scroll-chain`). Card titles are gold Odibee; card header actions are outline buttons.
+- **You card** — shared `profile-you-view`: Desk stacks in the rail; Portal splits photo + large type. Missing photos use `/avatars/default-user.png` (gold circle, white silhouette, no ring).
+- **Account chrome** — avatar chip includes the notifications bell and unread count; Notifications row in the menu shows the same bubble.
+- **Portal Progress** — stage heading, gold bar, problem/success panel, gold-spine checkpoints (done / current / upcoming). No strikethrough list.
+- **Portal schedule** — project schedule matches Desk cards; confirm / decline / cancel with `next` return.
+- **Project brief vs questions** — `/projects/[id]/brief` is the locked client document (package, deadline, problem, success, in/out scope; empty fields show “—”). `/projects/[id]/intake` is the questions form only, and only while intake is open. Dual-mode alias under Desk `/projects/[id]/brief`.
+- **Messages** — Plain / rich composer (`MessageComposer`). Rich mode is self-hosted TinyMCE 8 GPL (`licenseKey="gpl"`), copied to `public/tinymce` on install/build (gitignored). Toolbar: headings, bold/italic/underline/strike, lists, checklist, blockquote, code sample, link, table. HTML is sanitized on save and on render (`sanitize-html`); inbox previews and email alerts use plain-text excerpts.
+- **Client source** — migration `0013_client_source_expand` adds `family_friends` and `work_colleague`. Public `/start` and Desk client form share heard-about options; Other requires a detail line. Inbound stores the chosen source (not always `inbound`).
+- **Shared selects** — `form-options.ts`: timeline and budget on Qualify, Portal start-project, and public `/start`; operator titles on Profile.
+
+### Public site (**4.1.3**)
+
+- `/start` — timeline and budget selects; required “How did you hear about us?”; Other detail field; posts the chosen source to Desk inbound.
+
+---
+
 ## 17 Sep 2026 — Desk 2.2.0 / Portal 1.2 · public 4.1.2
 
 ### Desk / Portal (`admin/` → **2.2.0**)

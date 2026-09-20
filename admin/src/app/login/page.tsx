@@ -1,13 +1,19 @@
 import Image from "next/image";
+import type { Metadata } from "next";
 import { credentialsConfigured, readPendingLogin } from "@/lib/auth";
 import { safeInternalPath } from "@/lib/paths";
 import { shouldServePortalUi } from "@/lib/serve-portal";
+import { dualModeMetadata } from "@/lib/surface-meta";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import PortalLoginPage from "@/app/portal/login/page";
 import { LoginForm } from "./login-form";
 import { TotpForm } from "./totp-form";
 
 export const dynamic = "force-dynamic";
+
+export async function generateMetadata(): Promise<Metadata> {
+  return dualModeMetadata("Sign in");
+}
 
 type LoginPageProps = {
   searchParams: Promise<{ from?: string | string[]; notice?: string | string[] }>;
@@ -40,7 +46,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
               height={72}
               className="mb-2 h-16 w-16 object-contain"
             />
-            <h1 className="font-heading text-2xl text-dark-950">Desk</h1>
+            <h1 className="font-heading text-2xl text-gold-500">Desk</h1>
             <p className="text-sm text-gray-600">
               Private workbench for the nusman.dev practice.
             </p>

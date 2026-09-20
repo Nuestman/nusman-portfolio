@@ -1,10 +1,11 @@
 import Link from "next/link";
-import { cn } from "@/lib/utils";
+import { messageBodyPlainText } from "@/lib/message-body";
 import {
   formatChatTime,
   initialsFromName,
   snippet,
 } from "@/lib/text";
+import { cn } from "@/lib/utils";
 
 export type ConversationListItem = {
   projectId: string;
@@ -49,14 +50,15 @@ export function ConversationList({
           perspective === "portal" ? row.projectTitle : row.clientName;
         const subtitle =
           perspective === "portal" ? "Usman" : row.projectTitle;
+        const plainLast = messageBodyPlainText(row.lastBody) || row.lastBody;
         const preview =
           perspective === "portal"
             ? row.lastAuthorKind === "client"
-              ? `You: ${snippet(row.lastBody, 56)}`
-              : snippet(row.lastBody, 64)
+              ? `You: ${snippet(plainLast, 56)}`
+              : snippet(plainLast, 64)
             : row.lastAuthorKind === "operator"
-              ? `You: ${snippet(row.lastBody, 56)}`
-              : snippet(row.lastBody, 64);
+              ? `You: ${snippet(plainLast, 56)}`
+              : snippet(plainLast, 64);
         return (
           <li key={row.projectId}>
             <Link

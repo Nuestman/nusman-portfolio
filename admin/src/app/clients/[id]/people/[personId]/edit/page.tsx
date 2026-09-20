@@ -3,6 +3,7 @@ import { notFound, redirect } from "next/navigation";
 import { getSessionEmail } from "@/lib/auth";
 import { getClient, getPerson } from "@/db/queries";
 import { DeskShell } from "@/components/desk-shell";
+import { PageSpread } from "@/components/page-spread";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { isUuid } from "@/lib/ids";
 import { linkClassName } from "@/lib/links";
@@ -34,18 +35,17 @@ export default async function EditPersonPage({ params }: EditPersonPageProps) {
   const email = await getSessionEmail();
 
   return (
-    <DeskShell email={email} width="3xl">
-        <div>
-          <Link
-            href={`/clients/${id}`}
-            className={linkClassName("back")}
-          >
-            ← {person.name}
-          </Link>
-          <h1 className="mt-3 section-heading">
-            Edit person
-          </h1>
-        </div>
+    <DeskShell email={email}>
+      <PageSpread
+        intro={
+          <>
+            <Link href={`/clients/${id}`} className={linkClassName("back")}>
+              ← {person.name}
+            </Link>
+            <h1 className="mt-3 section-heading">Edit person</h1>
+          </>
+        }
+      >
         <Card>
           <CardHeader>
             <CardTitle>Person</CardTitle>
@@ -82,6 +82,7 @@ export default async function EditPersonPage({ params }: EditPersonPageProps) {
             />
           </CardContent>
         </Card>
+      </PageSpread>
     </DeskShell>
   );
 }

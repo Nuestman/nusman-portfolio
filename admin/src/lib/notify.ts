@@ -15,6 +15,7 @@ import {
   sendStageNotifyEmail,
 } from "@/lib/notify-email";
 import type { NotificationKind } from "@/db/schema";
+import { messageBodyPlainText } from "@/lib/message-body";
 
 /** Never throw — alerts must not block the primary action. */
 async function safe(run: () => Promise<unknown>) {
@@ -123,7 +124,7 @@ export async function notifyClientsOfPortalMessage(input: {
   body: string;
 }) {
   const threadPath = `/messages/${input.projectId}`;
-  const preview = input.body.replace(/\s+/g, " ").trim().slice(0, 280);
+  const preview = messageBodyPlainText(input.body).slice(0, 280);
   await recordPortalInApp(input.clientId, {
     kind: "message",
     title: `New message on ${input.projectTitle}`,
@@ -138,7 +139,7 @@ export async function notifyClientsOfPortalMessage(input: {
       recipientName: person.name,
       projectTitle: input.projectTitle,
       authorLabel: "Usman",
-      body: input.body,
+      body: preview || input.body,
       threadUrl,
     }),
   );
@@ -151,7 +152,7 @@ export async function notifyDeskOfPortalMessage(input: {
   body: string;
 }) {
   const threadPath = `/messages/${input.projectId}`;
-  const preview = input.body.replace(/\s+/g, " ").trim().slice(0, 280);
+  const preview = messageBodyPlainText(input.body).slice(0, 280);
   await recordDeskInApp({
     kind: "message",
     title: `Portal message: ${input.projectTitle}`,
@@ -169,7 +170,7 @@ export async function notifyDeskOfPortalMessage(input: {
       to,
       projectTitle: input.projectTitle,
       authorLabel: input.authorName,
-      body: input.body,
+      body: preview || input.body,
       threadUrl: `${deskPublicBaseUrl()}${threadPath}`,
       forDesk: true,
     });

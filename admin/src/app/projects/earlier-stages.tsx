@@ -10,7 +10,7 @@ export function EarlierStages({ children }: { children: ReactNode }) {
 
   return (
     <details className="rounded-xl border border-gray-200 bg-white open:pb-4">
-      <summary className="cursor-pointer list-none px-6 py-4 font-heading text-2xl text-dark-950 marker:content-none [&::-webkit-details-marker]:hidden">
+      <summary className="cursor-pointer list-none px-6 py-4 font-heading text-2xl text-gold-500 marker:content-none [&::-webkit-details-marker]:hidden">
         <span className="flex items-center justify-between gap-4">
           Earlier stages
           <span className="text-sm font-sans font-normal text-gray-500">

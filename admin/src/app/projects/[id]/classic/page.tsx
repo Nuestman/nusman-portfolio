@@ -18,11 +18,7 @@ import { ConfirmDelete } from "@/components/confirm-submit";
 import { DeskShell } from "@/components/desk-shell";
 import { EditableCard } from "@/components/editable-card";
 import { InfoList } from "@/components/info-list";
-import {
-  EditLink,
-  TableActionsCell,
-  TableActionsHeader,
-} from "@/components/table-actions";
+import { ProjectTimeline } from "@/components/project-timeline";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { QueryNotice } from "@/components/query-notice";
 import { PROCESS_GATES, type ProcessGate } from "@/db/schema";
@@ -36,8 +32,6 @@ import {
 } from "@/lib/gates";
 import { projectStatusLabel, workKindLabel } from "@/lib/labels";
 import { linkClassName } from "@/lib/links";
-import { formatStamp, snippet } from "@/lib/text";
-import { tableClassName, tableFrameClassName } from "@/lib/tables";
 import {
   deskCopyTemplates,
   type CopyTemplate,
@@ -47,12 +41,11 @@ import { CopyTemplates } from "../../copy-templates";
 import { DeliveryWork } from "../../delivery-work";
 import { EarlierStages } from "../../earlier-stages";
 import { GateSwitcher } from "../../gate-switcher";
-import { NoteForm } from "../../note-form";
+import { deleteProjectAction } from "../../actions";
 import { ProjectDetailsForm } from "../../project-details-form";
 import { ProposeAgreeWork } from "../../propose-agree-work";
 import { SalesWork } from "../../sales-work";
 import { SchedulePanel } from "../../schedule-panel";
-import { deleteNoteAction, deleteProjectAction } from "../../actions";
 
 export const dynamic = "force-dynamic";
 
@@ -235,7 +228,7 @@ export default async function ClassicProjectPage({
   }
 
   return (
-    <DeskShell email={email} width="3xl">
+    <DeskShell email={email}>
       <div className="rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-950">
         Classic archive layout for reference.{" "}
         <Link href={`/projects/${project.id}`} className={linkClassName("inline")}>
@@ -349,56 +342,11 @@ export default async function ClassicProjectPage({
         </>
       )}
 
-      <EditableCard
-        title="Timeline"
-        editLabel="Add"
-        always={
-          notes.length === 0 ? (
-            <p className="text-sm text-gray-600">No timeline yet.</p>
-          ) : (
-            <div className={tableFrameClassName}>
-              <table className={tableClassName}>
-                <thead className="bg-gray-50 text-gray-600">
-                  <tr>
-                    <th className="px-4 py-3 font-medium">When</th>
-                    <th className="px-4 py-3 font-medium">Note</th>
-                    <TableActionsHeader />
-                  </tr>
-                </thead>
-                <tbody>
-                  {notes.map((note) => (
-                    <tr key={note.id} className="border-t border-gray-100">
-                      <td className="px-4 py-3 whitespace-nowrap text-gray-500">
-                        {formatStamp(note.createdAt)}
-                      </td>
-                      <td className="px-4 py-3 text-gray-700">
-                        {snippet(note.body)}
-                      </td>
-                      <TableActionsCell>
-                        <EditLink
-                          href={`/projects/${project.id}/notes/${note.id}/edit`}
-                        />
-                        <form action={deleteNoteAction}>
-                          <input type="hidden" name="id" value={note.id} />
-                          <input
-                            type="hidden"
-                            name="projectId"
-                            value={project.id}
-                          />
-                          <ConfirmDelete
-                            label="Remove"
-                            message="Remove this note?"
-                          />
-                        </form>
-                      </TableActionsCell>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )
-        }
-        form={<NoteForm projectId={project.id} />}
+      <ProjectTimeline
+        projectId={project.id}
+        notes={notes}
+        variant="desk"
+        hint="Calls, WhatsApp, stage moves, and package choices."
       />
 
       {!isProduct ? <SchedulePanel projectId={project.id} events={events} /> : null}

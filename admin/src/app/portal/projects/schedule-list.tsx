@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import Link from "next/link";
 import { ConfirmClick } from "@/components/confirm-submit";
 import { buttonClassName } from "@/components/ui/button";
@@ -27,7 +28,29 @@ export type PortalScheduleEvent = {
   notes: string | null;
 };
 
-function EventActions({ event }: { event: PortalScheduleEvent }) {
+function EventFields({
+  event,
+  returnTo,
+}: {
+  event: PortalScheduleEvent;
+  returnTo?: string;
+}) {
+  return (
+    <>
+      <input type="hidden" name="id" value={event.id} />
+      <input type="hidden" name="projectId" value={event.projectId} />
+      {returnTo ? <input type="hidden" name="next" value={returnTo} /> : null}
+    </>
+  );
+}
+
+function EventActions({
+  event,
+  returnTo,
+}: {
+  event: PortalScheduleEvent;
+  returnTo?: string;
+}) {
   const canCancel =
     event.status === "requested" ||
     event.status === "proposed" ||
@@ -38,12 +61,11 @@ function EventActions({ event }: { event: PortalScheduleEvent }) {
   }
 
   return (
-    <div className="mt-3 flex flex-wrap gap-3">
+    <div className="flex flex-wrap items-center justify-end gap-3">
       {event.status === "proposed" ? (
         <>
           <form action={confirmPortalEventAction}>
-            <input type="hidden" name="id" value={event.id} />
-            <input type="hidden" name="projectId" value={event.projectId} />
+            <EventFields event={event} returnTo={returnTo} />
             <ConfirmClick
               message={`Confirm “${event.title}”?`}
               confirmLabel="Confirm"
@@ -53,8 +75,7 @@ function EventActions({ event }: { event: PortalScheduleEvent }) {
             </ConfirmClick>
           </form>
           <form action={declinePortalEventAction}>
-            <input type="hidden" name="id" value={event.id} />
-            <input type="hidden" name="projectId" value={event.projectId} />
+            <EventFields event={event} returnTo={returnTo} />
             <ConfirmClick
               message={`Decline “${event.title}”? Usman will see it was cancelled.`}
               confirmLabel="Decline"
@@ -67,8 +88,7 @@ function EventActions({ event }: { event: PortalScheduleEvent }) {
         </>
       ) : canCancel ? (
         <form action={cancelPortalEventAction}>
-          <input type="hidden" name="id" value={event.id} />
-          <input type="hidden" name="projectId" value={event.projectId} />
+          <EventFields event={event} returnTo={returnTo} />
           <ConfirmClick
             message={`Cancel “${event.title}”?`}
             confirmLabel="Cancel appointment"
@@ -83,18 +103,41 @@ function EventActions({ event }: { event: PortalScheduleEvent }) {
   );
 }
 
+function openEventCardClass(status: ProjectEventStatus): string {
+  switch (status) {
+    case "requested":
+    case "proposed":
+      return "rounded-xl border border-amber-300 bg-amber-50 px-4 py-4";
+    case "confirmed":
+    case "completed":
+    case "cancelled":
+      return "rounded-xl border border-gray-200 px-4 py-4";
+    default: {
+      const exhaustive: never = status;
+      return exhaustive;
+    }
+  }
+}
+
 export function PortalScheduleList({
   events,
   showProject = false,
+  returnTo,
+  empty,
 }: {
   events: PortalScheduleEvent[];
   showProject?: boolean;
+  returnTo?: string;
+  empty?: ReactNode;
 }) {
   if (events.length === 0) {
     return (
-      <p className="text-sm text-gray-600">
-        No meetings yet. Request one below, or wait for Usman to propose a time.
-      </p>
+      empty ?? (
+        <p className="text-sm text-gray-600">
+          No meetings yet. Request one below, or wait for Usman to propose a
+          time.
+        </p>
+      )
     );
   }
 
@@ -112,68 +155,77 @@ export function PortalScheduleList({
   return (
     <div className="space-y-6">
       {open.length === 0 ? (
-        <p className="text-sm text-gray-600">Nothing upcoming right now.</p>
+        empty ?? (
+          <p className="text-sm text-gray-600">Nothing upcoming right now.</p>
+        )
       ) : (
         <ul className="space-y-4">
-          {open.map((event) => (
-            <li
-              key={event.id}
-              className="rounded-xl border border-gray-200 px-4 py-4"
-            >
-              {showProject && event.projectTitle ? (
-                <p className="text-xs font-medium uppercase tracking-wide text-gray-500">
-                  <Link
-                    href={`/projects/${event.projectId}`}
-                    className={linkClassName("nav")}
-                  >
-                    {event.projectTitle}
-                  </Link>
-                </p>
-              ) : null}
-              <p
-                className={
-                  showProject && event.projectTitle
-                    ? "mt-1 text-xs font-medium uppercase tracking-wide text-gray-500"
-                    : "text-xs font-medium uppercase tracking-wide text-gray-500"
-                }
-              >
-                {projectEventKindLabel(event.kind)} ·{" "}
-                {projectEventStatusLabel(event.status)}
-              </p>
-              <p className="mt-1 font-heading text-xl text-dark-950">
-                {event.title}
-              </p>
-              <p className="mt-1 text-sm text-gray-700">
-                {formatEventWhen(event.startsAt)}
-                {event.endsAt ? ` → ${formatEventWhen(event.endsAt)}` : null}
-              </p>
-              {event.location ? (
-                <p className="mt-1 text-sm text-gray-600">{event.location}</p>
-              ) : null}
-              {event.notes ? (
-                <p className="mt-2 whitespace-pre-wrap text-sm text-gray-700">
-                  {displayText(event.notes)}
-                </p>
-              ) : null}
-              {event.status === "proposed" ? (
-                <p className="mt-2 text-sm text-gray-600">
-                  Usman proposed this time. Confirm or decline.
-                </p>
-              ) : null}
-              {event.status === "requested" ? (
-                <p className="mt-2 text-sm text-gray-600">
-                  Waiting for Usman to set a firm time. You can cancel this
-                  request.
-                </p>
-              ) : null}
-              {event.status === "confirmed" ? (
-                <p className="mt-2 text-sm text-gray-600">
-                  This is booked. Cancel if you need to reschedule.
-                </p>
-              ) : null}
-              <EventActions event={event} />
-            </li>
-          ))}
+          {open.map((event) => {
+            return (
+              <li key={event.id} className={openEventCardClass(event.status)}>
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                  <div>
+                    {showProject && event.projectTitle ? (
+                      <p className="text-xs font-medium uppercase tracking-wide text-gray-500">
+                        <Link
+                          href={`/projects/${event.projectId}`}
+                          className={linkClassName("nav")}
+                        >
+                          {event.projectTitle}
+                        </Link>
+                      </p>
+                    ) : null}
+                    <p
+                      className={
+                        showProject && event.projectTitle
+                          ? "mt-1 text-xs font-medium uppercase tracking-wide text-gray-500"
+                          : "text-xs font-medium uppercase tracking-wide text-gray-500"
+                      }
+                    >
+                      {projectEventKindLabel(event.kind)} ·{" "}
+                      {projectEventStatusLabel(event.status)}
+                    </p>
+                    <p className="mt-1 font-heading text-xl text-dark-950">
+                      {event.title}
+                    </p>
+                    <p className="mt-1 text-sm text-gray-700">
+                      {formatEventWhen(event.startsAt)}
+                      {event.endsAt
+                        ? ` → ${formatEventWhen(event.endsAt)}`
+                        : null}
+                    </p>
+                    {event.location ? (
+                      <p className="mt-1 text-sm text-gray-600">
+                        {event.location}
+                      </p>
+                    ) : null}
+                    {event.notes ? (
+                      <p className="mt-2 whitespace-pre-wrap text-sm text-gray-700">
+                        {displayText(event.notes)}
+                      </p>
+                    ) : null}
+                    {event.status === "proposed" ? (
+                      <p className="mt-2 text-sm text-amber-950">
+                        Usman proposed this time. Confirm or decline.
+                      </p>
+                    ) : null}
+                    {event.status === "requested" ? (
+                      <p className="mt-2 text-sm text-amber-950">
+                        Waiting for Usman to set a firm time. You can cancel
+                        this request.
+                      </p>
+                    ) : null}
+                    {event.status === "confirmed" ? (
+                      <p className="mt-2 text-sm text-gray-600">
+                        This is booked. Cancel if you need to reschedule.
+                      </p>
+                    ) : null}
+                  </div>
+                  <EventActions event={event} returnTo={returnTo} />
+                </div>
+              </li>
+            );
+          })}
         </ul>
       )}
 

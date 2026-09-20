@@ -1,15 +1,17 @@
 import Link from "next/link";
+import type { Metadata } from "next";
 import { listPortalProjectsForClient } from "@/db/queries";
 import { PortalShell } from "@/components/portal-shell";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { buttonClassName } from "@/components/ui/button";
 import { requirePortalPerson } from "@/lib/current-person";
 import { gateGuide } from "@/lib/gates";
 import { projectStatusLabel } from "@/lib/labels";
-import { linkClassName } from "@/lib/links";
-import { tableClassName, tableFrameClassName } from "@/lib/tables";
 
 export const dynamic = "force-dynamic";
+
+export const metadata: Metadata = {
+  title: "Projects",
+};
 
 export default async function PortalProjectsPage() {
   const { person, client } = await requirePortalPerson();
@@ -33,59 +35,36 @@ export default async function PortalProjectsPage() {
         </Link>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Your projects</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {projects.length === 0 ? (
-            <div className="space-y-4">
-              <p className="text-sm text-gray-600">
-                No hiring projects yet. Start one when you have something new to
-                build, or wait if Usman already opened one for you.
-              </p>
+      {projects.length === 0 ? (
+        <div className="space-y-4">
+          <p className="text-sm text-gray-600">
+            No hiring projects yet. Start one when you have something new to
+            build, or wait if Usman already opened one for you.
+          </p>
+          <Link href="/projects/new" className={buttonClassName("default")}>
+            Start a project
+          </Link>
+        </div>
+      ) : (
+        <ul className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+          {projects.map((project) => (
+            <li key={project.id}>
               <Link
-                href="/projects/new"
-                className={buttonClassName("default")}
+                href={`/projects/${project.id}`}
+                className="block h-full rounded-2xl border border-gray-200 bg-white p-6 shadow-sm transition-colors duration-300 hover:border-gold-400 hover:shadow-md"
               >
-                Start a project
+                <h2 className="font-heading text-2xl text-gold-500">
+                  {project.title}
+                </h2>
+                <p className="mt-2 text-sm text-gray-600">
+                  {gateGuide(project.currentGate).publicStep} ·{" "}
+                  {projectStatusLabel(project.status)}
+                </p>
               </Link>
-            </div>
-          ) : (
-            <div className={tableFrameClassName}>
-              <table className={tableClassName}>
-                <thead className="bg-gray-50 text-gray-600">
-                  <tr>
-                    <th className="px-4 py-3 font-medium">Project</th>
-                    <th className="px-4 py-3 font-medium">Stage</th>
-                    <th className="px-4 py-3 font-medium">Status</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {projects.map((project) => (
-                    <tr key={project.id} className="border-t border-gray-100">
-                      <td className="px-4 py-3">
-                        <Link
-                          href={`/projects/${project.id}`}
-                          className={linkClassName("table")}
-                        >
-                          {project.title}
-                        </Link>
-                      </td>
-                      <td className="px-4 py-3 text-gray-700">
-                        {gateGuide(project.currentGate).label}
-                      </td>
-                      <td className="px-4 py-3 text-gray-700">
-                        {projectStatusLabel(project.status)}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+            </li>
+          ))}
+        </ul>
+      )}
     </PortalShell>
   );
 }

@@ -40,6 +40,9 @@ yarn-error.log*
 # vercel
 .vercel
 
+# tinymce (copied from node_modules on install/build)
+/public/tinymce
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts

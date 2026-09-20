@@ -1,10 +1,16 @@
 import Image from "next/image";
 import Link from "next/link";
+import type { Metadata } from "next";
 import { buttonClassName } from "@/components/ui/button";
 import { PortalHeroBackdrop } from "@/components/portal-hero-backdrop";
 import { getPortalSessionPerson } from "@/lib/current-person";
+import { PAGE_FRAME_CLASS } from "@/lib/layout";
 
 export const dynamic = "force-dynamic";
+
+export const metadata: Metadata = {
+  title: "Welcome",
+};
 
 const MARKETING_SITE = "https://nusman.dev";
 
@@ -16,7 +22,7 @@ export default async function PortalLandingPage() {
     <div className="relative min-h-dvh overflow-hidden bg-gray-50">
       <PortalHeroBackdrop />
 
-      <header className="relative z-10 mx-auto flex w-full max-w-[1400px] items-center justify-between px-4 py-5">
+      <header className={`relative z-10 flex items-center justify-between py-5 ${PAGE_FRAME_CLASS}`}>
         <a
           href={MARKETING_SITE}
           className="flex h-12 items-center"
@@ -42,7 +48,9 @@ export default async function PortalLandingPage() {
         )}
       </header>
 
-      <main className="relative z-10 mx-auto flex min-h-[calc(100dvh-5rem)] w-full max-w-[1400px] items-end px-4 pb-16 pt-10 sm:items-center sm:pb-24">
+      <main
+        className={`relative z-10 flex min-h-[calc(100dvh-5rem)] items-end pb-16 pt-10 sm:items-center sm:pb-24 ${PAGE_FRAME_CLASS}`}
+      >
         <div className="max-w-xl rounded-2xl bg-gray-50/85 px-5 py-6 shadow-[0_0_0_1px_rgba(21,15,0,0.04)] backdrop-blur-sm sm:bg-transparent sm:p-0 sm:shadow-none sm:backdrop-blur-none">
           <p className="portal-rise font-heading text-3xl text-gold-500 sm:text-4xl lg:text-5xl">
             nusman

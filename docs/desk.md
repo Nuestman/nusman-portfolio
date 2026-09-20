@@ -128,7 +128,7 @@ The hiring party (person or org paying / commissioning the work), or the practic
 - kind: `client` | `practice` (v1: one practice row, hidden from the Clients list)
 - name, email, phone
 - organisation (optional)
-- source (referral, inbound, repeat, other)
+- source (referral, family_friends, work_colleague, inbound, repeat, other)
 - notes
 - timestamps
 
@@ -430,4 +430,4 @@ Do not add Desk links to `Header` / `Footer` / `sitemap.xml`.
 
 ## Immediate next step
 
-Desk **2.2.0** is the current cut (in-app notifications, on-brand Resend emails, milestones; surfaces still follow [desk-2.0.md](./desk-2.0.md)). Invite a person from Desk, rewrite package summaries for clients, open intake when ready, keep an export after a real job starts. Later: Portal routing cleanup ([portal.md](./portal.md#later--routing-cleanup-best-practice)); import product databases — only when you choose to, and never by pointing Desk at their `DATABASE_URL`.
+Desk **2.4.0** is the current cut (wide canvas, project brief vs questions, Progress path, TinyMCE messages, shared source/timeline/budget selects; surfaces still follow [desk-2.0.md](./desk-2.0.md)). Invite a person from Desk, rewrite package summaries for clients, open intake when ready, keep an export after a real job starts. Later: Portal routing cleanup ([portal.md](./portal.md#later--routing-cleanup-best-practice)); form-shaped readonly panels; import product databases — only when you choose to, and never by pointing Desk at their `DATABASE_URL`.

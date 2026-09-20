@@ -35,8 +35,12 @@ export function clientSourceLabel(source: ClientSource): string {
   switch (source) {
     case "referral":
       return "Referral";
+    case "family_friends":
+      return "Family and friends";
+    case "work_colleague":
+      return "Work colleague";
     case "inbound":
-      return "Inbound";
+      return "Inbound / website";
     case "repeat":
       return "Repeat";
     case "other":

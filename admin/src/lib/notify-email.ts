@@ -11,10 +11,14 @@ import {
   htmlParagraphs,
   renderBrandedEmailHtml,
 } from "@/lib/email-brand";
+import { messageBodyPlainText } from "@/lib/message-body";
 import { portalPublicBaseUrl } from "@/lib/portal-host";
 
 function oneLine(value: string, max = 160): string {
-  return value.replace(/[\r\n\u0000-\u001f\u007f]/g, " ").trim().slice(0, max);
+  return messageBodyPlainText(value)
+    .replace(/[\u0000-\u001f\u007f]/g, " ")
+    .trim()
+    .slice(0, max);
 }
 
 function deskPublicBaseUrl(): string {

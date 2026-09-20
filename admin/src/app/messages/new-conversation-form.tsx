@@ -4,6 +4,7 @@ import { useActionState, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { FormError } from "@/components/form-error";
+import { MessageComposer } from "@/components/messages/message-composer";
 import { fieldClassName, labelClassName } from "@/lib/forms";
 import {
   openPortalConversationAction,
@@ -105,11 +106,9 @@ export function NewConversationForm({
           First message{" "}
           <span className="font-normal text-gray-500">(optional)</span>
         </label>
-        <textarea
+        <MessageComposer
           id="compose-body"
-          name="body"
-          rows={4}
-          className={fieldClassName}
+          disabled={pending}
           placeholder="Say hello or leave blank to open an empty thread"
         />
       </div>

@@ -15,6 +15,7 @@ import { recordAudit } from "@/lib/audit";
 import { requireSessionUser } from "@/lib/current-user";
 import { readTrimmed } from "@/lib/forms";
 import { isUuid } from "@/lib/ids";
+import { readMessageBodyFromForm } from "@/lib/message-body";
 import { notifyClientsOfPortalMessage } from "@/lib/notify";
 import { issuePortalMagicLink } from "@/lib/portal-magic";
 import {
@@ -40,6 +41,7 @@ function revalidateProjectPaths(projectId: string, clientId: string) {
   revalidatePath(`/messages/${projectId}`);
   revalidatePath(`/portal/projects/${projectId}`);
   revalidatePath(`/portal/projects/${projectId}/intake`);
+  revalidatePath(`/portal/projects/${projectId}/brief`);
   revalidatePath(`/portal/projects/${projectId}/messages`);
 }
 
@@ -240,7 +242,7 @@ export async function replyPortalMessageAction(
     return { error: "That project is gone." };
   }
 
-  const body = readTrimmed(formData, "body");
+  const { body } = readMessageBodyFromForm(formData);
   if (!body) {
     return { error: "Write a reply first." };
   }

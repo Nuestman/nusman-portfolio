@@ -4,7 +4,8 @@ import { listSessionsForUser, listUsers } from "@/db/queries";
 import { ConfirmDelete } from "@/components/confirm-submit";
 import { DeskShell } from "@/components/desk-shell";
 import { EditableCard } from "@/components/editable-card";
-import { InfoList } from "@/components/info-list";
+import { PageSpread } from "@/components/page-spread";
+import { ProfileYouView } from "@/components/profile-you-view";
 import { QueryNotice } from "@/components/query-notice";
 import { UserAvatar } from "@/components/user-avatar";
 import { Button } from "@/components/ui/button";
@@ -64,37 +65,35 @@ export default async function ProfilePage({ searchParams }: ProfilePageProps) {
   ]);
 
   return (
-    <DeskShell width="3xl">
-      <div>
-        <h1 className="section-heading">Profile</h1>
-        <p className="mt-2 text-gray-700">
-          Your Desk account. Owners can add other operators.
-        </p>
-      </div>
-      <QueryNotice message={notice} />
-
-      <EditableCard
-        title="You"
-        view={
-          <div className="grid gap-6 sm:grid-cols-2 sm:items-center">
-            <div className="mx-auto aspect-square w-full max-w-sm sm:mx-0 sm:max-w-none">
-              <UserAvatar name={user.name} src={userAvatarSrc(user)} />
-            </div>
-            <div className="min-w-0">
-              <InfoList
-                items={[
-                  { label: "Name", value: user.name },
-                  { label: "Title", value: user.title },
-                  { label: "Email", value: user.email },
-                  { label: "Phone", value: user.phone },
-                  { label: "Role", value: userRoleLabel(user.role) },
-                ]}
-              />
-            </div>
-          </div>
+    <DeskShell>
+      <PageSpread
+        intro={
+          <>
+            <h1 className="section-heading">Profile</h1>
+            <p className="mt-2 text-gray-700">
+              Your Desk account. Owners can add other operators.
+            </p>
+          </>
         }
-        form={<ProfileForm user={user} />}
-      />
+        rail={
+          <EditableCard
+            title="You"
+            view={
+              <ProfileYouView
+                name={user.name}
+                src={userAvatarSrc(user)}
+                layout="stack"
+                title={user.title}
+                role={userRoleLabel(user.role)}
+                email={user.email}
+                phone={user.phone}
+              />
+            }
+            form={<ProfileForm user={user} />}
+          />
+        }
+      >
+      <QueryNotice message={notice} />
 
       <Card>
         <CardHeader>
@@ -253,6 +252,7 @@ export default async function ProfilePage({ searchParams }: ProfilePageProps) {
           />
         </>
       ) : null}
+      </PageSpread>
     </DeskShell>
   );
 }

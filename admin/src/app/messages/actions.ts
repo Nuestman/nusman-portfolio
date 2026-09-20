@@ -7,6 +7,7 @@ import { recordAudit } from "@/lib/audit";
 import { requireSessionUser } from "@/lib/current-user";
 import { readTrimmed } from "@/lib/forms";
 import { isUuid } from "@/lib/ids";
+import { readMessageBodyFromForm } from "@/lib/message-body";
 import { notifyClientsOfPortalMessage } from "@/lib/notify";
 
 export type FormState = {
@@ -39,7 +40,7 @@ export async function openPortalConversationAction(
     return { error: "That project is not available for messaging." };
   }
 
-  const body = readTrimmed(formData, "body");
+  const { body } = readMessageBodyFromForm(formData);
   if (body) {
     await addPortalMessage({
       projectId,

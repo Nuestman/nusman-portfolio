@@ -1,14 +1,14 @@
 # Desk status
 
-Checked 17 Sep 2026 against the code in `admin/`. Product version: **2.2.0** (`admin/package.json`). Product rules: [desk-2.0.md](./desk-2.0.md) (wins) and [desk.md](./desk.md). Portal: [portal.md](./portal.md). Archive: [archive/desk-1.1.md](./archive/desk-1.1.md). Visual: [style-guide.md](./style-guide.md). Deploy: [deploy.md](./deploy.md). Update this file when something ships or an open item is closed.
+Checked 20 Sep 2026 against the code in `admin/`. Product version: **2.4.0** (`admin/package.json`). Product rules: [desk-2.0.md](./desk-2.0.md) (wins) and [desk.md](./desk.md). Portal: [portal.md](./portal.md). Archive: [archive/desk-1.1.md](./archive/desk-1.1.md). Visual: [style-guide.md](./style-guide.md). Deploy: [deploy.md](./deploy.md). Update this file when something ships or an open item is closed.
 
-Desk **2.2.0** / Portal **1.2** are usable. Public site **4.1.2** posts `/start` leads into Desk.
+Desk **2.4.0** / Portal **1.4** are usable. Public site **4.1.3** posts `/start` leads into Desk.
 
 ---
 
 ## Live
 
-Hiring jobs with gate records, **process milestones**, table-row edit/remove, playbook on Desk, multi-format export, own products as records, an audit trail with before/after, operator profiles, sessions for device revoke, **Portal** (magic link + start project), **Messages** inbox (compose new), **Schedule** hubs (Cards/Calendar), **Resend alerts** (on-brand HTML + CID logo; messages, schedule, milestones, stages, inbound receipt, portal access), **in-app notifications** (feed + table; complements email), and **inbound leads** from the public `/start` form.
+Hiring jobs with gate records, **process milestones**, table-row edit/remove, playbook on Desk, multi-format export, own products as records, an audit trail with before/after, operator profiles, sessions for device revoke, **Portal** (magic link + start project), **Messages** inbox (plain / rich TinyMCE composer), **Schedule** hubs (Cards/Calendar), **Resend alerts** (on-brand HTML + CID logo; messages, schedule, milestones, stages, inbound receipt, portal access), **in-app notifications** (feed + table; unread on the account bell), **inbound leads** from the public `/start` form (heard-about source, timeline, budget selects), and a **1400px** Desk/Portal canvas (PageSpread, gold card titles, outline header actions, sticky project timeline).
 
 ### Routes
 
@@ -21,29 +21,31 @@ Hiring jobs with gate records, **process milestones**, table-row edit/remove, pl
 | `/clients` … `/clients/[id]/people/[personId]/edit` | Live. Person edit includes portal enable + magic link |
 | `/schedule` | Live. Hub: Cards / Calendar; create/edit still on project |
 | `/projects` … gate records, notes, options, changes, demos, **milestones** | Live. Current gate first; earlier stages collapsed; timeline; **Schedule** (`project_events`); portal strip; Qualify Real ↔ qualified milestone |
-| `/messages`, `/messages/new`, `/messages/[projectId]` | Live. Chat-style portal conversation inbox, compose, reply |
+| `/messages`, `/messages/new`, `/messages/[projectId]` | Live. Chat-style portal conversation inbox; compose/reply with plain or rich (TinyMCE) |
 | `/notifications`, `/notifications/new`, `/notifications/[id]/edit` | Live. Feed + table; compose + edit only if you sent it |
 | `/products`, `/products/new` | Live. Own-product records only |
 | `/playbook` | Live on Desk. Public scratch page is gone |
 | `/style` | Live specimens. Live header is the account-menu specimen |
 | `/export`, `/export/download` | Live. JSON, YAML, CSV zip, Markdown, HTML |
-| `/profile` | Live. Self-edit, password, optional authenticator, devices; owner adds / deactivates operators |
-| `/profile/photo/[id]` | Live. Session required. Static photos: `/avatars/` |
-| `/api/inbound-lead` | Live. Public CORS POST from nusman.dev `/start`; optional receipt + Desk alert email |
+| `/profile` | Live. Self-edit, password, optional authenticator, devices; owner adds / deactivates operators. You card uses the default gold/white avatar when no photo |
+| `/profile/photo/[id]` | Live. Session required. Static photos: `/avatars/` (default `/avatars/default-user.png`) |
+| `/api/inbound-lead` | Live. Public CORS POST from nusman.dev `/start`; required heard-about source; optional receipt + Desk alert email |
 
 ### Portal host (`portal.*` / `portal.localhost`)
 
 | Route | Status |
 |---|---|
 | `/`, `/login`, `/auth/magic` | Live. Magic links finish on Portal origin |
-| `/profile` | Live. Read-only person details; account chip matches Desk |
-| `/projects`, `/projects/new`, `/projects/[id]` | Live. List, start project, progress / package / updates / milestones strip |
-| `/projects/[id]/intake`, `/projects/[id]/schedule` | Live |
-| `/messages`, `/messages/[projectId]` | Live. Hub + thread (aligned with Desk messages UX) |
+| `/profile` | Live. Read-only You card (split photo + type); account chip matches Desk |
+| `/projects`, `/projects/new`, `/projects/[id]` | Live. List, start project, Progress (gold path), package, updates |
+| `/projects/[id]/brief` | Live. Locked client brief (package, deadline, problem, success, scope; empty fields “—”) |
+| `/projects/[id]/intake` | Live. Questions form only while intake is open; otherwise points at the brief |
+| `/projects/[id]/schedule` | Live. Project cards with confirm / decline / cancel |
+| `/messages`, `/messages/[projectId]` | Live. Hub + thread; same plain / rich composer as Desk |
 | `/notifications` | Live. Feed + table — mark read / delete only (account menu) |
 | `/schedule` | Live. Wide hub: Cards / Calendar; confirm/decline/cancel; request |
 
-`/projects*` uses dual-mode pages (no proxy rewrite) so soft-nav does not 404 — cleanup note in [portal.md](./portal.md#later--routing-cleanup-best-practice).
+`/projects*` uses dual-mode pages (no proxy rewrite) so soft-nav does not 404 — aliases include intake, schedule, and **brief**. Cleanup note in [portal.md](./portal.md#later--routing-cleanup-best-practice).
 
 ### Schema
 
@@ -64,6 +66,7 @@ Migrations on Neon **nusmandotdev** (`sparkling-art-67399165`) only:
 | `0010_process_milestones` | `project_milestones`; `plan` gate enum; qualify `budget_note` |
 | `0011_process_gate_remap` | Remap intake→discover, propose/agree→plan |
 | `0012_notifications` | `notifications` inbox for Desk + Portal |
+| `0013_client_source_expand` | `client_source` enum: `family_friends`, `work_colleague` |
 
 Apply from `admin/` with `npm run db:migrate`. Do not point `DATABASE_URL` at Mineaid, Uventory, church, or any other Neon project.
 
@@ -74,7 +77,7 @@ Apply from `admin/` with `npm run db:migrate`. Do not point `DATABASE_URL` at Mi
 - Proxy and all Desk pages/actions require a live `sessions` row. Revoked or expired cookies are cleared.
 - Env `ADMIN_PASSWORD` only works while the owner’s `password_hash` is empty (bootstrap). After that, hash only.
 - Optional TOTP on Profile. After password, login asks for a 6-digit code or a one-time recovery code. `drizzle/0007_totp.sql`.
-- Public without Desk login: `/_next/*`, favicons, `/logos/`, `/favicon/`, `/avatars/`, `POST /api/inbound-lead`.
+- Public without Desk login: `/_next/*`, favicons, `/logos/`, `/favicon/`, `/avatars/`, `/tinymce/`, `POST /api/inbound-lead`.
 - Photos: PNG / JPEG / WebP, max 400 KB. `image_url` (seeded `/avatars/numan.png`) or `image_data` + `image_mime`. Server actions body limit 1 MB.
 - Exports omit `password_hash`, `image_data`, and TOTP secrets. `sessions` is not exported.
 - Login failures: 5 per IP per 15 minutes, in memory, per server instance.
@@ -83,9 +86,11 @@ Apply from `admin/` with `npm run db:migrate`. Do not point `DATABASE_URL` at Mi
 
 Main nav: Today, Audit, Clients, Projects, **Schedule**, Messages, Products, Style, Export.
 
-Account menu (last nav item): grey chip (`bg-gray-100 hover:bg-gray-200`), no gold ring except focus. Opens **Notifications**, **Playbook**, Profile, Journal, Sign out. Inline SVG icons. Journal, Notifications, and Playbook are not in the main nav.
+Account menu (last nav item): grey chip (`bg-gray-100 hover:bg-gray-200`), circular photo (default gold fill + white silhouette, **no gold ring at rest**). Badge includes the notifications bell and unread count. Opens **Notifications** (unread on that row too), **Playbook**, Profile, Journal, Sign out. Inline SVG icons. Journal, Notifications, and Playbook are not in the main nav.
 
 Portal header mirrors Desk chrome; account chip opens Notifications, Profile, and Sign out.
+
+Pages use `PAGE_FRAME_CLASS` (`max-w-[1400px]`). Card titles are `font-heading text-2xl text-gold-500`. Card header actions (Add, Edit, Open) are `outline` buttons.
 
 Header: hamburger `<500px`; stacked centred logo + wrapping nav `500–1023px` (logo in normal flow); one row `1024px+`.
 
@@ -111,7 +116,8 @@ These are leftover product work, not bugs in the last UI pass.
 
 ### Portal / messages
 
-- No unread badges on new portal messages or the notifications account-menu entry (email + inbox rows ship when Resend / notify helpers run).
+- No unread badges on new portal **messages** (notifications unread on the account bell is live).
+- Several readonly panels still look like forms (`InfoList`): Agreement, Discovery answers, Call notes & scope, Launch, Portal Your package, Client details, classic project, audit. Redesign later — not part of 2.4.0.
 - Operator replies do not store which operator wrote them (`author_kind` only).
 - Chosen package with leftover coaching text in `summary` must be rewritten on Desk before Choose / before Portal looks complete.
 - **Routing cleanup (later):** collapse Desk/Portal overlapping `/projects*` trees so soft-nav does not need dual-mode. See [portal.md](./portal.md#later--routing-cleanup-best-practice).
@@ -144,4 +150,4 @@ Not a new phase unless you choose one:
 3. Add other operators from Profile when you need them.
 4. Later, import product databases — only when you choose to, and never by pointing Desk at their `DATABASE_URL`.
 
-Possible later work if you ask for it: Portal routing cleanup (one module per public URL — [portal.md](./portal.md#later--routing-cleanup-best-practice)); stages/milestones duplication cleanup (one progress model); unread badges on messages / notifications; operator identity on replies; owner edit / password-reset for other operators; sweep expired sessions; require authenticator for all operators; Neon snapshots; product-data import.
+Possible later work if you ask for it: Portal routing cleanup (one module per public URL — [portal.md](./portal.md#later--routing-cleanup-best-practice)); stages/milestones duplication cleanup (one progress model); unread badges on messages; form-shaped readonly `InfoList` panels; operator identity on replies; owner edit / password-reset for other operators; sweep expired sessions; require authenticator for all operators; Neon snapshots; product-data import.

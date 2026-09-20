@@ -19,6 +19,7 @@ import {
 import { OPTION_KINDS, type ProjectGate } from "@/db/schema";
 import { optionKindLabel } from "@/lib/labels";
 import { linkClassName } from "@/lib/links";
+import { PAGE_FRAME_CLASS } from "@/lib/layout";
 import { tableClassName, tableFrameClassName } from "@/lib/tables";
 import { cn } from "@/lib/utils";
 import { CopyButton } from "@/app/projects/copy-templates";
@@ -57,13 +58,12 @@ export default async function PlaybookPage() {
   return (
     <DeskShell
       email={email}
-      width="4xl"
       mainClassName="space-y-12"
       beforeMain={
         <div className="sticky top-[var(--desk-header-height)] z-30 border-b border-gray-200 bg-white">
           <nav
             aria-label="Playbook sections"
-            className="mx-auto max-w-4xl overflow-x-auto px-4 py-3"
+            className={`${PAGE_FRAME_CLASS} overflow-x-auto py-3`}
           >
             <ul className="flex min-w-max gap-2">
               {JUMP_LINKS.map((link) => (
@@ -405,7 +405,7 @@ export default async function PlaybookPage() {
           <div className="grid gap-4 sm:grid-cols-3">
             <Card>
               <CardContent className="p-5">
-                <p className="font-heading text-2xl text-dark-950">1 sentence</p>
+                <p className="font-heading text-2xl text-gold-500">1 sentence</p>
                 <p className="mt-2 text-sm text-gray-600">
                   Shared problem statement both of you can repeat
                 </p>
@@ -413,7 +413,7 @@ export default async function PlaybookPage() {
             </Card>
             <Card>
               <CardContent className="p-5">
-                <p className="font-heading text-2xl text-dark-950">3 options</p>
+                <p className="font-heading text-2xl text-gold-500">3 options</p>
                 <p className="mt-2 text-sm text-gray-600">
                   Written before any repository is created
                 </p>
@@ -421,7 +421,7 @@ export default async function PlaybookPage() {
             </Card>
             <Card>
               <CardContent className="p-5">
-                <p className="font-heading text-2xl text-dark-950">User present</p>
+                <p className="font-heading text-2xl text-gold-500">User present</p>
                 <p className="mt-2 text-sm text-gray-600">
                   At least once before you design screens
                 </p>

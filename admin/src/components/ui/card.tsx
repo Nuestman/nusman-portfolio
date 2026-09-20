@@ -26,7 +26,7 @@ export function CardTitle({
 }: HTMLAttributes<HTMLHeadingElement>) {
   return (
     <h2
-      className={cn("font-heading text-2xl text-dark-950", className)}
+      className={cn("font-heading text-2xl text-gold-500", className)}
       {...props}
     />
   );

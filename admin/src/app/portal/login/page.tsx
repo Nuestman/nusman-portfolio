@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
+import type { Metadata } from "next";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { PortalHeroBackdrop } from "@/components/portal-hero-backdrop";
 import { QueryNotice } from "@/components/query-notice";
@@ -7,6 +8,10 @@ import { linkClassName } from "@/lib/links";
 import { PortalLoginForm } from "./login-form";
 
 export const dynamic = "force-dynamic";
+
+export const metadata: Metadata = {
+  title: "Sign in",
+};
 
 type PortalLoginPageProps = {
   searchParams: Promise<{ notice?: string | string[] }>;
@@ -38,7 +43,7 @@ export default async function PortalLoginPage({
                 height={72}
                 className="mb-2 h-16 w-16 object-contain"
               />
-              <h1 className="font-heading text-2xl text-dark-950">Portal</h1>
+              <h1 className="font-heading text-2xl text-gold-500">Portal</h1>
               <p className="text-sm text-gray-600">
                 Progress, discovery, and messages for your project.
               </p>

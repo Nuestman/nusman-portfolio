@@ -4,6 +4,7 @@ import { useActionState } from "react";
 import { Button } from "@/components/ui/button";
 import { FormError } from "@/components/form-error";
 import { fieldClassName, labelClassName } from "@/lib/forms";
+import { OPERATOR_TITLE_OPTIONS } from "@/lib/form-options";
 import { updateProfileAction, type FormState } from "./actions";
 
 const initialState: FormState = { error: null };
@@ -21,6 +22,10 @@ export function ProfileForm({
   const [state, action, pending] = useActionState(
     updateProfileAction,
     initialState,
+  );
+  const titleValue = user.title ?? "";
+  const knownTitle = (OPERATOR_TITLE_OPTIONS as readonly string[]).includes(
+    titleValue,
   );
 
   return (
@@ -42,13 +47,22 @@ export function ProfileForm({
         <label htmlFor="title" className={labelClassName}>
           Title
         </label>
-        <input
+        <select
           id="title"
           name="title"
-          defaultValue={user.title ?? ""}
+          defaultValue={knownTitle ? titleValue : titleValue ? titleValue : ""}
           className={fieldClassName}
-          placeholder="Owner, operator…"
-        />
+        >
+          <option value="">Not set</option>
+          {!knownTitle && titleValue ? (
+            <option value={titleValue}>{titleValue}</option>
+          ) : null}
+          {OPERATOR_TITLE_OPTIONS.map((title) => (
+            <option key={title} value={title}>
+              {title}
+            </option>
+          ))}
+        </select>
       </div>
       <div className="grid gap-5 sm:grid-cols-2">
         <div>

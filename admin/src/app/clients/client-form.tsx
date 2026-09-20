@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
 import { CLIENT_SOURCES } from "@/db/schema";
 import type { ClientSource } from "@/db/schema";
 import { Button } from "@/components/ui/button";
@@ -34,6 +34,7 @@ export function ClientForm({
 }) {
   const action = client?.id ? updateClientAction : createClientAction;
   const [state, formAction, pending] = useActionState(action, initialState);
+  const [source, setSource] = useState<string>(client?.source ?? "");
 
   return (
     <form action={formAction} className="space-y-5">
@@ -93,22 +94,38 @@ export function ClientForm({
       </div>
       <div>
         <label htmlFor="source" className={labelClassName}>
-          Source
+          How they heard about us
         </label>
         <select
           id="source"
           name="source"
-          defaultValue={client?.source ?? ""}
+          value={source}
+          onChange={(event) => setSource(event.target.value)}
           className={fieldClassName}
         >
           <option value="">Not set</option>
-          {CLIENT_SOURCES.map((source) => (
-            <option key={source} value={source}>
-              {clientSourceLabel(source)}
+          {CLIENT_SOURCES.map((item) => (
+            <option key={item} value={item}>
+              {clientSourceLabel(item)}
             </option>
           ))}
         </select>
       </div>
+      {source === "other" ? (
+        <div>
+          <label htmlFor="sourceOther" className={labelClassName}>
+            Source detail
+          </label>
+          <input
+            id="sourceOther"
+            name="sourceOther"
+            required
+            maxLength={200}
+            className={fieldClassName}
+            placeholder="Where did they hear about this work?"
+          />
+        </div>
+      ) : null}
       <div>
         <label htmlFor="notes" className={labelClassName}>
           Notes

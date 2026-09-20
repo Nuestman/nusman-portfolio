@@ -1,4 +1,5 @@
 import Link from "next/link";
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import {
   ensureProjectMilestones,
@@ -7,28 +8,48 @@ import {
   listClientVisibleNotes,
   listProjectEvents,
 } from "@/db/queries";
+import { PortalScheduleList } from "@/app/portal/projects/schedule-list";
+import { InfoList } from "@/components/info-list";
+import { PortalProgress } from "@/components/portal-progress";
 import { PortalShell } from "@/components/portal-shell";
+import { ProjectTimeline } from "@/components/project-timeline";
+import { ScrollChain } from "@/components/scroll-chain";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { requirePortalPerson } from "@/lib/current-person";
+import { buttonClassName } from "@/components/ui/button";
+import { getPortalSessionPerson, requirePortalPerson } from "@/lib/current-person";
 import { gateGuide } from "@/lib/gates";
 import { isUuid } from "@/lib/ids";
 import {
   projectStatusLabel,
   optionKindLabel,
-  projectEventKindLabel,
-  projectEventStatusLabel,
 } from "@/lib/labels";
 import { linkClassName } from "@/lib/links";
-import { formatEventWhen, formatStamp } from "@/lib/text";
 import { isOptionStarterSummary } from "@/lib/templates";
-import { tableClassName, tableFrameClassName } from "@/lib/tables";
-import { InfoList } from "@/components/info-list";
 
 export const dynamic = "force-dynamic";
 
 type PortalProjectPageProps = {
   params: Promise<{ id: string }>;
 };
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}): Promise<Metadata> {
+  const { id } = await params;
+  if (!isUuid(id)) {
+    return { title: "Project" };
+  }
+  const session = await getPortalSessionPerson().catch(() => null);
+  if (!session) {
+    return { title: "Project" };
+  }
+  const project = await getPortalProjectForPerson(id, session.client.id).catch(
+    () => null,
+  );
+  return { title: project?.title ?? "Project" };
+}
 
 export default async function PortalProjectPage({
   params,
@@ -51,13 +72,6 @@ export default async function PortalProjectPage({
     ensureProjectMilestones(project.id),
   ]);
   const guide = gateGuide(project.currentGate);
-  const upcoming = events.filter(
-    (event) =>
-      event.status === "proposed" ||
-      event.status === "confirmed" ||
-      event.status === "requested",
-  );
-  const doneCount = milestones.filter((item) => item.doneAt).length;
 
   return (
     <PortalShell>
@@ -71,11 +85,19 @@ export default async function PortalProjectPage({
         </p>
         <div className="mt-4 flex flex-wrap gap-4 text-sm">
           <Link
-            href={`/projects/${project.id}/intake`}
+            href={`/projects/${project.id}/brief`}
             className={linkClassName("nav")}
           >
-            Discovery
+            Brief
           </Link>
+          {project.portalIntakeOpen ? (
+            <Link
+              href={`/projects/${project.id}/intake`}
+              className={linkClassName("nav")}
+            >
+              Questions
+            </Link>
+          ) : null}
           <Link
             href={`/messages/${project.id}`}
             className={linkClassName("nav")}
@@ -91,176 +113,115 @@ export default async function PortalProjectPage({
         </div>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Progress</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-3 text-sm text-gray-700">
-          <p>
-            <span className="font-medium text-dark-950">Stage:</span>{" "}
-            {guide.publicStep}
-          </p>
-          <p>
-            <span className="font-medium text-dark-950">Status:</span>{" "}
-            {projectStatusLabel(project.status)}
-          </p>
-          <p>
-            <span className="font-medium text-dark-950">Milestones:</span>{" "}
-            {doneCount} of {milestones.length} done
-          </p>
-          {project.problemSentence ? (
-            <p>
-              <span className="font-medium text-dark-950">Problem:</span>{" "}
-              {project.problemSentence}
-            </p>
-          ) : null}
-          {project.successLooksLike ? (
-            <p>
-              <span className="font-medium text-dark-950">Success looks like:</span>{" "}
-              {project.successLooksLike}
-            </p>
-          ) : null}
-          <ul className="mt-4 space-y-2">
-            {milestones.map((item) => (
-              <li key={item.id} className="flex items-start gap-2">
-                <span
-                  className={
-                    item.doneAt
-                      ? "mt-0.5 text-gold-600"
-                      : "mt-0.5 text-gray-400"
+      <div className="grid items-start gap-8 xl:grid-cols-[minmax(0,1fr)_minmax(22rem,32rem)] xl:gap-12">
+        <div className="space-y-8">
+          <Card>
+            <CardHeader>
+              <CardTitle>Progress</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <PortalProgress
+                publicStep={guide.publicStep}
+                status={project.status}
+                problem={project.problemSentence}
+                success={project.successLooksLike}
+                milestones={milestones}
+              />
+            </CardContent>
+          </Card>
+
+          {selected ? (
+            <Card>
+              <CardHeader>
+                <CardTitle>Your package</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {(() => {
+                  const clientSummary = isOptionStarterSummary(
+                    selected.summary,
+                    selected.kind,
+                  )
+                    ? null
+                    : selected.summary;
+                  const items = [
+                    {
+                      label: "Package",
+                      value: optionKindLabel(selected.kind),
+                    },
+                    { label: "Summary", value: clientSummary },
+                    { label: "Price", value: selected.priceNote },
+                    { label: "Timeline", value: selected.timelineNote },
+                    { label: "Included", value: selected.inScope },
+                    { label: "Not included", value: selected.outOfScope },
+                  ].filter((item) => Boolean(item.value?.trim()));
+
+                  if (items.length <= 1 && !clientSummary) {
+                    return (
+                      <p className="text-sm text-gray-600">
+                        You&apos;re on the{" "}
+                        <span className="font-medium text-dark-950">
+                          {optionKindLabel(selected.kind)}
+                        </span>{" "}
+                        package. Full details will show here once Usman finishes
+                        writing them.
+                      </p>
+                    );
                   }
-                  aria-hidden
-                >
-                  {item.doneAt ? "✓" : "○"}
-                </span>
-                <span
-                  className={
-                    item.doneAt ? "text-gray-500 line-through" : "text-dark-950"
-                  }
-                >
-                  {item.label}
-                </span>
-              </li>
-            ))}
-          </ul>
-        </CardContent>
-      </Card>
 
-      {selected ? (
-        <Card>
-          <CardHeader>
-            <CardTitle>Your package</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {(() => {
-              const clientSummary = isOptionStarterSummary(
-                selected.summary,
-                selected.kind,
-              )
-                ? null
-                : selected.summary;
-              const items = [
-                {
-                  label: "Package",
-                  value: optionKindLabel(selected.kind),
-                },
-                { label: "Summary", value: clientSummary },
-                { label: "Price", value: selected.priceNote },
-                { label: "Timeline", value: selected.timelineNote },
-                { label: "Included", value: selected.inScope },
-                { label: "Not included", value: selected.outOfScope },
-              ].filter((item) => Boolean(item.value?.trim()));
+                  return <InfoList items={items} />;
+                })()}
+              </CardContent>
+            </Card>
+          ) : null}
 
-              if (items.length <= 1 && !clientSummary) {
-                return (
-                  <p className="text-sm text-gray-600">
-                    You&apos;re on the{" "}
-                    <span className="font-medium text-dark-950">
-                      {optionKindLabel(selected.kind)}
-                    </span>{" "}
-                    package. Full details will show here once Usman finishes
-                    writing them.
-                  </p>
-                );
-              }
-
-              return <InfoList items={items} />;
-            })()}
-          </CardContent>
-        </Card>
-      ) : null}
-
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between gap-4 space-y-0">
-          <CardTitle>Schedule</CardTitle>
-          <Link
-            href={`/projects/${project.id}/schedule`}
-            className={linkClassName("back")}
-          >
-            Open
-          </Link>
-        </CardHeader>
-        <CardContent>
-          {upcoming.length === 0 ? (
-            <p className="text-sm text-gray-600">
-              No upcoming meetings.{" "}
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between gap-4 space-y-0">
+              <CardTitle>Schedule</CardTitle>
               <Link
                 href={`/projects/${project.id}/schedule`}
-                className={linkClassName("nav")}
+                className={buttonClassName("outline", "sm")}
               >
-                Request one
+                Open
               </Link>
-              .
-            </p>
-          ) : (
-            <ul className="space-y-3">
-              {upcoming.slice(0, 3).map((event) => (
-                <li key={event.id} className="text-sm text-gray-700">
-                  <span className="font-medium text-dark-950">
-                    {event.title}
-                  </span>
-                  {" · "}
-                  {projectEventKindLabel(event.kind)} ·{" "}
-                  {projectEventStatusLabel(event.status)} ·{" "}
-                  {formatEventWhen(event.startsAt)}
-                </li>
-              ))}
-            </ul>
-          )}
-        </CardContent>
-      </Card>
+            </CardHeader>
+            <CardContent>
+              <p className="mb-4 text-sm text-gray-600">
+                Confirm times Usman proposes, or request a meeting.
+              </p>
+              <PortalScheduleList
+                events={events.map((event) => ({
+                  ...event,
+                  projectId: project.id,
+                }))}
+                returnTo={`/projects/${project.id}`}
+                empty={
+                  <p className="text-sm text-gray-600">
+                    No upcoming meetings.{" "}
+                    <Link
+                      href={`/projects/${project.id}/schedule`}
+                      className={linkClassName("nav")}
+                    >
+                      Request one
+                    </Link>
+                    .
+                  </p>
+                }
+              />
+            </CardContent>
+          </Card>
+        </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Updates</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {notes.length === 0 ? (
-            <p className="text-sm text-gray-600">No client updates yet.</p>
-          ) : (
-            <div className={tableFrameClassName}>
-              <table className={tableClassName}>
-                <thead className="bg-gray-50 text-gray-600">
-                  <tr>
-                    <th className="px-4 py-3 font-medium">When</th>
-                    <th className="px-4 py-3 font-medium">Note</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {notes.map((note) => (
-                    <tr key={note.id} className="border-t border-gray-100">
-                      <td className="px-4 py-3 whitespace-nowrap text-gray-500">
-                        {formatStamp(note.createdAt)}
-                      </td>
-                      <td className="px-4 py-3 text-gray-700">{note.body}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+        <aside>
+          <ScrollChain className="xl:max-h-[min(40rem,calc(100dvh-var(--desk-header-height)-6rem))] xl:overflow-y-auto xl:pr-1">
+            <ProjectTimeline
+              projectId={project.id}
+              notes={notes}
+              variant="portal"
+            />
+          </ScrollChain>
+        </aside>
+      </div>
     </PortalShell>
   );
 }
+

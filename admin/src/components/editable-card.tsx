@@ -2,7 +2,7 @@
 
 import { useState, type ReactNode } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { linkClassName } from "@/lib/links";
+import { Button } from "@/components/ui/button";
 
 export function EditableCard({
   title,
@@ -29,13 +29,14 @@ export function EditableCard({
       <CardHeader className="flex flex-row items-center justify-between gap-4 space-y-0">
         <CardTitle>{title}</CardTitle>
         {canEdit ? (
-          <button
+          <Button
             type="button"
-            className={linkClassName("back")}
+            variant="outline"
+            size="sm"
             onClick={() => setEditing((current) => !current)}
           >
             {editing ? "Cancel" : editLabel}
-          </button>
+          </Button>
         ) : null}
       </CardHeader>
       <CardContent className="space-y-4">

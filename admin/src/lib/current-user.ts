@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
-import { clearSession, getSessionPayload } from "@/lib/auth";
 import { getSessionRow, getUserById } from "@/db/queries";
+import { DEFAULT_AVATAR_SRC } from "@/lib/avatars";
+import { clearSession, getSessionPayload } from "@/lib/auth";
 
 export function userAvatarSrc(user: {
   id: string;
@@ -13,7 +14,7 @@ export function userAvatarSrc(user: {
   if (user.imageUrl) {
     return user.imageUrl;
   }
-  return null;
+  return DEFAULT_AVATAR_SRC;
 }
 
 export async function getSessionUser() {

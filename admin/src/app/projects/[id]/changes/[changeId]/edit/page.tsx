@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { getSessionEmail } from "@/lib/auth";
 import { getChangeRequest, getProject } from "@/db/queries";
 import { DeskShell } from "@/components/desk-shell";
+import { PageSpread } from "@/components/page-spread";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { isUuid } from "@/lib/ids";
 import { linkClassName } from "@/lib/links";
@@ -31,29 +32,34 @@ export default async function EditChangePage({ params }: EditChangePageProps) {
   const email = await getSessionEmail();
 
   return (
-    <DeskShell email={email} width="3xl">
-      <div>
-        <Link href={`/projects/${id}`} className={linkClassName("back")}>
-          ← {project.title}
-        </Link>
-        <h1 className="mt-3 section-heading">Edit change request</h1>
-      </div>
-      <Card>
-        <CardHeader>
-          <CardTitle>Change request</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <ChangeForm
-            projectId={id}
-            change={{
-              id: change.id,
-              body: change.body,
-              status: change.status,
-            }}
-            submitLabel="Save change"
-          />
-        </CardContent>
-      </Card>
+    <DeskShell email={email}>
+      <PageSpread
+        intro={
+          <>
+            <Link href={`/projects/${id}`} className={linkClassName("back")}>
+              ← {project.title}
+            </Link>
+            <h1 className="mt-3 section-heading">Edit change request</h1>
+          </>
+        }
+      >
+        <Card>
+          <CardHeader>
+            <CardTitle>Change request</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ChangeForm
+              projectId={id}
+              change={{
+                id: change.id,
+                body: change.body,
+                status: change.status,
+              }}
+              submitLabel="Save change"
+            />
+          </CardContent>
+        </Card>
+      </PageSpread>
     </DeskShell>
   );
 }
