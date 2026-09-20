@@ -75,6 +75,17 @@ function parseClientFields(formData: FormData):
     source = sourceRaw;
   }
 
+  const sourceOther = readOptional(formData, "sourceOther");
+  if (source === "other" && !sourceOther) {
+    return { ok: false, error: "Say how they heard about us." };
+  }
+
+  const notesBase = readOptional(formData, "notes");
+  const notes =
+    source === "other" && sourceOther
+      ? [notesBase, `Source detail: ${sourceOther}`].filter(Boolean).join("\n")
+      : notesBase;
+
   return {
     ok: true,
     values: {
@@ -83,7 +94,7 @@ function parseClientFields(formData: FormData):
       phone: readOptional(formData, "phone"),
       organisation: readOptional(formData, "organisation"),
       source,
-      notes: readOptional(formData, "notes"),
+      notes,
     },
   };
 }

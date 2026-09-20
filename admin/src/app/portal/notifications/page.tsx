@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { listPortalNotifications } from "@/db/queries";
 import {
   NotificationsInbox,
@@ -11,6 +12,10 @@ import {
 } from "./actions";
 
 export const dynamic = "force-dynamic";
+
+export const metadata: Metadata = {
+  title: "Notifications",
+};
 
 type PortalNotificationsPageProps = {
   searchParams: Promise<{ view?: string | string[] }>;

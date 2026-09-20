@@ -6,6 +6,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { AccountMenu, type AccountMenuVariant } from "@/components/account-menu";
 import { Button } from "@/components/ui/button";
+import { PAGE_FRAME_CLASS } from "@/lib/layout";
 import { linkClassName } from "@/lib/links";
 
 const NAV = [
@@ -60,11 +61,13 @@ function NavLinks({
   className,
   profile,
   accountVariant,
+  unreadCount,
 }: {
   pathname: string;
   className?: string;
   profile: { name: string; imageSrc: string | null } | null;
   accountVariant: AccountMenuVariant;
+  unreadCount: number;
 }) {
   return (
     <ul className={className}>
@@ -85,6 +88,7 @@ function NavLinks({
         profile={profile}
         pathname={pathname}
         variant={accountVariant}
+        unreadCount={unreadCount}
       />
     </ul>
   );
@@ -92,8 +96,10 @@ function NavLinks({
 
 export function DeskHeader({
   profile,
+  unreadCount = 0,
 }: {
   profile?: { name: string; imageSrc: string | null } | null;
+  unreadCount?: number;
 }) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
@@ -164,7 +170,7 @@ export function DeskHeader({
 
   return (
     <header className="sticky top-0 z-40 overflow-visible border-b border-gray-200 bg-white">
-      <div ref={chromeRef} className="mx-auto w-full max-w-[1400px] px-4">
+      <div ref={chromeRef} className={PAGE_FRAME_CLASS}>
         <div className="flex flex-col compact:gap-3 lg:flex-row lg:flex-wrap lg:items-center lg:gap-x-8 lg:gap-y-3 lg:py-4">
           <div className="flex min-h-12 items-center justify-between py-4 compact:justify-center lg:justify-start lg:py-0">
             <Link
@@ -212,6 +218,7 @@ export function DeskHeader({
               pathname={pathname}
               profile={account}
               accountVariant="panel"
+              unreadCount={unreadCount}
               className="flex w-full flex-wrap items-center justify-center gap-x-5 gap-y-3 pb-4 lg:justify-end lg:gap-x-6 lg:pb-0"
             />
           </nav>
@@ -223,11 +230,12 @@ export function DeskHeader({
           id={menuId}
           className="max-h-[calc(100dvh-5rem)] overflow-y-auto border-t border-gray-200 bg-white compact:hidden"
         >
-          <nav aria-label="Desk" className="mx-auto max-w-[1400px] px-4 py-4">
+          <nav aria-label="Desk" className={`${PAGE_FRAME_CLASS} py-4`}>
             <NavLinks
               pathname={pathname}
               profile={account}
               accountVariant="menu"
+              unreadCount={unreadCount}
               className="flex flex-col gap-3"
             />
           </nav>

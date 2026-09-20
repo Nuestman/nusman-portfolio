@@ -6,6 +6,29 @@ import { Button } from './ui/button'
 
 type FormStatus = 'idle' | 'success' | 'error' | 'misconfigured'
 
+const HEARD_ABOUT_OPTIONS = [
+  { value: 'referral', label: 'Referral' },
+  { value: 'family_friends', label: 'Family and friends' },
+  { value: 'work_colleague', label: 'Work colleague' },
+  { value: 'repeat', label: 'I have worked with you before' },
+  { value: 'other', label: 'Other' },
+] as const
+
+const TIMELINE_OPTIONS = [
+  'This week',
+  'This month',
+  'This quarter',
+  'Flexible',
+] as const
+
+const BUDGET_OPTIONS = [
+  'Under $1k',
+  'Under $2k',
+  '$2k–$5k',
+  '$5k+',
+  'Open / discuss',
+] as const
+
 type FormData = {
   name: string
   email: string
@@ -16,6 +39,8 @@ type FormData = {
   successLooksLike: string
   timeline: string
   budget: string
+  source: string
+  sourceOther: string
   website: string
 }
 
@@ -29,6 +54,8 @@ const emptyForm: FormData = {
   successLooksLike: '',
   timeline: '',
   budget: '',
+  source: '',
+  sourceOther: '',
   website: '',
 }
 
@@ -46,6 +73,9 @@ function inboundUrl(): string {
   return 'https://desk.nusman.dev/api/inbound-lead'
 }
 
+const fieldClass =
+  'w-full px-4 py-3 bg-white/90 border border-gray-200 rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-gold-500 transition-colors duration-200 placeholder:text-gray-500'
+
 const StartProjectForm: React.FC = () => {
   const [formData, setFormData] = useState<FormData>(emptyForm)
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -53,12 +83,13 @@ const StartProjectForm: React.FC = () => {
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
 
   const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
   ) => {
     const { name, value } = e.target
     setFormData((prev) => ({
       ...prev,
       [name]: value,
+      ...(name === 'source' && value !== 'other' ? { sourceOther: '' } : {}),
     }))
   }
 
@@ -89,6 +120,11 @@ const StartProjectForm: React.FC = () => {
           successLooksLike: formData.successLooksLike.trim(),
           timeline: formData.timeline.trim() || undefined,
           budget: formData.budget.trim() || undefined,
+          source: formData.source,
+          sourceOther:
+            formData.source === 'other'
+              ? formData.sourceOther.trim() || undefined
+              : undefined,
           website: formData.website.trim() || undefined,
         }),
       })
@@ -122,9 +158,6 @@ const StartProjectForm: React.FC = () => {
       setIsSubmitting(false)
     }
   }
-
-  const fieldClass =
-    'w-full px-4 py-3 bg-white/90 border border-gray-200 rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-gold-500 transition-colors duration-200 placeholder:text-gray-500'
 
   return (
     <section className="py-20 pb-24 bg-gray-50">
@@ -306,16 +339,20 @@ const StartProjectForm: React.FC = () => {
                       >
                         Timeline <span className="text-gray-500 font-normal">(optional)</span>
                       </label>
-                      <input
+                      <select
                         id="start-timeline"
-                        type="text"
                         name="timeline"
                         value={formData.timeline}
                         onChange={handleInputChange}
-                        maxLength={200}
-                        placeholder="e.g. this month, Q2, flexible"
                         className={fieldClass}
-                      />
+                      >
+                        <option value="">Not sure yet</option>
+                        {TIMELINE_OPTIONS.map((option) => (
+                          <option key={option} value={option}>
+                            {option}
+                          </option>
+                        ))}
+                      </select>
                     </div>
                     <div>
                       <label
@@ -324,18 +361,65 @@ const StartProjectForm: React.FC = () => {
                       >
                         Budget range <span className="text-gray-500 font-normal">(optional)</span>
                       </label>
-                      <input
+                      <select
                         id="start-budget"
-                        type="text"
                         name="budget"
                         value={formData.budget}
                         onChange={handleInputChange}
-                        maxLength={200}
-                        placeholder="e.g. under $2k, open"
                         className={fieldClass}
-                      />
+                      >
+                        <option value="">Not sure yet</option>
+                        {BUDGET_OPTIONS.map((option) => (
+                          <option key={option} value={option}>
+                            {option}
+                          </option>
+                        ))}
+                      </select>
                     </div>
                   </div>
+
+                  <div>
+                    <label htmlFor="start-source" className="block text-sm font-medium text-dark-950 mb-2">
+                      How did you hear about us?
+                    </label>
+                    <select
+                      id="start-source"
+                      name="source"
+                      value={formData.source}
+                      onChange={handleInputChange}
+                      required
+                      className={fieldClass}
+                    >
+                      <option value="">Choose one…</option>
+                      {HEARD_ABOUT_OPTIONS.map((option) => (
+                        <option key={option.value} value={option.value}>
+                          {option.label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {formData.source === 'other' ? (
+                    <div>
+                      <label
+                        htmlFor="start-source-other"
+                        className="block text-sm font-medium text-dark-950 mb-2"
+                      >
+                        Please specify
+                      </label>
+                      <input
+                        id="start-source-other"
+                        type="text"
+                        name="sourceOther"
+                        value={formData.sourceOther}
+                        onChange={handleInputChange}
+                        required
+                        maxLength={200}
+                        className={fieldClass}
+                        placeholder="Where did you hear about this work?"
+                      />
+                    </div>
+                  ) : null}
 
                   {/* Honeypot — leave empty */}
                   <div className="absolute -left-[9999px] h-0 w-0 overflow-hidden" aria-hidden="true">

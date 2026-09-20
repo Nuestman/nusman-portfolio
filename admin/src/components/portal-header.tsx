@@ -6,6 +6,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { AccountMenu, type AccountMenuVariant } from "@/components/account-menu";
 import { Button } from "@/components/ui/button";
+import { PAGE_FRAME_CLASS } from "@/lib/layout";
 import { linkClassName } from "@/lib/links";
 import { portalLogout } from "@/app/portal/login/actions";
 
@@ -77,11 +78,13 @@ function NavLinks({
   className,
   profile,
   accountVariant,
+  unreadCount,
 }: {
   pathname: string;
   className?: string;
   profile: { name: string; imageSrc: string | null };
   accountVariant: AccountMenuVariant;
+  unreadCount: number;
 }) {
   return (
     <ul className={className}>
@@ -104,6 +107,7 @@ function NavLinks({
         variant={accountVariant}
         links={PORTAL_ACCOUNT_LINKS}
         logoutAction={portalLogout}
+        unreadCount={unreadCount}
       />
     </ul>
   );
@@ -111,8 +115,10 @@ function NavLinks({
 
 export function PortalHeader({
   personName,
+  unreadCount = 0,
 }: {
   personName: string;
+  unreadCount?: number;
 }) {
   const pathname = usePathname();
   const displayPath = portalDisplayPath(pathname);
@@ -184,7 +190,7 @@ export function PortalHeader({
 
   return (
     <header className="sticky top-0 z-40 overflow-visible border-b border-gray-200 bg-white">
-      <div ref={chromeRef} className="mx-auto w-full max-w-[1400px] px-4">
+      <div ref={chromeRef} className={PAGE_FRAME_CLASS}>
         <div className="flex flex-col compact:gap-3 lg:flex-row lg:flex-wrap lg:items-center lg:gap-x-8 lg:gap-y-3 lg:py-4">
           <div className="flex min-h-12 items-center justify-between py-4 compact:justify-center lg:justify-start lg:py-0">
             <Link
@@ -232,6 +238,7 @@ export function PortalHeader({
               pathname={displayPath}
               profile={profile}
               accountVariant="panel"
+              unreadCount={unreadCount}
               className="flex w-full flex-wrap items-center justify-center gap-x-5 gap-y-3 pb-4 lg:justify-end lg:gap-x-6 lg:pb-0"
             />
           </nav>
@@ -243,11 +250,12 @@ export function PortalHeader({
           id={menuId}
           className="max-h-[calc(100dvh-5rem)] overflow-y-auto border-t border-gray-200 bg-white compact:hidden"
         >
-          <nav aria-label="Portal" className="mx-auto max-w-[1400px] px-4 py-4">
+          <nav aria-label="Portal" className={`${PAGE_FRAME_CLASS} py-4`}>
             <NavLinks
               pathname={displayPath}
               profile={profile}
               accountVariant="menu"
+              unreadCount={unreadCount}
               className="flex flex-col gap-3"
             />
           </nav>

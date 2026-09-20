@@ -1,3 +1,7 @@
+import {
+  messageBodyLooksRich,
+  sanitizeMessageHtml,
+} from "@/lib/message-body";
 import { cn } from "@/lib/utils";
 
 export type PortalThreadMessage = {
@@ -7,6 +11,41 @@ export type PortalThreadMessage = {
   body: string;
   createdAtLabel: string;
 };
+
+function MessageBodyContent({ body }: { body: string }) {
+  if (!messageBodyLooksRich(body)) {
+    return (
+      <p className="whitespace-pre-wrap text-[15px] leading-relaxed">{body}</p>
+    );
+  }
+
+  return (
+    <div
+      className={cn(
+        "message-rich-body text-[15px] leading-relaxed",
+        "[&_a]:text-gold-700 [&_a]:underline",
+        "[&_p]:mb-2 [&_p:last-child]:mb-0",
+        "[&_h2]:mb-1.5 [&_h2]:mt-2 [&_h2]:text-base [&_h2]:font-semibold",
+        "[&_h3]:mb-1 [&_h3]:mt-2 [&_h3]:text-[15px] [&_h3]:font-semibold",
+        "[&_ul:not(.msg-checklist)]:mb-2 [&_ul:not(.msg-checklist)]:list-disc [&_ul:not(.msg-checklist)]:pl-5",
+        "[&_ol]:mb-2 [&_ol]:list-decimal [&_ol]:pl-5",
+        "[&_li]:my-0.5",
+        "[&_ul.msg-checklist]:mb-2 [&_ul.msg-checklist]:list-none [&_ul.msg-checklist]:pl-0",
+        "[&_ul.msg-checklist>li]:relative [&_ul.msg-checklist>li]:my-1 [&_ul.msg-checklist>li]:pl-6",
+        "[&_ul.msg-checklist>li]:before:absolute [&_ul.msg-checklist>li]:before:left-0 [&_ul.msg-checklist>li]:before:content-['☐']",
+        "[&_ul.msg-checklist>li.msg-checklist--checked]:before:content-['☑']",
+        "[&_blockquote]:border-l-2 [&_blockquote]:border-gray-300 [&_blockquote]:pl-3 [&_blockquote]:text-gray-700",
+        "[&_code]:rounded [&_code]:bg-black/5 [&_code]:px-1 [&_code]:font-mono [&_code]:text-[0.9em]",
+        "[&_pre]:mb-2 [&_pre]:overflow-x-auto [&_pre]:rounded-md [&_pre]:bg-black/5 [&_pre]:p-2 [&_pre]:text-[0.85em]",
+        "[&_pre_code]:bg-transparent [&_pre_code]:p-0",
+        "[&_table]:mb-2 [&_table]:w-full [&_table]:border-collapse [&_table]:text-[0.9em]",
+        "[&_th]:border [&_th]:border-gray-200 [&_th]:bg-black/5 [&_th]:px-2 [&_th]:py-1 [&_th]:text-left [&_th]:font-semibold",
+        "[&_td]:border [&_td]:border-gray-200 [&_td]:px-2 [&_td]:py-1",
+      )}
+      dangerouslySetInnerHTML={{ __html: sanitizeMessageHtml(body) }}
+    />
+  );
+}
 
 export function PortalMessageThread({
   messages,
@@ -60,9 +99,7 @@ export function PortalMessageThread({
                   {message.authorLabel}
                 </p>
               ) : null}
-              <p className="whitespace-pre-wrap text-[15px] leading-relaxed">
-                {message.body}
-              </p>
+              <MessageBodyContent body={message.body} />
               <p className="mt-1 text-right text-[10px] tabular-nums text-gray-500">
                 {message.createdAtLabel}
               </p>

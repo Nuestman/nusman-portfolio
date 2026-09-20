@@ -1,10 +1,12 @@
-import Link from "next/link";
+﻿import Link from "next/link";
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getSessionEmail } from "@/lib/auth";
 import {
   ensureProjectMilestones,
   getClient,
   getLaunch,
+  getPortalProjectForPerson,
   getProject,
   getProjectGateWork,
   listChangeRequests,
@@ -17,15 +19,12 @@ import {
 } from "@/db/queries";
 import { ConfirmDelete } from "@/components/confirm-submit";
 import { DeskShell } from "@/components/desk-shell";
-import { EditableCard } from "@/components/editable-card";
-import {
-  EditLink,
-  TableActionsCell,
-  TableActionsHeader,
-} from "@/components/table-actions";
+import { ProjectTimeline } from "@/components/project-timeline";
+import { ScrollChain } from "@/components/scroll-chain";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { QueryNotice } from "@/components/query-notice";
 import { PROCESS_GATES, type ProcessGate } from "@/db/schema";
+import { getPortalSessionPerson } from "@/lib/current-person";
 import { isUuid } from "@/lib/ids";
 import {
   gateGuide,
@@ -38,8 +37,7 @@ import {
 import { projectStatusLabel, workKindLabel } from "@/lib/labels";
 import { linkClassName } from "@/lib/links";
 import { shouldServePortalUi } from "@/lib/serve-portal";
-import { formatStamp, snippet } from "@/lib/text";
-import { tableClassName, tableFrameClassName } from "@/lib/tables";
+import { dualModeMetadata } from "@/lib/surface-meta";
 import { PortalProjectControls } from "@/app/portal-desk/project-controls";
 import PortalProjectPage from "@/app/portal/projects/[id]/page";
 import { DeliveryWork } from "../delivery-work";
@@ -47,11 +45,10 @@ import { EarlierStages } from "../earlier-stages";
 import { GateSwitcher } from "../gate-switcher";
 import { JobBriefCard } from "../job-brief-card";
 import { MilestonesPanel } from "../milestones-panel";
-import { NoteForm } from "../note-form";
 import { ProposeAgreeWork } from "../propose-agree-work";
 import { SalesWork } from "../sales-work";
 import { SchedulePanel } from "../schedule-panel";
-import { deleteNoteAction, deleteProjectAction } from "../actions";
+import { deleteProjectAction } from "../actions";
 
 export const dynamic = "force-dynamic";
 
@@ -59,6 +56,28 @@ type ProjectDetailPageProps = {
   params: Promise<{ id: string }>;
   searchParams: Promise<{ notice?: string | string[] }>;
 };
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}): Promise<Metadata> {
+  if (!(await shouldServePortalUi())) {
+    return {};
+  }
+  const { id } = await params;
+  if (!isUuid(id)) {
+    return dualModeMetadata("Project");
+  }
+  const session = await getPortalSessionPerson().catch(() => null);
+  if (!session) {
+    return dualModeMetadata("Project");
+  }
+  const project = await getPortalProjectForPerson(id, session.client.id).catch(
+    () => null,
+  );
+  return dualModeMetadata(project?.title ?? "Project");
+}
 
 function projectNotice(raw: string | undefined): string | null {
   if (!raw) {
@@ -223,7 +242,7 @@ export default async function ProjectDetailPage({
   }
 
   return (
-    <DeskShell email={email} width="3xl">
+    <DeskShell email={email}>
       <div>
         <Link
           href={isProduct ? "/products" : "/projects"}
@@ -271,212 +290,178 @@ export default async function ProjectDetailPage({
         </p>
       ) : null}
 
-      {!isProduct ? (
-        <Card>
-          <CardHeader>
-            <CardTitle>Stage</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {pipelineLocked ? (
-              <p className="mb-3 text-sm text-gray-600">
-                Stage moves are locked while this project is{" "}
-                {projectStatusLabel(project.status).toLowerCase()}.
-              </p>
-            ) : null}
-            <GateSwitcher
-              project={{
-                id: project.id,
-                currentGate: project.currentGate,
-                problemSentence: project.problemSentence,
-                status: project.status,
-                workKind: project.workKind,
-              }}
-              people={people}
-              hasSelectedOption={hasSelectedOption}
-              qualifyOutcome={qualify?.outcome ?? "undecided"}
-              intakeProblemAnswer={problemAnswer}
-              intakeSuccessAnswer={successAnswer}
-            />
-            <p className="mt-3 text-sm text-gray-600">{guide.youDo}</p>
-          </CardContent>
-        </Card>
-      ) : null}
+      <div className="grid items-start gap-8 xl:grid-cols-[minmax(0,1fr)_minmax(22rem,32rem)] xl:gap-12">
+        <div className="space-y-8">
+          {!isProduct ? (
+            <Card>
+              <CardHeader>
+                <CardTitle>Stage</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {pipelineLocked ? (
+                  <p className="mb-3 text-sm text-gray-600">
+                    Stage moves are locked while this project is{" "}
+                    {projectStatusLabel(project.status).toLowerCase()}.
+                  </p>
+                ) : null}
+                <GateSwitcher
+                  project={{
+                    id: project.id,
+                    currentGate: project.currentGate,
+                    problemSentence: project.problemSentence,
+                    status: project.status,
+                    workKind: project.workKind,
+                  }}
+                  people={people}
+                  hasSelectedOption={hasSelectedOption}
+                  qualifyOutcome={qualify?.outcome ?? "undecided"}
+                  intakeProblemAnswer={problemAnswer}
+                  intakeSuccessAnswer={successAnswer}
+                />
+                <p className="mt-3 text-sm text-gray-600">{guide.youDo}</p>
+              </CardContent>
+            </Card>
+          ) : null}
 
-      {isProduct ? (
-        <JobBriefCard isProduct project={project} />
-      ) : processGate === "qualify" || disqualified ? (
-        <>
-          {stagePanels(["qualify"])}
-          <JobBriefCard
-            isProduct={false}
-            project={project}
-            locked={disqualified}
-          />
-        </>
-      ) : (
-        <JobBriefCard isProduct={false} project={project} />
-      )}
-
-      {isProduct ? (
-        <section className="space-y-4">
-          <div>
-            <h2 className="font-heading text-3xl text-dark-950">Product work</h2>
-            <p className="mt-1 text-sm text-gray-600">
-              Changes, demos, and launch for this own-product record.
-            </p>
-          </div>
-          <DeliveryWork {...deliveryProps} />
-        </section>
-      ) : null}
-
-      {!isProduct && !disqualified && processGate !== "qualify" ? (
-        <section className="space-y-4">
-          <div>
-            <p className="text-xs font-medium uppercase tracking-wide text-gray-500">
-              Current stage
-            </p>
-            <h2 className="font-heading text-3xl text-dark-950">{guide.label}</h2>
-          </div>
-          {stagePanels([processGate])}
-        </section>
-      ) : null}
-
-      {!isProduct ? (
-        <Card>
-          <CardHeader>
-            <CardTitle>Milestones</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="mb-4 text-sm text-gray-600">
-              {disqualified
-                ? "Checkpoints are frozen while this job is disqualified."
-                : "Tick in order — finish earlier checkpoints before later ones. Payment commitment is a milestone + note for now."}
-            </p>
-            <MilestonesPanel
-              projectId={project.id}
-              milestones={milestones}
-              locked={pipelineLocked}
-            />
-          </CardContent>
-        </Card>
-      ) : null}
-
-      {!isProduct && !disqualified && earlier.length > 0 ? (
-        <EarlierStages>{stagePanels(earlier)}</EarlierStages>
-      ) : null}
-
-      <EditableCard
-        title="Timeline"
-        hint={
-          isProduct
-            ? "Notes and stage moves."
-            : "Calls, WhatsApp, stage moves, and package choices."
-        }
-        editLabel="Add"
-        always={
-          notes.length === 0 ? (
-            <p className="text-sm text-gray-600">No timeline yet.</p>
+          {isProduct ? (
+            <JobBriefCard isProduct project={project} />
+          ) : processGate === "qualify" || disqualified ? (
+            <>
+              {stagePanels(["qualify"])}
+              <JobBriefCard
+                isProduct={false}
+                project={project}
+                locked={disqualified}
+              />
+            </>
           ) : (
-            <div className={tableFrameClassName}>
-              <table className={tableClassName}>
-                <thead className="bg-gray-50 text-gray-600">
-                  <tr>
-                    <th className="px-4 py-3 font-medium">When</th>
-                    <th className="px-4 py-3 font-medium">Note</th>
-                    <TableActionsHeader />
-                  </tr>
-                </thead>
-                <tbody>
-                  {notes.map((note) => (
-                    <tr key={note.id} className="border-t border-gray-100">
-                      <td className="px-4 py-3 whitespace-nowrap text-gray-500">
-                        {formatStamp(note.createdAt)}
-                      </td>
-                      <td className="px-4 py-3 text-gray-700">
-                        {snippet(note.body)}
-                        {note.clientVisible ? (
-                          <span className="mt-1 block text-xs text-gray-500">
-                            Portal visible
-                          </span>
-                        ) : null}
-                      </td>
-                      <TableActionsCell>
-                        <EditLink
-                          href={`/projects/${project.id}/notes/${note.id}/edit`}
-                        />
-                        <form action={deleteNoteAction}>
-                          <input type="hidden" name="id" value={note.id} />
-                          <input
-                            type="hidden"
-                            name="projectId"
-                            value={project.id}
-                          />
-                          <ConfirmDelete
-                            label="Remove"
-                            message="Remove this note?"
-                          />
-                        </form>
-                      </TableActionsCell>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )
-        }
-        form={<NoteForm projectId={project.id} />}
-      />
+            <JobBriefCard isProduct={false} project={project} />
+          )}
 
-      {!isProduct ? (
-        <SchedulePanel
-          projectId={project.id}
-          events={events}
-          locked={pipelineLocked}
-        />
-      ) : null}
+          {isProduct ? (
+            <section className="space-y-4">
+              <div>
+                <h2 className="font-heading text-3xl text-dark-950">
+                  Product work
+                </h2>
+                <p className="mt-1 text-sm text-gray-600">
+                  Changes, demos, and launch for this own-product record.
+                </p>
+              </div>
+              <DeliveryWork {...deliveryProps} />
+            </section>
+          ) : null}
 
-      {!isProduct && !disqualified ? (
-        <Card>
-          <CardHeader>
-            <CardTitle>Portal</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <PortalProjectControls
+          {!isProduct && !disqualified && processGate !== "qualify" ? (
+            <section className="space-y-4">
+              <div>
+                <p className="text-xs font-medium uppercase tracking-wide text-gray-500">
+                  Current stage
+                </p>
+                <h2 className="font-heading text-3xl text-dark-950">
+                  {guide.label}
+                </h2>
+              </div>
+              {stagePanels([processGate])}
+            </section>
+          ) : null}
+        </div>
+
+        <aside className="space-y-8 xl:row-span-2">
+          <ScrollChain className="xl:max-h-[min(40rem,calc(100dvh-var(--desk-header-height)-6rem))] xl:overflow-y-auto xl:pr-1">
+            <ProjectTimeline
               projectId={project.id}
-              portalIntakeOpen={project.portalIntakeOpen}
-              messageCount={portalMessageCount}
-              scheduleRequestCount={
-                events.filter((event) => event.status === "requested").length
+              notes={notes}
+              variant="desk"
+              hint={
+                isProduct
+                  ? "Notes and stage moves."
+                  : "Calls, WhatsApp, stage moves, and package choices."
               }
             />
-          </CardContent>
-        </Card>
-      ) : null}
+          </ScrollChain>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Remove {isProduct ? "product" : "project"}</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-3 text-gray-700">
-          <p className="text-sm">
-            Deletes this record and its notes, options, and stage forms.
-          </p>
-          <form action={deleteProjectAction}>
-            <input type="hidden" name="id" value={project.id} />
-            <input
-              type="hidden"
-              name="next"
-              value={isProduct ? "/products" : "/projects"}
+          {!isProduct ? (
+            <SchedulePanel
+              projectId={project.id}
+              events={events}
+              locked={pipelineLocked}
             />
-            <ConfirmDelete
-              label={isProduct ? "Delete product" : "Delete project"}
-              size="default"
-              confirmValue={project.title}
-              message={`Deletes this ${isProduct ? "product" : "project"} and its notes, options, and stage forms. Type the title to confirm.`}
-            />
-          </form>
-        </CardContent>
-      </Card>
+          ) : null}
+
+          {!isProduct && !disqualified ? (
+            <Card>
+              <CardHeader>
+                <CardTitle>Portal</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <PortalProjectControls
+                  projectId={project.id}
+                  portalIntakeOpen={project.portalIntakeOpen}
+                  messageCount={portalMessageCount}
+                  scheduleRequestCount={
+                    events.filter((event) => event.status === "requested")
+                      .length
+                  }
+                />
+              </CardContent>
+            </Card>
+          ) : null}
+        </aside>
+
+        <div className="space-y-8">
+          {!isProduct ? (
+            <Card>
+              <CardHeader>
+                <CardTitle>Milestones</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="mb-4 text-sm text-gray-600">
+                  {disqualified
+                    ? "Checkpoints are frozen while this job is disqualified."
+                    : "Tick in order — finish earlier checkpoints before later ones. Payment commitment is a milestone + note for now."}
+                </p>
+                <MilestonesPanel
+                  projectId={project.id}
+                  milestones={milestones}
+                  locked={pipelineLocked}
+                />
+              </CardContent>
+            </Card>
+          ) : null}
+
+          {!isProduct && !disqualified && earlier.length > 0 ? (
+            <EarlierStages>{stagePanels(earlier)}</EarlierStages>
+          ) : null}
+
+          <Card>
+            <CardHeader>
+              <CardTitle>
+                Remove {isProduct ? "product" : "project"}
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3 text-gray-700">
+              <p className="text-sm">
+                Deletes this record and its notes, options, and stage forms.
+              </p>
+              <form action={deleteProjectAction}>
+                <input type="hidden" name="id" value={project.id} />
+                <input
+                  type="hidden"
+                  name="next"
+                  value={isProduct ? "/products" : "/projects"}
+                />
+                <ConfirmDelete
+                  label={isProduct ? "Delete product" : "Delete project"}
+                  size="default"
+                  confirmValue={project.title}
+                  message={`Deletes this ${isProduct ? "product" : "project"} and its notes, options, and stage forms. Type the title to confirm.`}
+                />
+              </form>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
     </DeskShell>
   );
 }

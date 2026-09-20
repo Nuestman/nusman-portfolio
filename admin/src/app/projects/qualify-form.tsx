@@ -5,10 +5,21 @@ import { Button } from "@/components/ui/button";
 import { FormError } from "@/components/form-error";
 import { QUALIFY_OUTCOMES, type QualifyOutcome } from "@/db/schema";
 import { fieldClassName, labelClassName } from "@/lib/forms";
+import { BUDGET_OPTIONS, TIMELINE_OPTIONS } from "@/lib/form-options";
 import { qualifyOutcomeLabel } from "@/lib/labels";
 import { saveQualifyAction, type FormState } from "./actions";
 
 const initialState: FormState = { error: null };
+
+function selectWithCurrent(
+  options: readonly string[],
+  current: string,
+): string[] {
+  if (!current || (options as readonly string[]).includes(current)) {
+    return [...options];
+  }
+  return [current, ...options];
+}
 
 export function QualifyForm({
   projectId,
@@ -30,6 +41,8 @@ export function QualifyForm({
     initialState,
   );
   const fieldsLocked = qualify.outcome === "no";
+  const timelineOptions = selectWithCurrent(TIMELINE_OPTIONS, qualify.neededBy);
+  const budgetOptions = selectWithCurrent(BUDGET_OPTIONS, qualify.budgetNote);
 
   return (
     <form action={action} className="space-y-5">
@@ -102,27 +115,39 @@ export function QualifyForm({
           <label htmlFor="qualify-neededBy" className={labelClassName}>
             Needed by
           </label>
-          <input
+          <select
             id="qualify-neededBy"
             name="neededBy"
             defaultValue={qualify.neededBy}
             className={fieldClassName}
-            placeholder="Timeline"
             disabled={fieldsLocked}
-          />
+          >
+            <option value="">Not set</option>
+            {timelineOptions.map((option) => (
+              <option key={option} value={option}>
+                {option}
+              </option>
+            ))}
+          </select>
         </div>
         <div>
           <label htmlFor="qualify-budgetNote" className={labelClassName}>
             Budget
           </label>
-          <input
+          <select
             id="qualify-budgetNote"
             name="budgetNote"
             defaultValue={qualify.budgetNote}
             className={fieldClassName}
-            placeholder="e.g. under $2k"
             disabled={fieldsLocked}
-          />
+          >
+            <option value="">Not set</option>
+            {budgetOptions.map((option) => (
+              <option key={option} value={option}>
+                {option}
+              </option>
+            ))}
+          </select>
         </div>
         <div>
           <label htmlFor="qualify-callAt" className={labelClassName}>

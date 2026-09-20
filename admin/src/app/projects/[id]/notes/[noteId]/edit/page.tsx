@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { getSessionEmail } from "@/lib/auth";
 import { getNote, getProject } from "@/db/queries";
 import { DeskShell } from "@/components/desk-shell";
+import { PageSpread } from "@/components/page-spread";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { isUuid } from "@/lib/ids";
 import { linkClassName } from "@/lib/links";
@@ -28,29 +29,34 @@ export default async function EditNotePage({ params }: EditNotePageProps) {
   const email = await getSessionEmail();
 
   return (
-    <DeskShell email={email} width="3xl">
-      <div>
-        <Link href={`/projects/${id}`} className={linkClassName("back")}>
-          ← {project.title}
-        </Link>
-        <h1 className="mt-3 section-heading">Edit note</h1>
-      </div>
-      <Card>
-        <CardHeader>
-          <CardTitle>Note</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <NoteForm
-            projectId={id}
-            note={{
-              id: note.id,
-              body: note.body,
-              clientVisible: note.clientVisible,
-            }}
-            submitLabel="Save note"
-          />
-        </CardContent>
-      </Card>
+    <DeskShell email={email}>
+      <PageSpread
+        intro={
+          <>
+            <Link href={`/projects/${id}`} className={linkClassName("back")}>
+              ← {project.title}
+            </Link>
+            <h1 className="mt-3 section-heading">Edit note</h1>
+          </>
+        }
+      >
+        <Card>
+          <CardHeader>
+            <CardTitle>Note</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <NoteForm
+              projectId={id}
+              note={{
+                id: note.id,
+                body: note.body,
+                clientVisible: note.clientVisible,
+              }}
+              submitLabel="Save note"
+            />
+          </CardContent>
+        </Card>
+      </PageSpread>
     </DeskShell>
   );
 }

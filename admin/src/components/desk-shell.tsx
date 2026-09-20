@@ -1,27 +1,22 @@
 import type { ReactNode } from "react";
 import { DeskHeader } from "@/components/desk-header";
+import { countUnreadDeskNotifications } from "@/db/queries";
 import { requireSessionUser, userAvatarSrc } from "@/lib/current-user";
+import { PAGE_FRAME_CLASS } from "@/lib/layout";
 import { cn } from "@/lib/utils";
-
-const WIDTHS = {
-  "3xl": "max-w-3xl",
-  "4xl": "max-w-4xl",
-  "6xl": "max-w-[1400px]",
-} as const;
 
 export async function DeskShell({
   children,
-  width = "6xl",
   beforeMain,
   mainClassName,
 }: {
   email?: string | null;
   children: ReactNode;
-  width?: keyof typeof WIDTHS;
   beforeMain?: ReactNode;
   mainClassName?: string;
 }) {
   const user = await requireSessionUser();
+  const unreadCount = await countUnreadDeskNotifications(user.id);
 
   return (
     <div className="min-h-full">
@@ -36,11 +31,12 @@ export async function DeskShell({
           name: user.name,
           imageSrc: userAvatarSrc(user),
         }}
+        unreadCount={unreadCount}
       />
       {beforeMain}
       <main
         id="desk-main"
-        className={cn("mx-auto space-y-8 px-4 py-10", WIDTHS[width], mainClassName)}
+        className={cn(PAGE_FRAME_CLASS, "space-y-8 py-10", mainClassName)}
       >
         {children}
       </main>

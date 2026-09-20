@@ -107,3 +107,38 @@ export function displayText(value: string | null | undefined): string {
 export function displayYesNo(value: boolean): string {
   return value ? "Yes" : "No";
 }
+
+function startOfLocalDay(value: Date): Date {
+  return new Date(value.getFullYear(), value.getMonth(), value.getDate());
+}
+
+/** Calendar-day label for project timeline groups. */
+export function formatTimelineDay(value: Date, now = new Date()): string {
+  const day = startOfLocalDay(value).getTime();
+  const today = startOfLocalDay(now).getTime();
+  const diffDays = Math.round((today - day) / 86_400_000);
+  if (diffDays === 0) {
+    return "Today";
+  }
+  if (diffDays === 1) {
+    return "Yesterday";
+  }
+  return value.toLocaleDateString(undefined, {
+    weekday: "short",
+    month: "short",
+    day: "numeric",
+    year: value.getFullYear() === now.getFullYear() ? undefined : "numeric",
+  });
+}
+
+export function formatTimelineTime(value: Date): string {
+  return value.toLocaleTimeString(undefined, {
+    hour: "numeric",
+    minute: "2-digit",
+  });
+}
+
+export function timelineDayKey(value: Date): string {
+  const day = startOfLocalDay(value);
+  return `${day.getFullYear()}-${day.getMonth()}-${day.getDate()}`;
+}

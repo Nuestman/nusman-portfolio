@@ -11,12 +11,18 @@ import {
 } from "@/db/queries";
 import { recordAuditSafe } from "@/lib/audit";
 import { looksLikeEmail } from "@/lib/forms";
+import {
+  isHeardAboutSource,
+  type HeardAboutSource,
+} from "@/lib/form-options";
+import { clientSourceLabel } from "@/lib/labels";
 import { sendInboundLeadEmail, sendInboundLeadReceiptEmail } from "@/lib/inbound-email";
 import { deskNotifyRecipients } from "@/lib/mail";
 import {
   inboundIsBlocked,
   recordInboundAttempt,
 } from "@/lib/inbound-rate-limit";
+import type { ClientSource } from "@/db/schema";
 
 export const dynamic = "force-dynamic";
 
@@ -26,6 +32,7 @@ const MAX_PROBLEM = 2000;
 const MAX_WHO_FOR = 500;
 const MAX_SUCCESS = 2000;
 const MAX_SHORT = 200;
+const MAX_SOURCE_OTHER = 200;
 
 type InboundBody = {
   name?: unknown;
@@ -39,6 +46,8 @@ type InboundBody = {
   summary?: unknown;
   timeline?: unknown;
   budget?: unknown;
+  source?: unknown;
+  sourceOther?: unknown;
   website?: unknown;
 };
 
@@ -128,15 +137,11 @@ function notifyRecipients(): string[] {
   return deskNotifyRecipients();
 }
 
-function projectTitle(name: string, organisation: string | null, summary: string) {
+function projectTitle(organisation: string | null) {
   if (organisation) {
     return oneLine(`${organisation} — inbound`, 120);
   }
-  const snippet = summary.replace(/\s+/g, " ").slice(0, 48).trim();
-  if (snippet.length >= 12) {
-    return oneLine(snippet.endsWith(".") ? snippet.slice(0, -1) : snippet, 120);
-  }
-  return oneLine(`Project for ${name}`, 120);
+  return "Project Title";
 }
 
 function originAllowed(request: NextRequest): boolean {
@@ -201,6 +206,8 @@ export async function POST(request: NextRequest) {
   const successLooksLike = asTrimmed(body.successLooksLike, MAX_SUCCESS);
   const timeline = asOptional(body.timeline, MAX_SHORT);
   const budget = asOptional(body.budget, MAX_SHORT);
+  const sourceRaw = asTrimmed(body.source, 40);
+  const sourceOther = asOptional(body.sourceOther, MAX_SOURCE_OTHER);
 
   if (name.length < 2) {
     return json(request, { ok: false, error: "Name is required." }, 400);
@@ -229,6 +236,27 @@ export async function POST(request: NextRequest) {
       400,
     );
   }
+  if (!sourceRaw || !isHeardAboutSource(sourceRaw)) {
+    return json(
+      request,
+      { ok: false, error: "Tell us how you heard about us." },
+      400,
+    );
+  }
+  const heardAbout: HeardAboutSource = sourceRaw;
+  if (heardAbout === "other" && !sourceOther) {
+    return json(
+      request,
+      { ok: false, error: "Please say how you heard about us." },
+      400,
+    );
+  }
+
+  const clientSource: ClientSource = heardAbout;
+  const clientNotes = [
+    "Created from nusman.dev Start a project form.",
+    `Heard about us: ${clientSourceLabel(clientSource)}${sourceOther ? ` — ${sourceOther}` : ""}.`,
+  ].join("\n");
 
   // Count only after validation so typos do not lock a real visitor out.
   recordInboundAttempt(ip);
@@ -243,8 +271,8 @@ export async function POST(request: NextRequest) {
       email,
       phone,
       organisation,
-      source: "inbound",
-      notes: "Created from nusman.dev Start a project form.",
+      source: clientSource,
+      notes: clientNotes,
     });
 
     await createPerson({
@@ -257,7 +285,7 @@ export async function POST(request: NextRequest) {
       notes: "Primary contact from inbound discovery form.",
     });
 
-    const title = projectTitle(name, organisation, problem);
+    const title = projectTitle(organisation);
     projectId = await createProject({
       clientId,
       title,
@@ -276,6 +304,7 @@ export async function POST(request: NextRequest) {
       notes: [
         "Inbound lead — contact ASAP.",
         phone ? `Phone: ${phone}` : null,
+        `Heard about us: ${clientSourceLabel(clientSource)}${sourceOther ? ` — ${sourceOther}` : ""}.`,
       ]
         .filter(Boolean)
         .join("\n"),
@@ -288,6 +317,7 @@ export async function POST(request: NextRequest) {
         "",
         `Contact: ${name} <${email}>${phone ? ` · ${phone}` : ""}`,
         organisation ? `Organisation: ${organisation}` : null,
+        `Heard about us: ${clientSourceLabel(clientSource)}${sourceOther ? ` — ${sourceOther}` : ""}`,
         timeline ? `Timeline: ${timeline}` : null,
         budget ? `Budget: ${budget}` : null,
         "",

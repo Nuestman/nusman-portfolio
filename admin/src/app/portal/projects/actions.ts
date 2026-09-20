@@ -24,6 +24,7 @@ import {
   isProjectEventKind,
   projectEventKindLabel,
 } from "@/lib/labels";
+import { readMessageBodyFromForm } from "@/lib/message-body";
 import {
   notifyDeskOfPortalMessage,
   notifyDeskOfSchedule,
@@ -33,6 +34,7 @@ import {
   deskPublicBaseUrl,
   sendPortalProjectStartedNotifyEmail,
 } from "@/lib/notify-email";
+import { safeInternalPath } from "@/lib/paths";
 import { parseDatetimeLocal, formatEventWhen } from "@/lib/text";
 import { INTAKE_QUESTIONS } from "@/lib/templates";
 
@@ -40,15 +42,25 @@ export type PortalFormState = {
   error: string | null;
 };
 
+function portalEventReturnPath(formData: FormData): string {
+  const next = readOptional(formData, "next");
+  if (!next) {
+    return "/schedule";
+  }
+  return safeInternalPath(next);
+}
+
 function revalidatePortalProject(projectId: string) {
   revalidatePath(`/portal/projects/${projectId}`);
   revalidatePath(`/portal/projects/${projectId}/intake`);
+  revalidatePath(`/portal/projects/${projectId}/brief`);
   revalidatePath(`/portal/projects/${projectId}/messages`);
   revalidatePath(`/portal/projects/${projectId}/schedule`);
   revalidatePath(`/portal/schedule`);
   revalidatePath(`/portal/projects`);
   revalidatePath(`/projects/${projectId}`);
   revalidatePath(`/projects/${projectId}/intake`);
+  revalidatePath(`/projects/${projectId}/brief`);
   revalidatePath(`/projects/${projectId}/messages`);
   revalidatePath(`/projects/${projectId}/schedule`);
   revalidatePath(`/schedule`);
@@ -61,19 +73,11 @@ function oneLine(value: string, max = 160): string {
   return value.replace(/[\r\n\u0000-\u001f\u007f]/g, " ").trim().slice(0, max);
 }
 
-function portalProjectTitle(
-  clientName: string,
-  organisation: string | null,
-  problem: string,
-): string {
+function portalProjectTitle(organisation: string | null): string {
   if (organisation) {
     return oneLine(`${organisation} — new request`, 120);
   }
-  const snippet = problem.replace(/\s+/g, " ").slice(0, 48).trim();
-  if (snippet.length >= 12) {
-    return oneLine(snippet.endsWith(".") ? snippet.slice(0, -1) : snippet, 120);
-  }
-  return oneLine(`Project for ${clientName}`, 120);
+  return "Project Title";
 }
 
 export async function startPortalProjectAction(
@@ -103,11 +107,7 @@ export async function startPortalProjectAction(
     return { error: "One of the answers is too long." };
   }
 
-  const title = portalProjectTitle(
-    client.name,
-    client.organisation,
-    problem,
-  );
+  const title = portalProjectTitle(client.organisation);
 
   const projectId = await createProject({
     clientId: client.id,
@@ -239,7 +239,7 @@ export async function postPortalMessageAction(
     return { error: "That project is gone." };
   }
 
-  const body = readTrimmed(formData, "body");
+  const { body } = readMessageBodyFromForm(formData);
   if (!body) {
     return { error: "Write a message first." };
   }
@@ -283,7 +283,7 @@ export async function confirmPortalEventAction(formData: FormData) {
   }
 
   if (event.status !== "proposed") {
-    redirect("/schedule");
+    redirect(portalEventReturnPath(formData));
   }
 
   await setProjectEventStatus(id, "confirmed");
@@ -312,7 +312,7 @@ export async function confirmPortalEventAction(formData: FormData) {
     ],
   });
   revalidatePortalProject(projectId);
-  redirect("/schedule");
+  redirect(portalEventReturnPath(formData));
 }
 
 export async function declinePortalEventAction(formData: FormData) {
@@ -330,7 +330,7 @@ export async function declinePortalEventAction(formData: FormData) {
   }
 
   if (event.status !== "proposed") {
-    redirect("/schedule");
+    redirect(portalEventReturnPath(formData));
   }
 
   await setProjectEventStatus(id, "cancelled");
@@ -356,7 +356,7 @@ export async function declinePortalEventAction(formData: FormData) {
     details: ["Status: cancelled", `When: ${formatEventWhen(event.startsAt)}`],
   });
   revalidatePortalProject(projectId);
-  redirect("/schedule");
+  redirect(portalEventReturnPath(formData));
 }
 
 export async function cancelPortalEventAction(formData: FormData) {
@@ -378,7 +378,7 @@ export async function cancelPortalEventAction(formData: FormData) {
     event.status !== "proposed" &&
     event.status !== "confirmed"
   ) {
-    redirect("/schedule");
+    redirect(portalEventReturnPath(formData));
   }
 
   await setProjectEventStatus(id, "cancelled");
@@ -404,7 +404,7 @@ export async function cancelPortalEventAction(formData: FormData) {
     details: ["Status: cancelled", `When: ${formatEventWhen(event.startsAt)}`],
   });
   revalidatePortalProject(projectId);
-  redirect("/schedule");
+  redirect(portalEventReturnPath(formData));
 }
 
 export async function requestPortalEventAction(

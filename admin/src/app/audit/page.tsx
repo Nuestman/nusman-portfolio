@@ -4,6 +4,7 @@ import { loadFromDb } from "@/db";
 import { listAuditEvents } from "@/db/queries";
 import { DatabaseNotice } from "@/components/database-notice";
 import { DeskShell } from "@/components/desk-shell";
+import { PageSpread } from "@/components/page-spread";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { linkClassName } from "@/lib/links";
 import { tableClassName, tableFrameClassName } from "@/lib/tables";
@@ -16,14 +17,18 @@ export default async function AuditPage() {
   const loaded = await loadFromDb(() => listAuditEvents());
 
   return (
-    <DeskShell email={email} width="3xl">
-      <div>
-        <h1 className="section-heading">Audit</h1>
-        <p className="mt-2 text-gray-700">
-          What changed on Desk. Personal notes stay on Journal. Project notes
-          stay on the job.
-        </p>
-      </div>
+    <DeskShell email={email}>
+      <PageSpread
+        intro={
+          <>
+            <h1 className="section-heading">Audit</h1>
+            <p className="mt-2 text-gray-700">
+              What changed on Desk. Personal notes stay on Journal. Project notes
+              stay on the job.
+            </p>
+          </>
+        }
+      >
       {loaded.kind === "missing" || loaded.kind === "error" ? (
         <DatabaseNotice kind={loaded.kind} noun="the audit trail" />
       ) : loaded.data.length === 0 ? (
@@ -105,6 +110,7 @@ export default async function AuditPage() {
           </CardContent>
         </Card>
       )}
+      </PageSpread>
     </DeskShell>
   );
 }

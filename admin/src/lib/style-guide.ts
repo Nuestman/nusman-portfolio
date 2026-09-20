@@ -99,8 +99,8 @@ export const TYPE_SPECIMENS = [
   {
     label: "Card title",
     sample: "People",
-    className: "font-heading text-2xl text-dark-950",
-    note: "Odibee. font-heading text-2xl. Login stays this size.",
+    className: "font-heading text-2xl text-gold-500",
+    note: "Odibee. font-heading text-2xl text-gold-500. Login stays this size.",
   },
   {
     label: "Nav",
@@ -181,7 +181,7 @@ export const TYPE_PUBLIC_SCALE = [
 export const TYPE_DESK_SCALE = [
   ["Screen title", "section-heading, same as public"],
   ["Playbook section title", "section-heading"],
-  ["Card / panel title", "font-heading text-2xl text-dark-950"],
+  ["Card / panel title", "font-heading text-2xl text-gold-500"],
   ["Body", "text-sm md:text-base text-gray-700"],
   ["Table", "text-sm"],
   ["Meta / labels", "text-sm text-gray-500"],
@@ -189,10 +189,12 @@ export const TYPE_DESK_SCALE = [
 ] as const;
 
 export const LAYOUT_RULES = [
-  ["Page padding", "container mx-auto px-4. Desk main: px-4 py-10."],
+  ["Page padding", "px-4 sm:px-6 lg:px-8. Desk/Portal main: py-10."],
   ["Marketing sections", "py-20 or py-24."],
-  ["Desk chrome / lists", "max-w-[1400px], same as the public container."],
-  ["Desk forms", "max-w-3xl."],
+  ["Desk and Portal chrome", "max-w-[1400px], same frame as page content."],
+  ["Inner pages", "PageSpread: intro ~22–26rem, optional rail under intro, main fills the rest."],
+  ["Portal brief / document pages", "Centered max-w-3xl. Brief is locked picture only; questions are a separate form."],
+  ["Project detail", "Work column + sticky timeline on xl."],
   ["Page ground", "Public: bg-gray-50 or gradient-bg. Desk: flat bg-gray-50."],
   ["Grid gaps", "gap-4 for cards, gap-6–gap-8 for marketing splits."],
   ["Header", "py-4, logo h-12. Nav Odibee 1.5rem."],
@@ -213,7 +215,7 @@ export const SHAPE_RULES = [
 
 export const BUTTON_VARIANTS = [
   ["default", "bg-gold-500 text-white hover:bg-gold-600 — primary"],
-  ["outline", "Gold border, gold text, fill gold on hover"],
+  ["outline", "Gold border, gold text, fill gold on hover. Card header actions (Add, Edit, Open)."],
   ["secondary", "Gray-100 rest, gray-200 hover"],
   ["ghost", "Hover gray-100"],
   ["link", "Gold + underline at rest, gold-600 on hover. Not a filled control."],
@@ -259,6 +261,7 @@ export const VOICE_DONT = [
   "A second accent colour.",
   "section-heading inside Desk tables or on buttons.",
   "Caricatures on login or project forms.",
+  "Gold-ring the account photo or default avatar at rest (grey chip; default is gold fill + white silhouette, no ring).",
   "Body-coloured links that only turn gold on hover.",
   "Another product’s UI (Mineaid, Uventory) mixed into this brand.",
   "Gradients on Desk chrome (marketing gradient-text / gradient-bg only).",
@@ -272,5 +275,6 @@ export const IMPLEMENTING_STEPS = [
   "Recreate Button and Card with the same variants.",
   "Screen titles use section-heading, same as public pages. Not inside tables.",
   "Use linkClassName and desk-table. Do not scatter gold or zebra classes by hand.",
+  "Messages use MessageComposer (plain or self-hosted TinyMCE). Sanitize HTML on save and render.",
   "Check a list page, a form, and login against this page before calling a slice done.",
 ] as const;

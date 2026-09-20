@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Button, buttonClassName } from "@/components/ui/button";
 import { FormError } from "@/components/form-error";
 import { fieldClassName, labelClassName } from "@/lib/forms";
+import { BUDGET_OPTIONS, TIMELINE_OPTIONS } from "@/lib/form-options";
 import {
   startPortalProjectAction,
   type PortalFormState,
@@ -100,26 +101,38 @@ export function PortalStartProjectForm({
             Timeline{" "}
             <span className="font-normal text-gray-500">(optional)</span>
           </label>
-          <input
+          <select
             id="portal-start-timeline"
             name="timeline"
-            maxLength={200}
+            defaultValue=""
             className={fieldClassName}
-            placeholder="e.g. this month, Q2, flexible"
-          />
+          >
+            <option value="">Not sure yet</option>
+            {TIMELINE_OPTIONS.map((option) => (
+              <option key={option} value={option}>
+                {option}
+              </option>
+            ))}
+          </select>
         </div>
         <div>
           <label htmlFor="portal-start-budget" className={labelClassName}>
             Budget range{" "}
             <span className="font-normal text-gray-500">(optional)</span>
           </label>
-          <input
+          <select
             id="portal-start-budget"
             name="budget"
-            maxLength={200}
+            defaultValue=""
             className={fieldClassName}
-            placeholder="e.g. under $2k, open"
-          />
+          >
+            <option value="">Not sure yet</option>
+            {BUDGET_OPTIONS.map((option) => (
+              <option key={option} value={option}>
+                {option}
+              </option>
+            ))}
+          </select>
         </div>
       </div>
 

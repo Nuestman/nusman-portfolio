@@ -117,7 +117,7 @@ Same large Odibee titles as the public site. Tables and form labels stay small.
 |---|---|
 | Screen title | `section-heading` → `text-5xl md:text-6xl lg:text-7xl font-heading text-dark-950` |
 | Playbook section title | `section-heading` |
-| Card / panel title | `font-heading text-2xl text-dark-950` |
+| Card / panel title | `font-heading text-2xl text-gold-500` |
 | Body | `text-sm md:text-base text-gray-700` |
 | Table | `text-sm` |
 | Meta / labels | `text-sm text-gray-500` |
@@ -132,7 +132,9 @@ Name accent on marketing only: `gradient-text` (`from-gold-500 to-gold-600`). De
 
 - Page padding: `container mx-auto px-4`.
 - Marketing sections: `py-20` or `py-24`.
-- Desk pages: `px-4 py-8` (or similar). Chrome and list pages use `max-w-[1400px]` (same as the public container). Forms stay `max-w-3xl`.
+- Desk / Portal chrome and pages: `PAGE_FRAME_CLASS` — `px-4 sm:px-6 lg:px-8`, `max-w-[1400px]`.
+- Most screens: PageSpread (intro ~22–26rem, optional rail under intro, main fills the rest).
+- Portal brief / questions: centered `max-w-3xl` (`PAGE_NARROW_CLASS`). Brief is a locked document; questions are a separate form.
 - Page ground: `bg-gray-50` or `gradient-bg` (`from-white via-gray-50 to-gold-50`). Desk: flat `bg-gray-50` is enough.
 - Grid gaps: `gap-4` for cards, `gap-6`–`gap-8` for marketing splits.
 - Header matches the public bar: `py-4`, logo `h-12`. Nav Odibee is `1.5rem` (`.font-heading.text-lg`). Hamburger below `500px`.
@@ -175,11 +177,11 @@ Sizes: `sm` `h-9`, `default` `h-10`, `lg` `h-11 px-8` (marketing), `icon` square
 
 Focus: gold ring (`focus-visible:ring-2 focus-visible:ring-ring`).
 
-One primary button per view. Secondary is outline or secondary gray.
+One primary button per view. Secondary is outline or secondary gray. Card header actions (Add, Edit, Open) use `outline`.
 
 ### Cards
 
-`rounded-2xl border border-gray-200 bg-white text-dark-950 shadow-sm`. Header `p-6`, content `p-6 pt-0`. Titles `text-2xl`. Descriptions `text-sm text-gray-600`.
+`rounded-2xl border border-gray-200 bg-white text-dark-950 shadow-sm`. Header `p-6`, content `p-6 pt-0`. Titles `font-heading text-2xl text-gold-500`. Descriptions `text-sm text-gray-600`.
 
 On dark: invert to `bg-white/[0.06]` or `bg-dark-950` with `text-white`. Desk home widgets stay on white.
 
@@ -193,6 +195,8 @@ focus:ring-2 focus:ring-gold-500 focus:border-gold-500
 ```
 
 Labels: `text-sm font-medium text-dark-950 mb-2`. Required fields stay required. Errors: red-700 text, red-100 panel — never silent.
+
+Desk / Portal messages use `MessageComposer`: default **Plain text**, optional **Rich text** (self-hosted TinyMCE, Inter, gold links, no menubar/branding). Persist and render through `sanitize-html`. Do not drop a second rich-text library on notes or forms.
 
 ### Nav
 
@@ -212,7 +216,8 @@ Compact (`<500px`): hamburger, square logo, no “Desk” wordmark. `500px`–`1
 
 Last nav item. Identity, not a marketing caricature.
 
-- Chip: `bg-gray-100 hover:bg-gray-200` (same fill as `secondary`), circular photo, **no gold ring at rest**. Gold ring only on `focus-visible`.
+- Chip: `bg-gray-100 hover:bg-gray-200` (same fill as `secondary`), circular photo, **no gold ring at rest**. Gold ring only on `focus-visible`. Missing photos use `/avatars/default-user.png` — gold-500 fill, white silhouette, no ring.
+- Badge includes the notifications bell and unread count. The Notifications menu row shows the same bubble.
 - Menu: Notifications, Playbook, Profile, Journal, Sign out. Ink rows, grey hover. Inline SVG icons — not lucide, not Framer.
 - Journal, Notifications, and Playbook live here, not in the main nav. Portal account menu: Notifications, Profile, Sign out.
 
@@ -268,7 +273,7 @@ Scrollbar: 8px, gold thumb, gray track.
 
 **Public:** caricature portraits in `public/images/portraits/`, story photos, logos. They are part of the marketing voice.
 
-**Desk:** logo in the chrome, plus the signed-in operator’s photo on Profile and as the last header nav item (account menu). That photo is identity, not marketing. No collab marquee or testimonial avatars. Empty states: short sentence + gold button, not an illustration unless we add one later on purpose.
+**Desk / Portal:** logo in the chrome, plus the signed-in person’s photo on Profile and as the last header nav item (account menu). That photo is identity, not marketing. Users without a photo use `/avatars/default-user.png` (gold circle, white silhouette, no ring). No collab marquee or testimonial avatars. Empty states: short sentence + gold button, not an illustration unless we add one later on purpose.
 
 ---
 
@@ -306,7 +311,7 @@ Scrollbar: 8px, gold thumb, gray track.
 - Introduce a second accent colour
 - Use `section-heading` inside Desk tables
 - Put caricatures on login or project forms (the operator photo belongs on Profile / the account menu)
-- Gold-ring the account photo at rest (grey chip; gold only on focus)
+- Gold-ring the account photo or default avatar at rest (grey chip; default is gold fill + white silhouette, no ring)
 - Put Journal in the main nav
 - Make body links look like body text (ink until hover)
 - Mix another product’s UI (Mineaid, Uventory, etc.) into this brand

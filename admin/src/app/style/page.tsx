@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { fieldClassName, labelClassName } from "@/lib/forms";
 import { linkClassName } from "@/lib/links";
+import { PAGE_FRAME_CLASS } from "@/lib/layout";
 import { tableClassName, tableFrameClassName } from "@/lib/tables";
 import { cn } from "@/lib/utils";
 import {
@@ -119,13 +120,12 @@ export default async function StylePage() {
   return (
     <DeskShell
       email={email}
-      width="4xl"
       mainClassName="space-y-12"
       beforeMain={
         <div className="sticky top-[var(--desk-header-height)] z-30 border-b border-gray-200 bg-white">
           <nav
             aria-label="Style sections"
-            className="mx-auto max-w-4xl overflow-x-auto px-4 py-3"
+            className={`${PAGE_FRAME_CLASS} overflow-x-auto py-3`}
           >
             <ul className="flex min-w-max gap-2">
               {STYLE_JUMP_LINKS.map((link) => (
@@ -454,8 +454,8 @@ export default async function StylePage() {
               <code className="text-sm text-dark-950">shadow-sm</code>. Header{" "}
               <code className="text-sm text-dark-950">p-6</code>, content{" "}
               <code className="text-sm text-dark-950">p-6 pt-0</code>. Titles
-              Odibee at 2xl. Descriptions text-sm text-gray-600. Desk home
-              widgets stay on white.
+              Odibee at 2xl in gold-500. Descriptions text-sm text-gray-600. Desk home
+              widgets stay on white. Header-right actions use outline sm.
             </p>
             <div className="rounded-xl bg-gray-200 p-4 text-sm">
               Quiet fills use gray-200, not a second accent.
@@ -661,9 +661,9 @@ export default async function StylePage() {
             </CardHeader>
             <CardContent className="text-sm text-gray-700">
               Logo in the chrome. The operator photo is identity: Profile, and
-              the last nav item (account menu). No collab marquee or
-              testimonial avatars. Empty states: short sentence + gold button,
-              not an illustration unless we add one later on purpose.
+              the last nav item (account menu). Users without a photo use
+              /avatars/default-user.png — gold-500 fill, white silhouette, no ring. The
+              account badge shows the notification bell and unread count.
             </CardContent>
           </Card>
         </div>

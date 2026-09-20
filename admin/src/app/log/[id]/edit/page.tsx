@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { getSessionEmail } from "@/lib/auth";
 import { getActivity } from "@/db/queries";
 import { DeskShell } from "@/components/desk-shell";
+import { PageSpread } from "@/components/page-spread";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { isUuid } from "@/lib/ids";
 import { linkClassName } from "@/lib/links";
@@ -30,25 +31,30 @@ export default async function EditActivityPage({
   const email = await getSessionEmail();
 
   return (
-    <DeskShell email={email} width="3xl">
-      <div>
-        <Link href="/log" className={linkClassName("back")}>
-          ← Journal
-        </Link>
-        <h1 className="mt-3 section-heading">Edit line</h1>
-      </div>
-      <Card>
-        <CardHeader>
-          <CardTitle>Line</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <ActivityForm
-            next="/log"
-            activity={{ id: activity.id, body: activity.body }}
-            submitLabel="Save line"
-          />
-        </CardContent>
-      </Card>
+    <DeskShell email={email}>
+      <PageSpread
+        intro={
+          <>
+            <Link href="/log" className={linkClassName("back")}>
+              ← Journal
+            </Link>
+            <h1 className="mt-3 section-heading">Edit line</h1>
+          </>
+        }
+      >
+        <Card>
+          <CardHeader>
+            <CardTitle>Line</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ActivityForm
+              next="/log"
+              activity={{ id: activity.id, body: activity.body }}
+              submitLabel="Save line"
+            />
+          </CardContent>
+        </Card>
+      </PageSpread>
     </DeskShell>
   );
 }

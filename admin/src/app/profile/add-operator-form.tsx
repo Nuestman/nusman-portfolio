@@ -4,6 +4,7 @@ import { useActionState } from "react";
 import { Button } from "@/components/ui/button";
 import { FormError } from "@/components/form-error";
 import { fieldClassName, labelClassName } from "@/lib/forms";
+import { OPERATOR_TITLE_OPTIONS } from "@/lib/form-options";
 import { createOperatorAction, type FormState } from "./actions";
 
 const initialState: FormState = { error: null };
@@ -61,11 +62,19 @@ export function AddOperatorForm() {
         <label htmlFor="operator-title" className={labelClassName}>
           Title (optional)
         </label>
-        <input
+        <select
           id="operator-title"
           name="title"
+          defaultValue=""
           className={fieldClassName}
-        />
+        >
+          <option value="">Not set</option>
+          {OPERATOR_TITLE_OPTIONS.map((title) => (
+            <option key={title} value={title}>
+              {title}
+            </option>
+          ))}
+        </select>
       </div>
       <FormError>{state.error}</FormError>
       <Button type="submit" disabled={pending}>

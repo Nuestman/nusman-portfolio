@@ -70,9 +70,9 @@ Vercel only lists Root Directory folders that already exist on the GitHub branch
 9. Optional Portal mail: `RESEND_API_KEY`, verified `PORTAL_FROM_EMAIL` (domain sender, not unverified personal mail). Powers magic links plus message / schedule / milestone / stage / inbound / portal-access alerts (on-brand HTML + CID logo). Without them, Desk still creates a copy-paste magic link.
 10. Optional local Portal: open `portal.localhost:3000` (same `npm run dev`). Avoid `FORCE_PORTAL=1` in Desk `.env.local`.
 
-From `admin/`, `npm run db:migrate` applies schema through `0012_notifications.sql`. Neon automatic snapshots are not enabled on this project plan, so download a copy from Desk `/export` after a real job starts (JSON, YAML, CSV zip with `journal.csv`, Markdown, or HTML). After a new migration, deploy the Desk/Portal app so production matches the new columns.
+From `admin/`, `npm run db:migrate` applies schema through `0013_client_source_expand.sql`. Neon automatic snapshots are not enabled on this project plan, so download a copy from Desk `/export` after a real job starts (JSON, YAML, CSV zip with `journal.csv`, Markdown, or HTML). After a new migration, deploy the Desk/Portal app so production matches the new columns.
 
-`/avatars/` is public (seeded operator photo). Uploaded photos are stored in the database and served at `/profile/photo/[id]` behind a Desk session. Do not commit `admin/.env.local`.
+`npm install` / `npm run build` copies TinyMCE into `admin/public/tinymce` (gitignored). `/avatars/` and `/tinymce/` are public static. Uploaded photos are stored in the database and served at `/profile/photo/[id]` behind a Desk session. Do not commit `admin/.env.local`.
 
 If you pointed the **existing** nusman.dev project at `admin/`, put it back: Root Directory empty, Framework Vite, Output Directory `dist`. Desk + Portal must be their own Vercel project.
 

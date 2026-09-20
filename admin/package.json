@@ -1,6 +1,6 @@
 {
   "name": "nusman-desk",
-  "version": "2.2.0",
+  "version": "2.4.0",
   "private": true,
   "description": "Desk and Portal — operator workbench and client portal for the nusman.dev practice.",
   "author": {
@@ -42,6 +42,9 @@
     "esbuild": ">=0.25.0"
   },
   "scripts": {
+    "postinstall": "node scripts/copy-tinymce.mjs",
+    "predev": "node scripts/copy-tinymce.mjs",
+    "prebuild": "node scripts/copy-tinymce.mjs",
     "dev": "next dev",
     "dev:portal": "next dev -p 3001",
     "build": "next build",
@@ -54,6 +57,7 @@
   },
   "dependencies": {
     "@neondatabase/serverless": "^1.1.0",
+    "@tinymce/tinymce-react": "^6.3.0",
     "date-fns": "^4.4.0",
     "drizzle-orm": "^0.45.2",
     "jose": "^6.2.12",
@@ -61,7 +65,9 @@
     "qrcode": "^1.5.4",
     "react": "19.2.8",
     "react-big-calendar": "^1.20.0",
-    "react-dom": "19.2.8"
+    "react-dom": "19.2.8",
+    "sanitize-html": "^2.17.7",
+    "tinymce": "^8.9.1"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
@@ -70,6 +76,7 @@
     "@types/react": "^19",
     "@types/react-big-calendar": "^1.16.3",
     "@types/react-dom": "^19",
+    "@types/sanitize-html": "^2.16.1",
     "dotenv": "^17.4.2",
     "drizzle-kit": "^0.31.10",
     "eslint": "^9",

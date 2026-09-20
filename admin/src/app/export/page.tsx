@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { getSessionEmail } from "@/lib/auth";
 import { DeskShell } from "@/components/desk-shell";
+import { PageSpread } from "@/components/page-spread";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { buttonClassName } from "@/components/ui/button";
 import { EXPORT_FORMATS, exportFormatLabel } from "@/lib/export-formats";
@@ -12,15 +13,19 @@ export default async function ExportPage() {
   const email = await getSessionEmail();
 
   return (
-    <DeskShell email={email} width="3xl">
-        <div>
-          <h1 className="section-heading">Export</h1>
-          <p className="mt-2 text-gray-700">
-            A copy of operators, clients, people, projects, notes, options,
-            journal, gate records, and audit. Passwords, photos, device rows,
-            and env secrets are not included.
-          </p>
-        </div>
+    <DeskShell email={email}>
+      <PageSpread
+        intro={
+          <>
+            <h1 className="section-heading">Export</h1>
+            <p className="mt-2 text-gray-700">
+              A copy of operators, clients, people, projects, notes, options,
+              journal, gate records, and audit. Passwords, photos, device rows,
+              and env secrets are not included.
+            </p>
+          </>
+        }
+      >
         <Card>
           <CardHeader>
             <CardTitle>Download</CardTitle>
@@ -51,6 +56,7 @@ export default async function ExportPage() {
             </p>
           </CardContent>
         </Card>
+      </PageSpread>
     </DeskShell>
   );
 }

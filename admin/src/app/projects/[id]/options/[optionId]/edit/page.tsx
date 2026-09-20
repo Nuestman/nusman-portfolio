@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { getSessionEmail } from "@/lib/auth";
 import { getOption, getProject } from "@/db/queries";
 import { DeskShell } from "@/components/desk-shell";
+import { PageSpread } from "@/components/page-spread";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { isUuid } from "@/lib/ids";
 import { optionKindLabel } from "@/lib/labels";
@@ -32,18 +33,19 @@ export default async function EditOptionPage({ params }: EditOptionPageProps) {
   const email = await getSessionEmail();
 
   return (
-    <DeskShell email={email} width="3xl">
-        <div>
-          <Link
-            href={`/projects/${id}`}
-            className={linkClassName("back")}
-          >
-            ← {project.title}
-          </Link>
-          <h1 className="mt-3 section-heading">
-            Edit {optionKindLabel(option.kind).toLowerCase()} option
-          </h1>
-        </div>
+    <DeskShell email={email}>
+      <PageSpread
+        intro={
+          <>
+            <Link href={`/projects/${id}`} className={linkClassName("back")}>
+              ← {project.title}
+            </Link>
+            <h1 className="mt-3 section-heading">
+              Edit {optionKindLabel(option.kind).toLowerCase()} option
+            </h1>
+          </>
+        }
+      >
         <Card>
           <CardHeader>
             <CardTitle>Option</CardTitle>
@@ -65,6 +67,7 @@ export default async function EditOptionPage({ params }: EditOptionPageProps) {
             />
           </CardContent>
         </Card>
+      </PageSpread>
     </DeskShell>
   );
 }

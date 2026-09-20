@@ -56,13 +56,14 @@ Magic link rows: hashed token, person_id, expires_at, used_at. One-time use.
 | `/` | Public landing |
 | `/login` | Email → request magic link |
 | `/auth/magic` | Consume token |
-| `/profile` | Person details (read-only) |
+| `/profile` | Person details (read-only You card) |
 | `/projects` | Hiring projects for this client |
 | `/projects/new` | Start a project (brief → Desk at Qualify) |
-| `/projects/[id]` | Progress, milestones, your package (client-facing fields only), client-visible notes |
-| `/projects/[id]/intake` | Edit intake when open |
-| `/projects/[id]/schedule` | Project-scoped schedule |
-| `/messages`, `/messages/[projectId]` | Messages hub + thread |
+| `/projects/[id]` | Progress (gold path), your package (client-facing fields only), client-visible notes |
+| `/projects/[id]/brief` | Locked project brief (package, deadline, problem, success, in/out scope) |
+| `/projects/[id]/intake` | Discovery questions form — only while intake is open |
+| `/projects/[id]/schedule` | Project-scoped schedule (confirm / decline / cancel) |
+| `/messages`, `/messages/[projectId]` | Messages hub + thread (plain or rich text) |
 | `/notifications` | In-app inbox (mark read / delete; account menu) |
 | `/schedule` | Client schedule hub |
 
@@ -71,7 +72,7 @@ Magic link rows: hashed token, person_id, expires_at, used_at. One-time use.
 ## Schema
 
 - Migration `0008_portal`: `portal_magic_links`, `portal_sessions`, `portal_messages`; `people.portal_enabled`, `projects.portal_intake_open`, `project_notes.client_visible`
-- Later Desk migrations also affect Portal surfaces: `0009_project_events` (schedule), `0010`/`0011` (milestones + gate remap), `0012_notifications` (in-app inbox) — see [desk-status.md](./desk-status.md)
+- Later Desk migrations also affect Portal surfaces: `0009_project_events` (schedule), `0010`/`0011` (milestones + gate remap), `0012_notifications` (in-app inbox), `0013_client_source_expand` (heard-about sources) — see [desk-status.md](./desk-status.md)
 
 ---
 
@@ -81,7 +82,7 @@ Magic link rows: hashed token, person_id, expires_at, used_at. One-time use.
 
 **Cause:** Public URLs (`/projects`, `/projects/[id]`, …) exist in **two** App Router trees (`app/projects/…` and `app/portal/projects/…`). Proxy rewrite to `/portal/…` works on document loads; soft navigations resolve the **desk** module from the browser URL and collide with the rewrite.
 
-**Current workaround (keep until cleanup):** For `/login` and `/projects*`, proxy uses `NextResponse.next()` (no rewrite). Desk pages branch with `shouldServePortalUi()` (`admin/src/lib/serve-portal.ts`) and render Portal UI. Thin aliases exist for intake/schedule under `app/projects/[id]/…`. Proxy also short-circuits already-rewritten `/portal/…` paths so rewrite re-entry cannot loop. Desk-only paths use careful prefixes (`/log` and `/log/…` only — never `startsWith("/log")`, which matched `/login` and caused `ERR_TOO_MANY_REDIRECTS` on Portal login).
+**Current workaround (keep until cleanup):** For `/login` and `/projects*`, proxy uses `NextResponse.next()` (no rewrite). Desk pages branch with `shouldServePortalUi()` (`admin/src/lib/serve-portal.ts`) and render Portal UI. Thin aliases exist for intake, schedule, and **brief** under `app/projects/[id]/…`. Proxy also short-circuits already-rewritten `/portal/…` paths so rewrite re-entry cannot loop. Desk-only paths use careful prefixes (`/log` and `/log/…` only — never `startsWith("/log")`, which matched `/login` and caused `ERR_TOO_MANY_REDIRECTS` on Portal login).
 
 **Preferred later fix (pick one):**
 
@@ -147,6 +148,7 @@ Add domain `portal.nusman.dev` on the same Vercel project as Desk. Magic links u
 9. Portal profile / account chip — done  
 10. Start project, messages hub, Resend alerts, `/projects*` soft-nav dual-mode — done (Portal **1.1** / Desk **2.1.0**)  
 11. In-app notifications (feed + table; mark read / delete) + on-brand email shell — done (Portal **1.2** / Desk **2.2.0**)  
+12. Wide canvas, Progress path, locked Brief vs Questions, default avatar, account unread bell, TinyMCE messages, shared source/timeline/budget selects — done (Portal **1.4** / Desk **2.4.0**)  
 
 ---
 

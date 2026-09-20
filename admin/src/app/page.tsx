@@ -164,7 +164,7 @@ export default async function HomePage() {
             <CardHeader>
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <CardTitle>Next 7 days</CardTitle>
-                <Link href="/schedule" className={linkClassName("back")}>
+                <Link href="/schedule" className={buttonClassName("outline", "sm")}>
                   Open schedule
                 </Link>
               </div>
@@ -219,10 +219,7 @@ export default async function HomePage() {
             <CardHeader>
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <CardTitle>Journal</CardTitle>
-                <Link
-                  href="/log"
-                  className={linkClassName("back")}
-                >
+                <Link href="/log" className={buttonClassName("outline", "sm")}>
                   Open journal
                 </Link>
               </div>

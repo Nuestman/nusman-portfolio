@@ -1,24 +1,19 @@
 import type { ReactNode } from "react";
 import { PortalHeader } from "@/components/portal-header";
+import { countUnreadPortalNotifications } from "@/db/queries";
 import { requirePortalPerson } from "@/lib/current-person";
+import { PAGE_FRAME_CLASS } from "@/lib/layout";
 import { cn } from "@/lib/utils";
-
-const WIDTHS = {
-  "3xl": "max-w-3xl",
-  "4xl": "max-w-4xl",
-  "6xl": "max-w-[1400px]",
-} as const;
 
 export async function PortalShell({
   children,
-  width = "3xl",
   mainClassName,
 }: {
   children: ReactNode;
-  width?: keyof typeof WIDTHS;
   mainClassName?: string;
 }) {
   const { person } = await requirePortalPerson();
+  const unreadCount = await countUnreadPortalNotifications(person.id);
 
   return (
     <div className="min-h-full">
@@ -28,14 +23,10 @@ export async function PortalShell({
       >
         Skip to content
       </a>
-      <PortalHeader personName={person.name} />
+      <PortalHeader personName={person.name} unreadCount={unreadCount} />
       <main
         id="portal-main"
-        className={cn(
-          "mx-auto space-y-8 px-4 py-10",
-          WIDTHS[width],
-          mainClassName,
-        )}
+        className={cn(PAGE_FRAME_CLASS, "space-y-8 py-10", mainClassName)}
       >
         {children}
       </main>

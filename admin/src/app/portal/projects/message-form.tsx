@@ -3,7 +3,8 @@
 import { useActionState } from "react";
 import { Button } from "@/components/ui/button";
 import { FormError } from "@/components/form-error";
-import { fieldClassName, labelClassName } from "@/lib/forms";
+import { MessageComposer } from "@/components/messages/message-composer";
+import { labelClassName } from "@/lib/forms";
 import {
   postPortalMessageAction,
   type PortalFormState,
@@ -24,12 +25,10 @@ export function PortalMessageForm({ projectId }: { projectId: string }) {
         <label htmlFor="portal-message-body" className={labelClassName}>
           Message
         </label>
-        <textarea
+        <MessageComposer
           id="portal-message-body"
-          name="body"
           required
-          rows={4}
-          className={fieldClassName}
+          disabled={pending}
           placeholder="Question, update, or decision…"
         />
       </div>

@@ -4,6 +4,7 @@ import { getSessionEmail } from "@/lib/auth";
 import { getAuditEvent } from "@/db/queries";
 import { DeskShell } from "@/components/desk-shell";
 import { InfoList } from "@/components/info-list";
+import { PageSpread } from "@/components/page-spread";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { isUuid } from "@/lib/ids";
 import { linkClassName } from "@/lib/links";
@@ -80,16 +81,20 @@ export default async function AuditDetailPage({ params }: AuditDetailPageProps) 
   }
 
   return (
-    <DeskShell email={email} width="3xl">
-      <div>
-        <p>
-          <Link href="/audit" className={linkClassName("back")}>
-            ← Audit
-          </Link>
-        </p>
-        <h1 className="section-heading mt-4">Audit event</h1>
-        <p className="mt-2 text-gray-700">{event.summary}</p>
-      </div>
+    <DeskShell email={email}>
+      <PageSpread
+        intro={
+          <>
+            <p>
+              <Link href="/audit" className={linkClassName("back")}>
+                ← Audit
+              </Link>
+            </p>
+            <h1 className="section-heading mt-4">Audit event</h1>
+            <p className="mt-2 text-gray-700">{event.summary}</p>
+          </>
+        }
+      >
 
       <Card>
         <CardHeader>
@@ -138,6 +143,7 @@ export default async function AuditDetailPage({ params }: AuditDetailPageProps) 
           <AuditValue value={event.after} />
         </CardContent>
       </Card>
+      </PageSpread>
     </DeskShell>
   );
 }

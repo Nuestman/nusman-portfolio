@@ -13,6 +13,8 @@ import {
 
 export const CLIENT_SOURCES = [
   "referral",
+  "family_friends",
+  "work_colleague",
   "inbound",
   "repeat",
   "other",

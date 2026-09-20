@@ -1,4 +1,5 @@
 import Link from "next/link";
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import {
   getPortalProjectForPerson,
@@ -7,9 +8,10 @@ import {
   listProjectEvents,
 } from "@/db/queries";
 import { PortalShell } from "@/components/portal-shell";
+import { PageSpread } from "@/components/page-spread";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { EditableCard } from "@/components/editable-card";
-import { requirePortalPerson } from "@/lib/current-person";
+import { getPortalSessionPerson, requirePortalPerson } from "@/lib/current-person";
 import { isUuid } from "@/lib/ids";
 import { linkClassName } from "@/lib/links";
 import { PortalRequestMeetingForm } from "../../request-meeting-form";
@@ -20,6 +22,27 @@ export const dynamic = "force-dynamic";
 type PortalSchedulePageProps = {
   params: Promise<{ id: string }>;
 };
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}): Promise<Metadata> {
+  const { id } = await params;
+  if (!isUuid(id)) {
+    return { title: "Schedule" };
+  }
+  const session = await getPortalSessionPerson().catch(() => null);
+  if (!session) {
+    return { title: "Schedule" };
+  }
+  const project = await getPortalProjectForPerson(id, session.client.id).catch(
+    () => null,
+  );
+  return {
+    title: project?.title ? `${project.title} · Schedule` : "Schedule",
+  };
+}
 
 export default async function PortalSchedulePage({
   params,
@@ -43,23 +66,27 @@ export default async function PortalSchedulePage({
 
   return (
     <PortalShell>
-      <div>
-        <Link
-          href={`/projects/${project.id}`}
-          className={linkClassName("back")}
-        >
-          ← {project.title}
-        </Link>
-        <h1 className="mt-3 section-heading">Schedule</h1>
-        <p className="mt-2 text-gray-700">
-          Confirm times Usman proposes, or request a meeting.
-        </p>
-        <p className="mt-2 text-sm">
-          <Link href="/schedule" className={linkClassName("nav")}>
-            All schedule
-          </Link>
-        </p>
-      </div>
+      <PageSpread
+        intro={
+          <>
+            <Link
+              href={`/projects/${project.id}`}
+              className={linkClassName("back")}
+            >
+              ← {project.title}
+            </Link>
+            <h1 className="mt-3 section-heading">Schedule</h1>
+            <p className="mt-2 text-gray-700">
+              Confirm times Usman proposes, or request a meeting.
+            </p>
+            <p className="mt-2 text-sm">
+              <Link href="/schedule" className={linkClassName("nav")}>
+                All schedule
+              </Link>
+            </p>
+          </>
+        }
+      >
 
       <Card>
         <CardHeader>
@@ -100,6 +127,7 @@ export default async function PortalSchedulePage({
           </p>
         }
       />
+      </PageSpread>
     </PortalShell>
   );
 }

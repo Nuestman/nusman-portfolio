@@ -22,7 +22,7 @@ Live site: [nusman.dev](https://nusman.dev)
 | `/about` | Background, education, and photo story tabs |
 | `/resume` | Full CV from resume data; PDF download |
 | `/contact` | Contact details and form |
-| `/start` | Start a project form → Desk inbound API |
+| `/start` | Start a project form → Desk inbound API (timeline, budget, heard-about) |
 | any other path | 404 |
 
 `/portfolio` exists in the app but is hidden from nav, footer, and the sitemap until case studies ship.

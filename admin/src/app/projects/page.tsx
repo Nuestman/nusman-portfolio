@@ -1,4 +1,5 @@
 import Link from "next/link";
+import type { Metadata } from "next";
 import { getSessionEmail } from "@/lib/auth";
 import { loadFromDb } from "@/db";
 import { listProjects } from "@/db/queries";
@@ -17,12 +18,17 @@ import { isProjectStatus, projectStatusLabel } from "@/lib/labels";
 import { PROJECT_STATUSES } from "@/db/schema";
 import { linkClassName } from "@/lib/links";
 import { shouldServePortalUi } from "@/lib/serve-portal";
+import { dualModeMetadata } from "@/lib/surface-meta";
 import { tableClassName, tableFrameClassName } from "@/lib/tables";
 import type { ProjectGate, ProjectStatus } from "@/db/schema";
 import PortalProjectsPage from "@/app/portal/projects/page";
 import { deleteProjectAction } from "./actions";
 
 export const dynamic = "force-dynamic";
+
+export async function generateMetadata(): Promise<Metadata> {
+  return dualModeMetadata("Projects");
+}
 
 type ProjectsPageProps = {
   searchParams: Promise<{ gate?: string | string[]; status?: string | string[] }>;

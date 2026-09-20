@@ -1,4 +1,5 @@
 import Link from "next/link";
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import {
   getPortalProjectForPerson,
@@ -9,7 +10,7 @@ import { MessagesWorkspace } from "@/components/messages/messages-workspace";
 import { PortalMessageThread } from "@/components/portal-message-thread";
 import { PortalShell } from "@/components/portal-shell";
 import { ScrollThreadLatest } from "@/components/scroll-thread-latest";
-import { requirePortalPerson } from "@/lib/current-person";
+import { getPortalSessionPerson, requirePortalPerson } from "@/lib/current-person";
 import { isUuid } from "@/lib/ids";
 import { formatChatStamp, initialsFromName } from "@/lib/text";
 import { PortalMessageForm } from "@/app/portal/projects/message-form";
@@ -19,6 +20,28 @@ export const dynamic = "force-dynamic";
 type PortalConversationPageProps = {
   params: Promise<{ projectId: string }>;
 };
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ projectId: string }>;
+}): Promise<Metadata> {
+  const { projectId } = await params;
+  if (!isUuid(projectId)) {
+    return { title: "Messages" };
+  }
+  const session = await getPortalSessionPerson().catch(() => null);
+  if (!session) {
+    return { title: "Messages" };
+  }
+  const project = await getPortalProjectForPerson(
+    projectId,
+    session.client.id,
+  ).catch(() => null);
+  return {
+    title: project?.title ? `${project.title} · Messages` : "Messages",
+  };
+}
 
 export default async function PortalConversationPage({
   params,
@@ -48,7 +71,7 @@ export default async function PortalConversationPage({
   }));
 
   return (
-    <PortalShell width="6xl" mainClassName="space-y-0 py-4 md:py-6">
+    <PortalShell mainClassName="space-y-0 py-4 md:py-6">
       <MessagesWorkspace
         conversations={conversations}
         activeProjectId={project.id}

@@ -16,10 +16,12 @@ export function NoteForm({
   projectId,
   note,
   submitLabel = "Add note",
+  rows = 4,
 }: {
   projectId: string;
   note?: { id: string; body: string; clientVisible?: boolean };
   submitLabel?: string;
+  rows?: number;
 }) {
   const action = note ? updateNoteAction : addNoteAction;
   const [state, formAction, pending] = useActionState(action, initialState);
@@ -38,7 +40,7 @@ export function NoteForm({
           id={bodyId}
           name="body"
           required
-          rows={4}
+          rows={rows}
           defaultValue={note?.body ?? ""}
           className={fieldClassName}
           placeholder="Call, WhatsApp decision, scope change…"
