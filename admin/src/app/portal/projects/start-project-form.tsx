@@ -1,11 +1,16 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
 import Link from "next/link";
 import { Button, buttonClassName } from "@/components/ui/button";
 import { FormError } from "@/components/form-error";
 import { fieldClassName, labelClassName } from "@/lib/forms";
-import { BUDGET_OPTIONS, TIMELINE_OPTIONS } from "@/lib/form-options";
+import {
+  BUDGET_OPTIONS,
+  NOT_SURE_YET,
+  TIMELINE_MANUAL_VALUE,
+  TIMELINE_OPTIONS,
+} from "@/lib/form-options";
 import {
   startPortalProjectAction,
   type PortalFormState,
@@ -26,9 +31,18 @@ export function PortalStartProjectForm({
     startPortalProjectAction,
     initialState,
   );
+  const [timelineChoice, setTimelineChoice] = useState(NOT_SURE_YET);
+  const [timelineManual, setTimelineManual] = useState("");
+
+  const timelineValue =
+    timelineChoice === TIMELINE_MANUAL_VALUE
+      ? timelineManual.trim()
+      : timelineChoice || NOT_SURE_YET;
 
   return (
     <form action={action} className="space-y-6">
+      <input type="hidden" name="timeline" value={timelineValue} />
+
       <div className="rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-700">
         <p>
           Requesting as{" "}
@@ -59,13 +73,29 @@ export function PortalStartProjectForm({
           minLength={10}
           maxLength={2000}
           className={fieldClassName}
-          placeholder="What needs to be built or fixed?"
+          placeholder="e.g. appointments get lost on WhatsApp, staff double-book, reports take hours"
+        />
+      </div>
+
+      <div>
+        <label htmlFor="portal-start-want-built" className={labelClassName}>
+          What do you want built or fixed?
+        </label>
+        <textarea
+          id="portal-start-want-built"
+          name="wantBuilt"
+          rows={3}
+          required
+          minLength={10}
+          maxLength={2000}
+          className={fieldClassName}
+          placeholder="e.g. a simple booking app, a staff dashboard, an automated report"
         />
       </div>
 
       <div>
         <label htmlFor="portal-start-who-for" className={labelClassName}>
-          Who is it for (the users)?
+          Who are going to use it (their roles; eg. manager, tenant, employee, etc.)?
         </label>
         <textarea
           id="portal-start-who-for"
@@ -98,35 +128,49 @@ export function PortalStartProjectForm({
       <div className="grid gap-4 sm:grid-cols-2">
         <div>
           <label htmlFor="portal-start-timeline" className={labelClassName}>
-            Timeline{" "}
-            <span className="font-normal text-gray-500">(optional)</span>
+            Timeline
           </label>
           <select
             id="portal-start-timeline"
-            name="timeline"
-            defaultValue=""
+            value={timelineChoice}
             className={fieldClassName}
+            onChange={(event) => {
+              setTimelineChoice(event.target.value);
+              if (event.target.value !== TIMELINE_MANUAL_VALUE) {
+                setTimelineManual("");
+              }
+            }}
           >
-            <option value="">Not sure yet</option>
             {TIMELINE_OPTIONS.map((option) => (
               <option key={option} value={option}>
                 {option}
               </option>
             ))}
+            <option value={TIMELINE_MANUAL_VALUE}>Enter manually</option>
           </select>
+          {timelineChoice === TIMELINE_MANUAL_VALUE ? (
+            <input
+              id="portal-start-timeline-manual"
+              type="text"
+              value={timelineManual}
+              onChange={(event) => setTimelineManual(event.target.value)}
+              required
+              maxLength={200}
+              className={`${fieldClassName} mt-2`}
+              placeholder="e.g. before Easter, mid-July"
+            />
+          ) : null}
         </div>
         <div>
           <label htmlFor="portal-start-budget" className={labelClassName}>
-            Budget range{" "}
-            <span className="font-normal text-gray-500">(optional)</span>
+            Budget range
           </label>
           <select
             id="portal-start-budget"
             name="budget"
-            defaultValue=""
+            defaultValue={NOT_SURE_YET}
             className={fieldClassName}
           >
-            <option value="">Not sure yet</option>
             {BUDGET_OPTIONS.map((option) => (
               <option key={option} value={option}>
                 {option}

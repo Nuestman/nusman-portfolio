@@ -40,9 +40,10 @@ type InboundBody = {
   phone?: unknown;
   organisation?: unknown;
   problem?: unknown;
+  wantBuilt?: unknown;
   whoFor?: unknown;
   successLooksLike?: unknown;
-  /** @deprecated Prefer problem / whoFor / successLooksLike */
+  /** @deprecated Prefer problem / wantBuilt / whoFor / successLooksLike */
   summary?: unknown;
   timeline?: unknown;
   budget?: unknown;
@@ -202,6 +203,7 @@ export async function POST(request: NextRequest) {
   const legacySummary = asTrimmed(body.summary, MAX_PROBLEM);
   const problem =
     asTrimmed(body.problem, MAX_PROBLEM) || legacySummary;
+  const wantBuilt = asTrimmed(body.wantBuilt, MAX_PROBLEM);
   const whoFor = asTrimmed(body.whoFor, MAX_WHO_FOR);
   const successLooksLike = asTrimmed(body.successLooksLike, MAX_SUCCESS);
   const timeline = asOptional(body.timeline, MAX_SHORT);
@@ -219,6 +221,16 @@ export async function POST(request: NextRequest) {
     return json(
       request,
       { ok: false, error: "Tell us what the problem is (at least a short sentence)." },
+      400,
+    );
+  }
+  if (wantBuilt.length < 10) {
+    return json(
+      request,
+      {
+        ok: false,
+        error: "Tell us what you want built or fixed (at least a short sentence).",
+      },
       400,
     );
   }
@@ -244,10 +256,19 @@ export async function POST(request: NextRequest) {
     );
   }
   const heardAbout: HeardAboutSource = sourceRaw;
-  if (heardAbout === "other" && !sourceOther) {
+  if (
+    (heardAbout === "other" || heardAbout === "social_media") &&
+    !sourceOther
+  ) {
     return json(
       request,
-      { ok: false, error: "Please say how you heard about us." },
+      {
+        ok: false,
+        error:
+          heardAbout === "social_media"
+            ? "Please say which platform."
+            : "Please say how you heard about us.",
+      },
       400,
     );
   }
@@ -305,6 +326,7 @@ export async function POST(request: NextRequest) {
         "Inbound lead — contact ASAP.",
         phone ? `Phone: ${phone}` : null,
         `Heard about us: ${clientSourceLabel(clientSource)}${sourceOther ? ` — ${sourceOther}` : ""}.`,
+        `Want built: ${wantBuilt}`,
       ]
         .filter(Boolean)
         .join("\n"),
@@ -322,6 +344,7 @@ export async function POST(request: NextRequest) {
         budget ? `Budget: ${budget}` : null,
         "",
         `Problem: ${problem}`,
+        `Want built: ${wantBuilt}`,
         `Who for: ${whoFor}`,
         `Success: ${successLooksLike}`,
       ]
@@ -364,6 +387,7 @@ export async function POST(request: NextRequest) {
       phone,
       organisation: organisation ? oneLine(organisation) : null,
       problem,
+      wantBuilt,
       whoFor,
       successLooksLike,
       timeline,
@@ -381,6 +405,7 @@ export async function POST(request: NextRequest) {
       name: oneLine(name),
       organisation: organisation ? oneLine(organisation) : null,
       problem,
+      wantBuilt,
       whoFor,
       successLooksLike,
       timeline,

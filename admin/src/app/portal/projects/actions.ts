@@ -87,6 +87,7 @@ export async function startPortalProjectAction(
   const { person, client } = await requirePortalPerson();
 
   const problem = readTrimmed(formData, "problem");
+  const wantBuilt = readTrimmed(formData, "wantBuilt");
   const whoFor = readTrimmed(formData, "whoFor");
   const successLooksLike = readTrimmed(formData, "successLooksLike");
   const timeline = readOptional(formData, "timeline");
@@ -97,13 +98,23 @@ export async function startPortalProjectAction(
       error: "Tell us what the problem is (at least a short sentence).",
     };
   }
+  if (wantBuilt.length < 10) {
+    return {
+      error: "Tell us what you want built or fixed (at least a short sentence).",
+    };
+  }
   if (whoFor.length < 5) {
     return { error: "Tell us who this is for." };
   }
   if (successLooksLike.length < 10) {
     return { error: "Tell us what success looks like." };
   }
-  if (problem.length > 2000 || whoFor.length > 500 || successLooksLike.length > 2000) {
+  if (
+    problem.length > 2000 ||
+    wantBuilt.length > 2000 ||
+    whoFor.length > 500 ||
+    successLooksLike.length > 2000
+  ) {
     return { error: "One of the answers is too long." };
   }
 
@@ -127,6 +138,7 @@ export async function startPortalProjectAction(
     notes: [
       "Requested from client portal by logged-in person.",
       `Contact: ${person.name}${person.email ? ` <${person.email}>` : ""}`,
+      `Want built: ${wantBuilt.slice(0, 2000)}`,
     ].join("\n"),
   });
 
@@ -141,6 +153,7 @@ export async function startPortalProjectAction(
       budget ? `Budget: ${budget}` : null,
       "",
       `Problem: ${problem}`,
+      `Want built: ${wantBuilt}`,
       `Who for: ${whoFor}`,
       `Success: ${successLooksLike}`,
     ]
@@ -179,6 +192,7 @@ export async function startPortalProjectAction(
     clientName: client.name,
     projectTitle: title,
     problem,
+    wantBuilt,
     projectUrl: `${deskPublicBaseUrl()}/projects/${projectId}`,
   }).catch((error) => {
     console.error("Portal project start notify failed", error);

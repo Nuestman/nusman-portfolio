@@ -139,6 +139,7 @@ export async function sendInboundLeadEmail(input: {
   phone: string | null;
   organisation: string | null;
   problem: string;
+  wantBuilt: string;
   whoFor: string;
   successLooksLike: string;
   timeline: string | null;
@@ -159,6 +160,9 @@ export async function sendInboundLeadEmail(input: {
     "",
     "Problem:",
     input.problem,
+    "",
+    "Want built:",
+    input.wantBuilt,
     "",
     "Who it's for:",
     input.whoFor,
@@ -193,6 +197,8 @@ export async function sendInboundLeadEmail(input: {
         htmlParagraphs([
           "Problem:",
           input.problem,
+          "Want built:",
+          input.wantBuilt,
           "Who it's for:",
           input.whoFor,
           "Success looks like:",
@@ -211,6 +217,7 @@ export async function sendInboundLeadReceiptEmail(input: {
   name: string;
   organisation: string | null;
   problem: string;
+  wantBuilt: string;
   whoFor: string;
   successLooksLike: string;
   timeline: string | null;
@@ -231,6 +238,9 @@ export async function sendInboundLeadReceiptEmail(input: {
     "",
     "Problem:",
     input.problem,
+    "",
+    "Want built:",
+    input.wantBuilt,
     "",
     "Who it's for:",
     input.whoFor,
@@ -271,6 +281,8 @@ export async function sendInboundLeadReceiptEmail(input: {
         htmlParagraphs([
           "Problem:",
           input.problem,
+          "Want built:",
+          input.wantBuilt,
           "Who it's for:",
           input.whoFor,
           "Success looks like:",
@@ -458,6 +470,7 @@ export async function sendPortalProjectStartedNotifyEmail(input: {
   clientName: string;
   projectTitle: string;
   problem: string;
+  wantBuilt: string;
   projectUrl: string;
 }): Promise<SendEmailResult> {
   const text = [
@@ -467,6 +480,9 @@ export async function sendPortalProjectStartedNotifyEmail(input: {
     "",
     "Problem:",
     input.problem,
+    "",
+    "Want built:",
+    input.wantBuilt,
     "",
     `Open on Desk: ${input.projectUrl}`,
   ].join("\n");
@@ -484,8 +500,50 @@ export async function sendPortalProjectStartedNotifyEmail(input: {
           `${input.personName} (${input.clientName}) started a project from the portal.`,
         ]) +
         htmlMutedBlock([`Title: ${input.projectTitle}`]) +
-        htmlParagraphs(["Problem:", input.problem]),
+        htmlParagraphs([
+          "Problem:",
+          input.problem,
+          "Want built:",
+          input.wantBuilt,
+        ]),
       cta: { label: "Open on Desk", url: input.projectUrl },
+    }),
+  });
+}
+
+export async function sendInboundVerifyEmail(input: {
+  to: string;
+  name: string;
+  verifyUrl: string;
+}): Promise<SendEmailResult> {
+  const text = [
+    `Hi ${input.name},`,
+    "",
+    "Thanks for starting a project with me. Confirm your email to continue — it takes <10 seconds>.",
+    "",
+    `Confirm here: ${input.verifyUrl}`,
+    "",
+    "This link expires in 48 hours. If you did not start a project, you can ignore this email.",
+    "",
+    "—",
+    practiceContactBlock(),
+  ].join("\n");
+
+  return sendResendEmail({
+    to: input.to,
+    replyTo: practiceContactEmail(),
+    subject: "Confirm your email to complete your request.",
+    text,
+    html: renderBrandedEmailHtml({
+      eyebrow: "Start a project",
+      title: "Confirm your email",
+      preheader: "This confirms your project request is real.",
+      greeting: `Hi ${input.name},`,
+      bodyHtml: htmlParagraphs([
+        "Thanks for starting a project with me. Confirm your email, and I’ll review and respond within 24 hours.",
+        "This link expires in 48 hours. If you did not start a project, you can ignore this email.",
+      ]),
+      cta: { label: "Confirm and complete", url: input.verifyUrl },
     }),
   });
 }

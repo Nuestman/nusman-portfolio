@@ -6,7 +6,7 @@ const StartPage: React.FC = () => {
   usePageMeta({
     title: 'Start a project with Numan Usman',
     description:
-      'Tell Numan what you need built or fixed. Your request opens on his Desk so he can follow up quickly.',
+      'Start a project with Numan Usman — share the brief, then confirm your email so it reaches the Desk.',
     path: '/start',
   })
 

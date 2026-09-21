@@ -18,6 +18,7 @@ export default async function PortalProfilePage() {
   return (
     <PortalShell>
       <PageSpread
+        splitFrom="md"
         intro={
           <>
             <h1 className="section-heading">Profile</h1>

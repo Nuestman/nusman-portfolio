@@ -138,7 +138,7 @@ export function ProfileYouView({
     <div
       className={cn(
         "aspect-square w-full",
-        layout === "split" ? "mx-auto max-w-sm sm:mx-0 sm:max-w-none" : null,
+        layout === "split" ? "mx-auto max-w-sm md:mx-0 md:max-w-none" : null,
       )}
     >
       <UserAvatar name={name} src={src} />
@@ -167,7 +167,7 @@ export function ProfileYouView({
       );
     case "split":
       return (
-        <div className="grid gap-8 sm:grid-cols-2 sm:items-start">
+        <div className="grid gap-8 md:grid-cols-2 md:items-start">
           {avatar}
           {details}
         </div>

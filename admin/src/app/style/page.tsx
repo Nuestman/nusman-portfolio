@@ -169,7 +169,8 @@ export default async function StylePage() {
               alt="Numan Usman"
               width={220}
               height={64}
-              className="mt-4 h-12 object-contain"
+              className="mt-4 h-12 w-auto object-contain"
+              style={{ width: "auto" }}
             />
           </div>
           <div className="rounded-2xl border border-gray-200 bg-dark-950 p-6 shadow-sm">

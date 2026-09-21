@@ -72,7 +72,7 @@ Magic link rows: hashed token, person_id, expires_at, used_at. One-time use.
 ## Schema
 
 - Migration `0008_portal`: `portal_magic_links`, `portal_sessions`, `portal_messages`; `people.portal_enabled`, `projects.portal_intake_open`, `project_notes.client_visible`
-- Later Desk migrations also affect Portal surfaces: `0009_project_events` (schedule), `0010`/`0011` (milestones + gate remap), `0012_notifications` (in-app inbox), `0013_client_source_expand` (heard-about sources) — see [desk-status.md](./desk-status.md)
+- Later Desk migrations also affect Portal surfaces: `0009_project_events` (schedule), `0010`/`0011` (milestones + gate remap), `0012_notifications` (in-app inbox), `0013`/`0014` (heard-about sources incl. social media) — see [desk-status.md](./desk-status.md)
 
 ---
 
@@ -148,7 +148,8 @@ Add domain `portal.nusman.dev` on the same Vercel project as Desk. Magic links u
 9. Portal profile / account chip — done  
 10. Start project, messages hub, Resend alerts, `/projects*` soft-nav dual-mode — done (Portal **1.1** / Desk **2.1.0**)  
 11. In-app notifications (feed + table; mark read / delete) + on-brand email shell — done (Portal **1.2** / Desk **2.2.0**)  
-12. Wide canvas, Progress path, locked Brief vs Questions, default avatar, account unread bell, TinyMCE messages, shared source/timeline/budget selects — done (Portal **1.4** / Desk **2.4.0**)  
+12. Wide canvas, Progress path, locked Brief vs Questions, default avatar, account unread bell, TinyMCE messages, shared source/timeline/budget selects — done (Portal **1.4** / Desk **2.4.0**)
+13. Public `/start` full-brief draft → email verify → Desk lead; “Not sure yet” stored on timeline/budget; marketing home URL for Portal chrome — done (Portal **1.5** / Desk **2.5.0** / public **4.2.0**)  
 
 ---
 

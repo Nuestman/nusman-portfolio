@@ -67,6 +67,7 @@ export default async function ProfilePage({ searchParams }: ProfilePageProps) {
   return (
     <DeskShell>
       <PageSpread
+        splitFrom="md"
         intro={
           <>
             <h1 className="section-heading">Profile</h1>

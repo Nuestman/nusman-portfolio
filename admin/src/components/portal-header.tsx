@@ -212,6 +212,7 @@ export function PortalHeader({
                 width={252}
                 height={48}
                 className="hidden h-12 w-auto shrink-0 object-contain compact:block"
+                style={{ width: "auto" }}
                 priority
               />
             </Link>

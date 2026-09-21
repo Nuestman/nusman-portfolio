@@ -76,14 +76,30 @@ function parseClientFields(formData: FormData):
   }
 
   const sourceOther = readOptional(formData, "sourceOther");
-  if (source === "other" && !sourceOther) {
-    return { ok: false, error: "Say how they heard about us." };
+  if (
+    (source === "other" || source === "social_media") &&
+    !sourceOther
+  ) {
+    return {
+      ok: false,
+      error:
+        source === "social_media"
+          ? "Say which platform."
+          : "Say how they heard about us.",
+    };
   }
 
   const notesBase = readOptional(formData, "notes");
   const notes =
-    source === "other" && sourceOther
-      ? [notesBase, `Source detail: ${sourceOther}`].filter(Boolean).join("\n")
+    (source === "other" || source === "social_media") && sourceOther
+      ? [
+          notesBase,
+          source === "social_media"
+            ? `Social platform: ${sourceOther}`
+            : `Source detail: ${sourceOther}`,
+        ]
+          .filter(Boolean)
+          .join("\n")
       : notesBase;
 
   return {
