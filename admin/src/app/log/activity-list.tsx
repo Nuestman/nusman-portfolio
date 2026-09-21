@@ -5,7 +5,7 @@ import {
   TableActionsHeader,
 } from "@/components/table-actions";
 import { formatStamp, snippet } from "@/lib/text";
-import { tableClassName, tableFrameClassName } from "@/lib/tables";
+import { tableClassName, TableFrame } from "@/lib/tables";
 import { deleteActivityAction } from "./actions";
 
 type ActivityRow = {
@@ -26,7 +26,7 @@ export function ActivityList({
   }
 
   return (
-    <div className={tableFrameClassName}>
+    <TableFrame>
       <table className={tableClassName}>
         <thead className="bg-gray-50 text-gray-600">
           <tr>
@@ -57,6 +57,6 @@ export function ActivityList({
           ))}
         </tbody>
       </table>
-    </div>
+    </TableFrame>
   );
 }

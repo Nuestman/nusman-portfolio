@@ -7,7 +7,7 @@ import { DeskShell } from "@/components/desk-shell";
 import { PageSpread } from "@/components/page-spread";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { linkClassName } from "@/lib/links";
-import { tableClassName, tableFrameClassName } from "@/lib/tables";
+import { tableClassName, TableFrame } from "@/lib/tables";
 import { formatStamp, snippet } from "@/lib/text";
 
 export const dynamic = "force-dynamic";
@@ -53,7 +53,7 @@ export default async function AuditPage() {
               Latest 200. Click a row for previous values, new values, and any
               delete reason. This list is not edited.
             </p>
-            <div className={tableFrameClassName}>
+            <TableFrame>
               <table className={tableClassName}>
                 <thead className="bg-gray-50 text-gray-600">
                   <tr>
@@ -106,7 +106,7 @@ export default async function AuditPage() {
                   ))}
                 </tbody>
               </table>
-            </div>
+            </TableFrame>
           </CardContent>
         </Card>
       )}

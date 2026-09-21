@@ -198,6 +198,7 @@ export default async function ProjectDetailPage({
     ? {
         projectId: project.id,
         qualify: gateWork.qualify,
+        wantBuilt: project.wantBuilt,
         intake: gateWork.intake,
         discovery: gateWork.discovery,
       }

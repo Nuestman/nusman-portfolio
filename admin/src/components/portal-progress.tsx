@@ -1,6 +1,6 @@
 import type { ProjectStatus } from "@/db/schema";
 import { GATE_GUIDES } from "@/lib/gates";
-import { projectStatusLabel } from "@/lib/labels";
+import { projectStatusLabel, WANT_BUILT_LABEL } from "@/lib/labels";
 import { cn } from "@/lib/utils";
 
 type Milestone = {
@@ -97,12 +97,14 @@ export function PortalProgress({
   publicStep,
   status,
   problem,
+  wantBuilt,
   success,
   milestones,
 }: {
   publicStep: string;
   status: ProjectStatus;
   problem: string | null;
+  wantBuilt: string | null;
   success: string | null;
   milestones: Milestone[];
 }) {
@@ -115,7 +117,9 @@ export function PortalProgress({
     null;
   const total = ordered.length;
   const percent = total === 0 ? 0 : Math.round((doneCount / total) * 100);
-  const brief = Boolean(problem?.trim() || success?.trim());
+  const brief = Boolean(
+    problem?.trim() || wantBuilt?.trim() || success?.trim(),
+  );
 
   return (
     <div className="space-y-8">
@@ -150,7 +154,7 @@ export function PortalProgress({
       </div>
 
       {brief ? (
-        <div className="grid gap-5 rounded-2xl border border-gold-100 bg-gold-50/60 p-5 sm:grid-cols-2">
+        <div className="space-y-5 rounded-2xl border border-gold-100 bg-gold-50/60 p-5">
           {problem?.trim() ? (
             <div>
               <p className="text-xs font-medium uppercase tracking-[0.16em] text-gold-700">
@@ -158,6 +162,16 @@ export function PortalProgress({
               </p>
               <p className="mt-2 text-base leading-relaxed text-dark-950">
                 {problem}
+              </p>
+            </div>
+          ) : null}
+          {wantBuilt?.trim() ? (
+            <div>
+              <p className="text-xs font-medium uppercase tracking-[0.16em] text-gold-700">
+                {WANT_BUILT_LABEL}
+              </p>
+              <p className="mt-2 text-base leading-relaxed text-dark-950">
+                {wantBuilt}
               </p>
             </div>
           ) : null}

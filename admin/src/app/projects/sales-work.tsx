@@ -15,6 +15,7 @@ type IntakeRow = {
 export function SalesWork({
   projectId,
   qualify,
+  wantBuilt,
   intake,
   discovery,
   include,
@@ -29,6 +30,7 @@ export function SalesWork({
     callAt: string | null;
     notes: string | null;
   } | null;
+  wantBuilt: string | null;
   intake: IntakeRow[];
   discovery: {
     callAt: string | null;
@@ -51,7 +53,11 @@ export function SalesWork({
   return (
     <>
       {show("qualify") ? (
-        <QualifyCard projectId={projectId} qualify={qualify} />
+        <QualifyCard
+          projectId={projectId}
+          qualify={qualify}
+          wantBuilt={wantBuilt}
+        />
       ) : null}
 
       {show("discover") ? (

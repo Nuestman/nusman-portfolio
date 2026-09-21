@@ -1,6 +1,8 @@
 import { EditableCard } from "@/components/editable-card";
-import { displayText } from "@/lib/text";
-import { projectStatusLabel } from "@/lib/labels";
+import { IncompleteInfoBadge } from "@/components/incomplete-info-badge";
+import { MarkedValue } from "@/components/set-mark";
+import { isBlank } from "@/lib/text";
+import { projectStatusLabel, WANT_BUILT_LABEL } from "@/lib/labels";
 import type { ProjectStatus } from "@/db/schema";
 import { ProjectDetailsForm } from "./project-details-form";
 
@@ -14,6 +16,7 @@ export function JobBriefCard({
     id: string;
     title: string;
     problemSentence: string | null;
+    wantBuilt: string | null;
     successLooksLike: string | null;
     budgetNote: string | null;
     deadlineNote: string | null;
@@ -21,19 +24,23 @@ export function JobBriefCard({
   };
   locked?: boolean;
 }) {
-  const problem = project.problemSentence?.trim() ?? "";
-  const success = project.successLooksLike?.trim() ?? "";
-  const deadline = project.deadlineNote?.trim() ?? "";
+  const incomplete = [
+    project.problemSentence,
+    project.successLooksLike,
+    project.deadlineNote,
+    ...(isProduct ? [] : [project.wantBuilt]),
+  ].some(isBlank);
 
   return (
     <EditableCard
       title={isProduct ? "Product details" : "Brief"}
+      badge={incomplete ? <IncompleteInfoBadge /> : undefined}
       hint={
         locked
           ? "Brief is frozen while this job is disqualified."
           : isProduct
             ? undefined
-            : "Locked problem and success for this job. Needed before you leave Discover."
+            : "Locked problem, what we're building, and success for this job. Needed before you leave Discover."
       }
       showEdit={!locked}
       view={
@@ -42,31 +49,23 @@ export function JobBriefCard({
             <p className="text-xs font-medium uppercase tracking-wide text-gray-500">
               Problem
             </p>
-            {problem ? (
-              <p className="mt-2 font-heading text-2xl leading-snug text-dark-950 sm:text-3xl">
-                {problem}
-              </p>
-            ) : (
-              <p className="mt-2 text-sm text-gray-600">
-                No problem sentence yet. Edit to write the one-line lock, or save
-                discovery answers first.
-              </p>
-            )}
+            <MarkedValue value={project.problemSentence} size="lead" />
           </div>
+
+          {isProduct ? null : (
+            <div>
+              <p className="text-xs font-medium uppercase tracking-wide text-gray-500">
+                {WANT_BUILT_LABEL}
+              </p>
+              <MarkedValue value={project.wantBuilt} />
+            </div>
+          )}
 
           <div>
             <p className="text-xs font-medium uppercase tracking-wide text-gray-500">
               Success looks like
             </p>
-            {success ? (
-              <p className="mt-2 whitespace-pre-wrap text-base leading-relaxed text-gray-800">
-                {success}
-              </p>
-            ) : (
-              <p className="mt-2 text-sm text-gray-600">
-                Not set. How will you both know this worked?
-              </p>
-            )}
+            <MarkedValue value={project.successLooksLike} />
           </div>
 
           <dl className="grid gap-4 border-t border-gray-100 pt-4 sm:grid-cols-2">
@@ -74,9 +73,11 @@ export function JobBriefCard({
               <dt className="text-xs font-medium uppercase tracking-wide text-gray-500">
                 Deadline
               </dt>
-              <dd className="mt-1 text-sm text-gray-800">
-                {displayText(deadline || null)}
-              </dd>
+              <MarkedValue
+                value={project.deadlineNote}
+                size="meta"
+                className="mt-1"
+              />
             </div>
             <div>
               <dt className="text-xs font-medium uppercase tracking-wide text-gray-500">
@@ -104,6 +105,7 @@ export function JobBriefCard({
               id: project.id,
               title: project.title,
               problemSentence: project.problemSentence ?? "",
+              wantBuilt: project.wantBuilt ?? "",
               successLooksLike: project.successLooksLike ?? "",
               budgetNote: project.budgetNote ?? "",
               deadlineNote: project.deadlineNote ?? "",
@@ -113,6 +115,7 @@ export function JobBriefCard({
               isProduct ? undefined : "Needed before you leave Discover."
             }
             hideBudget={!isProduct}
+            hideWantBuilt={isProduct}
           />
         )
       }

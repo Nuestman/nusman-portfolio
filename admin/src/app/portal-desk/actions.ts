@@ -8,6 +8,8 @@ import {
   getClient,
   getPerson,
   getProject,
+  markPersonEmailVerified,
+  markPeopleEmailVerifiedByEmail,
   setPersonPortalEnabled,
   setProjectPortalIntakeOpen,
 } from "@/db/queries";
@@ -18,9 +20,13 @@ import { isUuid } from "@/lib/ids";
 import { readMessageBodyFromForm } from "@/lib/message-body";
 import { notifyClientsOfPortalMessage } from "@/lib/notify";
 import { issuePortalMagicLink } from "@/lib/portal-magic";
+import { isPersonEmailVerified, issuePersonEmailVerify } from "@/lib/person-email-verify";
+import { safeInternalPath } from "@/lib/paths";
 import {
   sendPortalAccessGrantedEmail,
   sendPortalMagicLinkEmail,
+  sendPersonEmailConfirmedEmail,
+  sendPersonEmailVerifyEmail,
 } from "@/lib/portal-email";
 
 export type PortalDeskState = {
@@ -31,6 +37,7 @@ export type PortalDeskState = {
 
 function revalidatePersonPaths(clientId: string, personId: string) {
   revalidatePath(`/clients/${clientId}`);
+  revalidatePath(`/clients/${clientId}/people/${personId}`);
   revalidatePath(`/clients/${clientId}/people/${personId}/edit`);
 }
 
@@ -71,6 +78,14 @@ export async function setPersonPortalEnabledAction(
   if (enabled && !person.email) {
     return {
       error: "Add an email before enabling portal access.",
+      link: null,
+      emailed: false,
+    };
+  }
+  if (enabled && !isPersonEmailVerified(person)) {
+    return {
+      error:
+        "Confirm this email first. Use Confirm email or Resend confirmation below.",
       link: null,
       emailed: false,
     };
@@ -161,6 +176,14 @@ export async function invitePortalPersonAction(
       emailed: false,
     };
   }
+  if (!isPersonEmailVerified(person)) {
+    return {
+      error:
+        "Confirm this email first. Use Confirm email or Resend confirmation above.",
+      link: null,
+      emailed: false,
+    };
+  }
 
   const issued = await issuePortalMagicLink(personId);
   if (!issued) {
@@ -196,6 +219,121 @@ export async function invitePortalPersonAction(
     link: issued.url,
     emailed: mailed.sent,
   };
+}
+
+function redirectPersonNotice(path: string, notice: string): never {
+  const safe = safeInternalPath(path);
+  const hashIndex = safe.indexOf("#");
+  const withoutHash = hashIndex >= 0 ? safe.slice(0, hashIndex) : safe;
+  const hash = hashIndex >= 0 ? safe.slice(hashIndex) : "";
+  const queryIndex = withoutHash.indexOf("?");
+  const pathname =
+    queryIndex >= 0 ? withoutHash.slice(0, queryIndex) : withoutHash;
+  const search = queryIndex >= 0 ? withoutHash.slice(queryIndex + 1) : "";
+  const params = new URLSearchParams(search);
+  params.set("notice", notice);
+  redirect(`${pathname}?${params.toString()}${hash}`);
+}
+
+export async function confirmPersonEmailAction(formData: FormData) {
+  await requireSessionUser();
+  const personId = readTrimmed(formData, "personId");
+  const clientId = readTrimmed(formData, "clientId");
+  const next =
+    readTrimmed(formData, "next") || `/clients/${clientId}/people/${personId}`;
+  if (!isUuid(personId) || !isUuid(clientId)) {
+    redirect("/clients");
+  }
+
+  const person = await getPerson(personId);
+  const client = await getClient(clientId);
+  if (
+    !person ||
+    !client ||
+    person.clientId !== clientId ||
+    client.kind === "practice"
+  ) {
+    redirect("/clients");
+  }
+  if (!person.email) {
+    redirectPersonNotice(next, "person-email-missing");
+  }
+  if (isPersonEmailVerified(person)) {
+    redirectPersonNotice(next, "person-email-already");
+  }
+
+  await markPersonEmailVerified(personId);
+  await markPeopleEmailVerifiedByEmail(person.email);
+
+  const mailed = await sendPersonEmailConfirmedEmail({
+    to: person.email,
+    name: person.name,
+  });
+  await recordAudit({
+    action: "person.email-confirm",
+    summary: mailed.sent
+      ? `Confirmed email for ${person.name} (${person.email}) and sent a notice.`
+      : `Confirmed email for ${person.name} (${person.email}); notice did not send.`,
+    entityType: "person",
+    entityId: personId,
+    before: { emailVerifiedAt: person.emailVerifiedAt },
+    after: { emailVerifiedAt: new Date().toISOString(), emailed: mailed.sent },
+  });
+  revalidatePersonPaths(clientId, personId);
+  redirectPersonNotice(
+    next,
+    mailed.sent ? "person-email-confirmed" : "person-email-confirmed-unsent",
+  );
+}
+
+export async function resendPersonEmailAction(formData: FormData) {
+  await requireSessionUser();
+  const personId = readTrimmed(formData, "personId");
+  const clientId = readTrimmed(formData, "clientId");
+  const next =
+    readTrimmed(formData, "next") || `/clients/${clientId}/people/${personId}`;
+  if (!isUuid(personId) || !isUuid(clientId)) {
+    redirect("/clients");
+  }
+
+  const person = await getPerson(personId);
+  const client = await getClient(clientId);
+  if (
+    !person ||
+    !client ||
+    person.clientId !== clientId ||
+    client.kind === "practice"
+  ) {
+    redirect("/clients");
+  }
+  if (isPersonEmailVerified(person)) {
+    redirectPersonNotice(next, "person-email-already");
+  }
+
+  const issued = await issuePersonEmailVerify(personId);
+  if (!issued) {
+    redirectPersonNotice(next, "person-email-resend-missing");
+  }
+
+  const mailed = await sendPersonEmailVerifyEmail({
+    to: issued.email,
+    name: issued.name,
+    verifyUrl: issued.url,
+  });
+  await recordAudit({
+    action: "person.email-resend",
+    summary: mailed.sent
+      ? `Resent email confirmation to ${person.name}.`
+      : `Created email confirmation link for ${person.name} (email did not send).`,
+    entityType: "person",
+    entityId: personId,
+    after: { emailed: mailed.sent },
+  });
+  revalidatePersonPaths(clientId, personId);
+  if (!mailed.sent) {
+    redirectPersonNotice(next, "person-email-resend-failed");
+  }
+  redirectPersonNotice(next, "person-email-resent");
 }
 
 export async function setPortalIntakeOpenAction(formData: FormData) {

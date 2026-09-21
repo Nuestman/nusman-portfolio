@@ -1,6 +1,6 @@
 # Desk
 
-Private workbench for the nusman.dev practice, plus the client portal. Version **2.6.0**. Plan: [../docs/desk-2.0.md](../docs/desk-2.0.md). Portal: [../docs/portal.md](../docs/portal.md). Status: [../docs/desk-status.md](../docs/desk-status.md). Visual: [../docs/style-guide.md](../docs/style-guide.md).
+Private workbench for the nusman.dev practice, plus the client portal. Version **2.7.0**. Plan: [../docs/desk-2.0.md](../docs/desk-2.0.md). Portal: [../docs/portal.md](../docs/portal.md). Status: [../docs/desk-status.md](../docs/desk-status.md). Visual: [../docs/style-guide.md](../docs/style-guide.md).
 
 Requires Node **24.x** and npm `>=10`. Vercel follows `engines.node` in this file. Set the project’s Node.js Version to **24.x**. Domains: `desk.nusman.dev` and `portal.nusman.dev`.
 
@@ -20,7 +20,7 @@ Database (Neon **nusmandotdev** only):
 
 ```bash
 npm run db:generate   # after schema edits
-npm run db:migrate    # through 0013_client_source_expand.sql
+npm run db:migrate    # through 0020_person_email_verified.sql
 npm run db:seed       # owner row from ADMIN_EMAIL; hashes password if empty
 ```
 

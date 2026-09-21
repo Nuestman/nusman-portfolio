@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { createProjectAction, type FormState } from "@/app/projects/actions";
 import { FormError } from "@/components/form-error";
 import { fieldClassName, labelClassName } from "@/lib/forms";
+import { WANT_BUILT_LABEL } from "@/lib/labels";
 
 const initialState: FormState = { error: null };
 
@@ -66,6 +67,18 @@ export function NewProjectForm({
         <p className="mt-2 text-sm text-gray-500">
           Optional at Qualify. Needed before you leave Discover.
         </p>
+      </div>
+      <div>
+        <label htmlFor="wantBuilt" className={labelClassName}>
+          {WANT_BUILT_LABEL}
+        </label>
+        <textarea
+          id="wantBuilt"
+          name="wantBuilt"
+          rows={3}
+          className={fieldClassName}
+          placeholder="After the problem is clear — the thing both sides agree to make."
+        />
       </div>
       <div>
         <label htmlFor="successLooksLike" className={labelClassName}>

@@ -23,6 +23,8 @@ import {
   type WorkKind,
 } from "@/db/schema";
 
+export const WANT_BUILT_LABEL = "What we're building";
+
 export function isClientSource(value: string): value is ClientSource {
   return (CLIENT_SOURCES as readonly string[]).includes(value);
 }

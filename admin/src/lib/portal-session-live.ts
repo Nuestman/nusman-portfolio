@@ -19,6 +19,7 @@ export async function portalSessionIsLive(sessionId: string): Promise<boolean> {
     WHERE s.id = ${sessionId}::uuid
       AND s.expires_at > now()
       AND p.portal_enabled = true
+      AND p.email_verified_at IS NOT NULL
     LIMIT 1
   `;
   return rows.length > 0;

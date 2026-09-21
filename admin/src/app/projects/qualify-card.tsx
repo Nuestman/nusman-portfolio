@@ -1,7 +1,7 @@
 import { EditableCard } from "@/components/editable-card";
+import { MarkedValue } from "@/components/set-mark";
 import { cn } from "@/lib/utils";
-import { displayText } from "@/lib/text";
-import { qualifyOutcomeLabel } from "@/lib/labels";
+import { qualifyOutcomeLabel, WANT_BUILT_LABEL } from "@/lib/labels";
 import type { QualifyOutcome } from "@/db/schema";
 import { QualifyForm } from "./qualify-form";
 
@@ -25,6 +25,7 @@ function outcomeTone(outcome: QualifyOutcome): string {
 export function QualifyCard({
   projectId,
   qualify,
+  wantBuilt,
 }: {
   projectId: string;
   qualify: {
@@ -36,6 +37,7 @@ export function QualifyCard({
     callAt: string | null;
     notes: string | null;
   } | null;
+  wantBuilt: string | null;
 }) {
   const outcome = qualify?.outcome ?? "undecided";
   const pain = qualify?.painToday?.trim() ?? "";
@@ -76,24 +78,21 @@ export function QualifyCard({
             <p className="text-xs font-medium uppercase tracking-wide text-gray-500">
               Pain today
             </p>
-            {pain ? (
-              <p className="mt-2 whitespace-pre-wrap text-base leading-relaxed text-dark-950">
-                {pain}
-              </p>
-            ) : (
-              <p className="mt-2 text-sm text-gray-600">
-                Not captured yet — what is broken or slow?
-              </p>
-            )}
+            <MarkedValue value={pain} />
+          </div>
+
+          <div>
+            <p className="text-xs font-medium uppercase tracking-wide text-gray-500">
+              {WANT_BUILT_LABEL}
+            </p>
+            <MarkedValue value={wantBuilt} />
           </div>
 
           <div>
             <p className="text-xs font-medium uppercase tracking-wide text-gray-500">
               Who it is for
             </p>
-            <p className="mt-2 text-sm text-gray-800">
-              {displayText(who || null)}
-            </p>
+            <MarkedValue value={who} size="meta" />
           </div>
 
           <dl className="grid gap-4 border-t border-gray-100 pt-4 sm:grid-cols-3">
@@ -101,25 +100,31 @@ export function QualifyCard({
               <dt className="text-xs font-medium uppercase tracking-wide text-gray-500">
                 Needed by
               </dt>
-              <dd className="mt-1 text-sm text-gray-800">
-                {displayText(qualify?.neededBy)}
-              </dd>
+              <MarkedValue
+                value={qualify?.neededBy}
+                size="meta"
+                className="mt-1"
+              />
             </div>
             <div>
               <dt className="text-xs font-medium uppercase tracking-wide text-gray-500">
                 Budget
               </dt>
-              <dd className="mt-1 text-sm text-gray-800">
-                {displayText(qualify?.budgetNote)}
-              </dd>
+              <MarkedValue
+                value={qualify?.budgetNote}
+                size="meta"
+                className="mt-1"
+              />
             </div>
             <div>
               <dt className="text-xs font-medium uppercase tracking-wide text-gray-500">
                 Call / window
               </dt>
-              <dd className="mt-1 text-sm text-gray-800">
-                {displayText(qualify?.callAt)}
-              </dd>
+              <MarkedValue
+                value={qualify?.callAt}
+                size="meta"
+                className="mt-1"
+              />
             </div>
           </dl>
 
@@ -142,6 +147,7 @@ export function QualifyCard({
             outcome,
             whoFor: qualify?.whoFor ?? "",
             painToday: qualify?.painToday ?? "",
+            wantBuilt: wantBuilt ?? "",
             neededBy: qualify?.neededBy ?? "",
             budgetNote: qualify?.budgetNote ?? "",
             callAt: qualify?.callAt ?? "",

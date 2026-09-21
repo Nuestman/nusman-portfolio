@@ -48,6 +48,9 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-sans);
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
 }
 
 a,
@@ -86,12 +89,19 @@ select:disabled,
   font-size: 3rem;
   line-height: 1.1;
   color: #150f00;
+  overflow-wrap: anywhere;
 }
 
 .desk-table {
-  width: 100%;
+  width: max-content;
+  min-width: 100%;
   text-align: left;
   font-size: 0.875rem;
+}
+
+.table-scroll,
+.nusman-calendar {
+  contain: layout paint;
 }
 
 .desk-table thead {

@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { fieldClassName, labelClassName } from "@/lib/forms";
 import { linkClassName } from "@/lib/links";
 import { PAGE_FRAME_CLASS } from "@/lib/layout";
-import { tableClassName, tableFrameClassName } from "@/lib/tables";
+import { tableClassName, TableFrame } from "@/lib/tables";
 import { cn } from "@/lib/utils";
 import {
   ACCESS_RULES,
@@ -78,7 +78,7 @@ function SpecTable({
   firstColumnCode?: boolean;
 }) {
   return (
-    <div className={tableFrameClassName}>
+    <TableFrame>
       <table className={tableClassName}>
         <thead>
           <tr>
@@ -110,7 +110,7 @@ function SpecTable({
           ))}
         </tbody>
       </table>
-    </div>
+    </TableFrame>
   );
 }
 
@@ -125,8 +125,9 @@ export default async function StylePage() {
         <div className="sticky top-[var(--desk-header-height)] z-30 border-b border-gray-200 bg-white">
           <nav
             aria-label="Style sections"
-            className={`${PAGE_FRAME_CLASS} overflow-x-auto py-3`}
+            className={`${PAGE_FRAME_CLASS} overflow-x-auto contain-layout contain-paint py-3`}
           >
+            <div className="w-0 min-w-full">
             <ul className="flex min-w-max gap-2">
               {STYLE_JUMP_LINKS.map((link) => (
                 <li key={link.href}>
@@ -136,6 +137,7 @@ export default async function StylePage() {
                 </li>
               ))}
             </ul>
+            </div>
           </nav>
         </div>
       }
@@ -531,7 +533,7 @@ export default async function StylePage() {
           <code className="text-sm text-dark-950">desk-table</code>. Names in
           cells use table links. Last column is Actions (Edit / Remove).
         </p>
-        <div className={tableFrameClassName}>
+        <TableFrame>
           <table className={tableClassName}>
             <thead>
               <tr>
@@ -621,7 +623,7 @@ export default async function StylePage() {
               </tr>
             </tbody>
           </table>
-        </div>
+        </TableFrame>
         <p className="text-sm text-gray-600">
           Second row is current (gold-50). Last row is inactive (gold wash).
           Hover any other row for gray-50 — the same tint as even zebra rows,

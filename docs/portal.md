@@ -40,12 +40,13 @@ Desk stays Usman’s workbench. Portal is invite-only for `people` on a client.
 
 ## Auth
 
-1. On Desk, enable portal for a person (`people.portal_enabled`) who has an email.
-2. Operator sends or copies a magic link (Resend when `RESEND_API_KEY` is set; otherwise **Copy link** on the person).
-3. Link hits `/auth/magic?token=…` on the Portal host → `portal_sessions` + cookie `portal_session`.
-4. Logout drops the session row and cookie.
+1. On Desk, the person’s email must be **confirmed** (`people.email_verified_at`). Unconfirmed people cannot use Portal. Enabling portal is blocked until then; Desk shows **Confirm email** / **Resend confirmation**.
+2. Then enable portal (`people.portal_enabled`).
+3. Operator sends or copies a magic link (Resend when `RESEND_API_KEY` is set; otherwise **Copy link** on the person). If they request a link while still unconfirmed, Portal emails a confirmation link instead.
+4. Confirm link hits `/auth/verify-email?token=…` on the Portal host. Magic link hits `/auth/magic?token=…` → `portal_sessions` + cookie `portal_session`.
+5. Logout drops the session row and cookie.
 
-Magic link rows: hashed token, person_id, expires_at, used_at. One-time use.
+Magic link rows: hashed token, person_id, expires_at, used_at. One-time use. Email-confirm tokens live on the person row (48 hours). Changing a person’s email clears confirmation.
 
 ---
 
@@ -54,13 +55,14 @@ Magic link rows: hashed token, person_id, expires_at, used_at. One-time use.
 | Route | Purpose |
 |---|---|
 | `/` | Public landing |
-| `/login` | Email → request magic link |
+| `/login` | Email → request magic link (unconfirmed emails get a confirm link instead) |
 | `/auth/magic` | Consume token |
-| `/profile` | Person details (read-only You card) |
+| `/auth/verify-email` | Confirm a person email, then sign in |
+| `/profile` | Person profile (stacked You card + organisation and projects; ask Usman to update) |
 | `/projects` | Hiring projects for this client |
 | `/projects/new` | Start a project (brief → Desk at Qualify) |
 | `/projects/[id]` | Progress (gold path), your package (client-facing fields only), client-visible notes |
-| `/projects/[id]/brief` | Locked project brief (package, deadline, problem, success, in/out scope) |
+| `/projects/[id]/brief` | Locked project brief (package, deadline, problem, what we’re building, success, who it is for, needed by, budget, call/meet, notes, in/out scope) |
 | `/projects/[id]/intake` | Discovery questions form — only while intake is open |
 | `/projects/[id]/schedule` | Project-scoped schedule (confirm / decline / cancel) |
 | `/messages`, `/messages/[projectId]` | Messages hub + thread (plain or rich text) |
@@ -72,6 +74,8 @@ Magic link rows: hashed token, person_id, expires_at, used_at. One-time use.
 ## Schema
 
 - Migration `0008_portal`: `portal_magic_links`, `portal_sessions`, `portal_messages`; `people.portal_enabled`, `projects.portal_intake_open`, `project_notes.client_visible`
+- Migration `0019_project_want_built`: `projects.want_built` (“What we’re building”) on Desk and Portal briefs
+- Migration `0020_person_email_verified`: `people.email_verified_at` plus confirm-token hash/expiry. Portal use requires confirmed email **and** `portal_enabled`. Inbound confirm still activates the project and now also marks matching people verified.
 - Later Desk migrations also affect Portal surfaces: `0009_project_events` (schedule), `0010`/`0011` (milestones + gate remap), `0012_notifications` (in-app inbox), `0013`/`0014` (heard-about sources incl. social media) — see [desk-status.md](./desk-status.md)
 
 ---
@@ -109,7 +113,7 @@ npm run dev
 | Portal | http://portal.localhost:3000 |
 
 1. Desk: sign in as operator.
-2. Person → Portal access → enable → **Create magic link** → **Copy link**.
+2. Person profile → confirm the email (**Confirm email** or **Resend confirmation**) → Portal access → enable → **Create magic link** → **Copy link**.
 3. Link looks like `http://portal.localhost:3000/auth/magic?token=…`
 4. Open it on the Portal host.
 
@@ -150,7 +154,8 @@ Add domain `portal.nusman.dev` on the same Vercel project as Desk. Magic links u
 11. In-app notifications (feed + table; mark read / delete) + on-brand email shell — done (Portal **1.2** / Desk **2.2.0**)  
 12. Wide canvas, Progress path, locked Brief vs Questions, default avatar, account unread bell, TinyMCE messages, shared source/timeline/budget selects — done (Portal **1.4** / Desk **2.4.0**)
 13. Public `/start` full-brief draft → email verify → Desk lead; “Not sure yet” stored on timeline/budget; marketing home URL for Portal chrome — done (Portal **1.5** / Desk **2.5.0** / public **4.2.0**)
-14. `/start` creates inactive Desk project on submit; email or Desk confirm activates; hiring party empty fields; inactive list highlight — done (Portal **1.6** / Desk **2.6.0** / public **4.3.0**)  
+14. `/start` creates inactive Desk project on submit; email or Desk confirm activates; hiring party empty fields; inactive list highlight — done (Portal **1.6** / Desk **2.6.0** / public **4.3.0**)
+15. Person email confirmation before Portal; Desk + Portal person profiles; “What we’re building” on the brief; table/card overflow contained — done (Portal **1.7** / Desk **2.7.0**)  
 
 ---
 

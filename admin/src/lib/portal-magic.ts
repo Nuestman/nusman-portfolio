@@ -6,6 +6,7 @@ import {
   getPortalMagicLinkByHash,
 } from "@/db/queries";
 import { portalPublicBaseUrl } from "@/lib/portal-host";
+import { personCanUsePortal } from "@/lib/person-email-verify";
 
 const MAGIC_LINK_HOURS = 24;
 
@@ -18,7 +19,7 @@ export async function issuePortalMagicLink(personId: string): Promise<{
   expiresAt: Date;
 } | null> {
   const row = await getPortalPerson(personId);
-  if (!row || !row.person.portalEnabled || !row.person.email) {
+  if (!row || !personCanUsePortal(row.person) || !row.person.email) {
     return null;
   }
 
@@ -45,7 +46,7 @@ export async function consumePortalMagicToken(token: string) {
   }
 
   const person = await getPortalPerson(row.personId);
-  if (!person || !person.person.portalEnabled) {
+  if (!person || !personCanUsePortal(person.person)) {
     return null;
   }
 

@@ -12,7 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { userRoleLabel } from "@/lib/labels";
 import { formatStamp } from "@/lib/text";
-import { tableClassName, tableFrameClassName } from "@/lib/tables";
+import { tableClassName, TableFrame } from "@/lib/tables";
 import { AddOperatorForm } from "./add-operator-form";
 import { PasswordForm } from "./password-form";
 import { ProfileForm } from "./profile-form";
@@ -125,7 +125,7 @@ export default async function ProfilePage({ searchParams }: ProfilePageProps) {
             </p>
           ) : (
             <>
-              <div className={tableFrameClassName}>
+              <TableFrame>
                 <table className={tableClassName}>
                   <thead className="bg-gray-50 text-gray-600">
                     <tr>
@@ -167,7 +167,7 @@ export default async function ProfilePage({ searchParams }: ProfilePageProps) {
                     })}
                   </tbody>
                 </table>
-              </div>
+              </TableFrame>
               {devices.length > 1 ? (
                 <form action={revokeOtherSessionsAction}>
                   <Button type="submit" variant="secondary">
@@ -190,7 +190,7 @@ export default async function ProfilePage({ searchParams }: ProfilePageProps) {
               operators.length === 0 ? (
                 <p className="text-sm text-gray-600">No operators yet.</p>
               ) : (
-                <div className={tableFrameClassName}>
+                <TableFrame>
                   <table className={tableClassName}>
                     <thead className="bg-gray-50 text-gray-600">
                       <tr>
@@ -246,7 +246,7 @@ export default async function ProfilePage({ searchParams }: ProfilePageProps) {
                       ))}
                     </tbody>
                   </table>
-                </div>
+                </TableFrame>
               )
             }
             form={<AddOperatorForm />}

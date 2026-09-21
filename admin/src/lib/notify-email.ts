@@ -548,4 +548,76 @@ export async function sendInboundVerifyEmail(input: {
   });
 }
 
+export async function sendPersonEmailConfirmedEmail(input: {
+  to: string;
+  name: string;
+}): Promise<SendEmailResult> {
+  const loginUrl = `${portalPublicBaseUrl()}/login`;
+  const text = [
+    `Hi ${input.name},`,
+    "",
+    "This email is confirmed.",
+    "",
+    `When Portal is ready, sign in at ${loginUrl} with this address.`,
+    "",
+    "—",
+    practiceContactBlock(),
+  ].join("\n");
+
+  return sendResendEmail({
+    to: input.to,
+    replyTo: practiceContactEmail(),
+    subject: "Your email is confirmed",
+    text,
+    html: renderBrandedEmailHtml({
+      eyebrow: "Portal",
+      title: "Email confirmed",
+      preheader: "This mailbox is confirmed for Portal.",
+      greeting: `Hi ${input.name},`,
+      bodyHtml: htmlParagraphs([
+        "This email is confirmed.",
+        "When Portal is ready, sign in with this address to get a one-time link.",
+      ]),
+      cta: { label: "Go to portal login", url: loginUrl },
+    }),
+  });
+}
+
+export async function sendPersonEmailVerifyEmail(input: {
+  to: string;
+  name: string;
+  verifyUrl: string;
+}): Promise<SendEmailResult> {
+  const text = [
+    `Hi ${input.name},`,
+    "",
+    "Confirm this email before Portal access can be used. It takes under a minute.",
+    "",
+    `Confirm here: ${input.verifyUrl}`,
+    "",
+    "This link expires in 48 hours. If you did not expect this, you can ignore it.",
+    "",
+    "—",
+    practiceContactBlock(),
+  ].join("\n");
+
+  return sendResendEmail({
+    to: input.to,
+    replyTo: practiceContactEmail(),
+    subject: "Confirm your email — Portal access",
+    text,
+    html: renderBrandedEmailHtml({
+      eyebrow: "Portal",
+      title: "Confirm your email",
+      preheader: "Confirm this mailbox before signing in to Portal.",
+      greeting: `Hi ${input.name},`,
+      bodyHtml: htmlParagraphs([
+        "Confirm this email before Portal access can be used.",
+        "This link expires in 48 hours. If you did not expect this, you can ignore it.",
+      ]),
+      cta: { label: "Confirm your email", url: input.verifyUrl },
+    }),
+  });
+}
+
 export { deskNotifyRecipients, deskPublicBaseUrl, portalPublicBaseUrl };

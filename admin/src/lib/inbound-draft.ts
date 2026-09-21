@@ -12,7 +12,9 @@ import {
   getInboundLeadDraftByProject,
   getInboundLeadDraftByVerifyHash,
   getOpenInboundLeadDraftByProject,
+  getClient,
   getProject,
+  markPeopleEmailVerifiedByEmail,
   upsertInboundLeadDraftPayload,
 } from "@/db/queries";
 import {
@@ -282,12 +284,14 @@ async function confirmDraftProject(
       projectId,
       `Email confirmed (${actorEmail}). Project is active.`,
     );
+    await markPeopleEmailVerifiedByEmail(draft.email);
     return { alreadyDone: false, name: draft.name, email: draft.email };
   }
 
   await activateInboundProject(projectId);
 
   if (!claimed) {
+    await markPeopleEmailVerifiedByEmail(draft.email);
     return { alreadyDone: true, name: draft.name, email: draft.email };
   }
 
@@ -308,6 +312,7 @@ async function confirmDraftProject(
 
   await sendInboundReceipt(toPayload(draft));
 
+  await markPeopleEmailVerifiedByEmail(draft.email);
   return { alreadyDone: false, name: draft.name, email: draft.email };
 }
 
@@ -326,6 +331,7 @@ export async function finalizeInboundDraftFromToken(token: string): Promise<{
     if (draft.projectId) {
       await activateInboundProject(draft.projectId);
     }
+    await markPeopleEmailVerifiedByEmail(draft.email);
     return {
       name: draft.name,
       email: draft.email,
@@ -375,6 +381,10 @@ export async function confirmInboundDraftForProject(
         projectId,
         `Email confirmed from Desk (${actorEmail}). Project is active.`,
       );
+      const client = await getClient(project.clientId);
+      if (client?.email) {
+        await markPeopleEmailVerifiedByEmail(client.email);
+      }
       return { ok: true, alreadyDone: false };
     }
     return {

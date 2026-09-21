@@ -27,7 +27,7 @@ export function PageSpread({
       : "lg:sticky lg:top-[calc(var(--desk-header-height)+1.5rem)]";
 
   return (
-    <div className={cn("grid items-start gap-8", columns, className)}>
+    <div className={cn("grid min-w-0 grid-cols-[minmax(0,1fr)] items-start gap-8", columns, className)}>
       <div className="space-y-8">
         <header className={rail ? undefined : stickyTop}>{intro}</header>
         {rail}

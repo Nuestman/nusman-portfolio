@@ -8,7 +8,7 @@ import {
 } from "@/components/table-actions";
 import { changeStatusLabel } from "@/lib/labels";
 import { displayYesNo, snippet } from "@/lib/text";
-import { tableClassName, tableFrameClassName } from "@/lib/tables";
+import { tableClassName, TableFrame } from "@/lib/tables";
 import type { ChangeStatus, ProjectGate } from "@/db/schema";
 import { deleteChangeRequestAction, deleteDemoAction } from "./actions";
 import { ChangeForm } from "./change-form";
@@ -63,7 +63,7 @@ export function DeliveryWork({
               changes.length === 0 ? (
                 <p className="text-sm text-gray-600">No change requests yet.</p>
               ) : (
-                <div className={tableFrameClassName}>
+                <TableFrame>
                   <table className={tableClassName}>
                     <thead className="bg-gray-50 text-gray-600">
                       <tr>
@@ -102,7 +102,7 @@ export function DeliveryWork({
                       ))}
                     </tbody>
                   </table>
-                </div>
+                </TableFrame>
               )
             }
             form={<ChangeForm projectId={projectId} submitLabel="Add change" />}
@@ -120,7 +120,7 @@ export function DeliveryWork({
               demos.length === 0 ? (
                 <p className="text-sm text-gray-600">No demos yet.</p>
               ) : (
-                <div className={tableFrameClassName}>
+                <TableFrame>
                   <table className={tableClassName}>
                     <thead className="bg-gray-50 text-gray-600">
                       <tr>
@@ -159,7 +159,7 @@ export function DeliveryWork({
                       ))}
                     </tbody>
                   </table>
-                </div>
+                </TableFrame>
               )
             }
             form={

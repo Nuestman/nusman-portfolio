@@ -12,6 +12,8 @@ import {
   getPerson,
   getPortalProjectForPerson,
   getProjectEvent,
+  getQualify,
+  patchProject,
   saveIntakeAnswers,
   setProjectEventStatus,
   upsertQualify,
@@ -124,6 +126,7 @@ export async function startPortalProjectAction(
     clientId: client.id,
     title,
     problemSentence: problem.slice(0, 2000),
+    wantBuilt: wantBuilt.slice(0, 2000),
     successLooksLike: successLooksLike.slice(0, 2000),
     deadlineNote: timeline,
   });
@@ -236,6 +239,98 @@ export async function savePortalIntakeAction(
   });
   revalidatePortalProject(projectId);
   redirect(`/projects/${projectId}/intake?notice=saved`);
+}
+
+export async function savePortalBriefAction(
+  _previous: PortalFormState,
+  formData: FormData,
+): Promise<PortalFormState> {
+  const { person, client } = await requirePortalPerson();
+  const projectId = readTrimmed(formData, "projectId");
+  if (!isUuid(projectId)) {
+    return { error: "Project is missing." };
+  }
+
+  const project = await getPortalProjectForPerson(projectId, client.id);
+  if (!project) {
+    return { error: "That project is gone." };
+  }
+  if (!project.portalIntakeOpen) {
+    return {
+      error: "The brief is locked. Ask Usman if you need to change it.",
+    };
+  }
+
+  const problem = readOptional(formData, "problem");
+  const wantBuilt = readOptional(formData, "wantBuilt");
+  const successLooksLike = readOptional(formData, "successLooksLike");
+  const deadline = readOptional(formData, "deadline");
+  const whoFor = readOptional(formData, "whoFor");
+  const neededBy = readOptional(formData, "neededBy");
+  const budgetNote = readOptional(formData, "budgetNote");
+  const callAt = readOptional(formData, "callAt");
+  const notes = readOptional(formData, "notes");
+
+  if (
+    (problem && problem.length > 2000) ||
+    (wantBuilt && wantBuilt.length > 2000) ||
+    (successLooksLike && successLooksLike.length > 2000) ||
+    (whoFor && whoFor.length > 500) ||
+    (neededBy && neededBy.length > 200) ||
+    (budgetNote && budgetNote.length > 200) ||
+    (callAt && callAt.length > 200) ||
+    (notes && notes.length > 4000)
+  ) {
+    return { error: "One of the answers is too long." };
+  }
+
+  const previousQualify = await getQualify(projectId);
+  const nextValues = {
+    problemSentence: problem,
+    wantBuilt,
+    successLooksLike,
+    deadlineNote: deadline,
+  };
+  const nextQualify = {
+    outcome: previousQualify?.outcome ?? ("undecided" as const),
+    whoFor,
+    painToday: problem ?? previousQualify?.painToday ?? null,
+    neededBy,
+    budgetNote,
+    callAt,
+    notes,
+  };
+  await patchProject(projectId, nextValues);
+  await upsertQualify(projectId, nextQualify);
+  await recordAuditSafe({
+    action: "portal.brief-save",
+    summary: `${person.name} updated the project brief on “${project.title}”.`,
+    entityType: "project",
+    entityId: projectId,
+    projectId,
+    actorEmail: person.email,
+    before: {
+      problemSentence: project.problemSentence,
+      wantBuilt: project.wantBuilt,
+      successLooksLike: project.successLooksLike,
+      deadlineNote: project.deadlineNote,
+      whoFor: previousQualify?.whoFor ?? null,
+      neededBy: previousQualify?.neededBy ?? null,
+      budgetNote: previousQualify?.budgetNote ?? null,
+      callAt: previousQualify?.callAt ?? null,
+      notes: previousQualify?.notes ?? null,
+    },
+    after: {
+      ...nextValues,
+      whoFor,
+      neededBy,
+      budgetNote,
+      callAt,
+      notes,
+    },
+  });
+  revalidatePortalProject(projectId);
+  redirect(`/projects/${projectId}/brief?notice=saved`);
 }
 
 export async function postPortalMessageAction(

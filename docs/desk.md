@@ -344,7 +344,7 @@ Done, then tightened: cached Drizzle client, `loadFromDb` for missing/error, sha
 
 Done, then tightened: practice rows redirect to Products and cannot be edited from Clients; people list buyers first with email/phone; client list shows people and project counts. Autocomplete on name, email, and phone.
 
-Routes: `/clients`, `/clients/new`, `/clients/[id]`, `/clients/[id]/people/[personId]/edit`.
+Routes: `/clients`, `/clients/new`, `/clients/[id]`, `/clients/[id]/people/[personId]`, `/clients/[id]/people/[personId]/edit`.
 
 ### Phase 4 — projects and gates
 
@@ -433,4 +433,4 @@ Do not add Desk links to `Header` / `Footer` / `sitemap.xml`.
 
 ## Immediate next step
 
-Desk **2.6.0** is the current cut (inbound creates inactive on `/start` submit, email or Desk confirm activates; hiring party shows empty fields; inactive rows highlighted; wide canvas, project brief vs questions, Progress path, TinyMCE messages, shared source/timeline/budget selects; surfaces still follow [desk-2.0.md](./desk-2.0.md)). Invite a person from Desk, rewrite package summaries for clients, open intake when ready, keep an export after a real job starts. Later: Portal routing cleanup ([portal.md](./portal.md#later--routing-cleanup-best-practice)); form-shaped readonly panels; import product databases — only when you choose to, and never by pointing Desk at their `DATABASE_URL`.
+Desk **2.7.0** is the current cut (person email must be confirmed before Portal; Desk/Portal person profiles; “What we’re building” on the brief; inbound still creates inactive on `/start` submit; hiring party empty fields + wrapping emails; tables scroll in-card without a page side-strip; surfaces still follow [desk-2.0.md](./desk-2.0.md)). Invite a person from Desk (confirm email first), rewrite package summaries for clients, open intake when ready, keep an export after a real job starts. Later: Portal routing cleanup ([portal.md](./portal.md#later--routing-cleanup-best-practice)); form-shaped readonly panels; import product databases — only when you choose to, and never by pointing Desk at their `DATABASE_URL`.

@@ -18,7 +18,7 @@ import { InactiveBadge } from "@/components/inactive-badge";
 import {
   inactiveRowProps,
   tableClassName,
-  tableFrameClassName,
+  TableFrame,
 } from "@/lib/tables";
 import { deleteClientAction } from "./actions";
 
@@ -55,7 +55,7 @@ export default async function ClientsPage() {
           </CardContent>
         </Card>
       ) : (
-        <div className={tableFrameClassName}>
+        <TableFrame>
           <table className={tableClassName}>
             <thead className="bg-gray-50 text-gray-600">
               <tr>
@@ -122,7 +122,7 @@ export default async function ClientsPage() {
               })}
             </tbody>
           </table>
-        </div>
+        </TableFrame>
       )}
     </DeskShell>
   );

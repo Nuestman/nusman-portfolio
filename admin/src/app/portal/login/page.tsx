@@ -52,6 +52,9 @@ export default async function PortalLoginPage({
               {noticeRaw === "invalid-link" ? (
                 <QueryNotice message="That link is invalid or expired. Request a new one." />
               ) : null}
+              {noticeRaw === "email-confirmed" ? (
+                <QueryNotice message="Email confirmed. You can request a sign-in link." />
+              ) : null}
               <PortalLoginForm />
               <p className="text-center text-sm">
                 <Link href="/" className={linkClassName("back")}>

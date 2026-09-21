@@ -25,7 +25,7 @@ import {
   projectEventStatusLabel,
 } from "@/lib/labels";
 import { linkClassName } from "@/lib/links";
-import { tableClassName, tableFrameClassName } from "@/lib/tables";
+import { tableClassName, TableFrame } from "@/lib/tables";
 import { formatEventWhen } from "@/lib/text";
 import { deskCopyTemplates } from "@/lib/templates";
 import { CopyTemplates } from "@/app/projects/copy-templates";
@@ -105,7 +105,7 @@ export default async function HomePage() {
         </div>
 
         {stats.kind === "ok" && stats.data.active.length > 0 ? (
-          <div className={tableFrameClassName}>
+          <TableFrame>
             <table className={tableClassName}>
               <thead className="bg-gray-50 text-gray-600">
                 <tr>
@@ -156,7 +156,7 @@ export default async function HomePage() {
                 })}
               </tbody>
             </table>
-          </div>
+          </TableFrame>
         ) : null}
 
         {stats.kind === "ok" ? (

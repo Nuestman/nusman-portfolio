@@ -6,6 +6,7 @@ import {
   createProject,
   deleteClient,
   deleteProject,
+  markPeopleEmailVerifiedByEmail,
   patchProject,
   upsertQualify,
 } from "@/db/queries";
@@ -102,11 +103,15 @@ export async function createInboundLead(
       isDecisionMaker: true,
       notes: "Primary contact from inbound discovery form.",
     });
+    if (status === "active") {
+      await markPeopleEmailVerifiedByEmail(email);
+    }
 
     projectId = await createProject({
       clientId,
       title: projectTitle(organisation),
       problemSentence: problem,
+      wantBuilt,
       successLooksLike,
       deadlineNote: timeline,
       status,
@@ -252,6 +257,7 @@ export async function refreshInboundProjectBrief(
 ) {
   await patchProject(projectId, {
     problemSentence: payload.problem,
+    wantBuilt: payload.wantBuilt,
     successLooksLike: payload.successLooksLike,
     deadlineNote: payload.timeline,
   });

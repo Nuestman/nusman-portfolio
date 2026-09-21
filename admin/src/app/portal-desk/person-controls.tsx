@@ -3,6 +3,7 @@
 import { useActionState } from "react";
 import { Button } from "@/components/ui/button";
 import { FormError } from "@/components/form-error";
+import { EmailVerifyPrompt } from "@/components/email-verify-prompt";
 import { CopyButton } from "@/app/projects/copy-templates";
 import {
   invitePortalPersonAction,
@@ -18,6 +19,7 @@ const initialState: PortalDeskState = {
 
 export function PortalPersonControls({
   person,
+  next,
 }: {
   person: {
     id: string;
@@ -25,7 +27,9 @@ export function PortalPersonControls({
     name: string;
     email: string | null;
     portalEnabled: boolean;
+    emailVerified: boolean;
   };
+  next: string;
 }) {
   const [enableState, enableAction, enablePending] = useActionState(
     setPersonPortalEnabledAction,
@@ -35,25 +39,39 @@ export function PortalPersonControls({
     invitePortalPersonAction,
     initialState,
   );
+  const needsVerify = Boolean(person.email) && !person.emailVerified;
 
   return (
     <div className="space-y-6">
+      {needsVerify && person.email ? (
+        <EmailVerifyPrompt
+          personId={person.id}
+          clientId={person.clientId}
+          email={person.email}
+          next={next}
+          portalEnabled={person.portalEnabled}
+        />
+      ) : null}
+
       <form action={enableAction} className="space-y-4">
         <input type="hidden" name="personId" value={person.id} />
         <input type="hidden" name="clientId" value={person.clientId} />
         <label className="flex items-center gap-2 text-sm text-dark-950">
           <input
             type="checkbox"
-            name="portalEnabled"
+            name={needsVerify ? undefined : "portalEnabled"}
             defaultChecked={person.portalEnabled}
-            className="h-4 w-4 rounded border-gray-200 text-gold-500 focus:ring-gold-500"
+            disabled={needsVerify}
+            className="h-4 w-4 rounded border-gray-200 text-gold-500 focus:ring-gold-500 disabled:opacity-50"
           />
           Portal access enabled
         </label>
         <p className="text-sm text-gray-600">
-          {person.email
-            ? `Magic links go to ${person.email}.`
-            : "Add an email on this person before enabling portal."}
+          {!person.email
+            ? "Add an email on this person before enabling portal."
+            : needsVerify
+              ? "Confirm the email above before turning portal on."
+              : `Magic links go to ${person.email}.`}
         </p>
         <FormError>{enableState.error}</FormError>
         {enableState.emailed ? (
@@ -72,12 +90,18 @@ export function PortalPersonControls({
             <p className="break-all text-sm text-dark-950">{enableState.link}</p>
           </div>
         ) : null}
-        <Button type="submit" variant="secondary" disabled={enablePending}>
-          {enablePending ? "Saving…" : "Save portal access"}
-        </Button>
+        {needsVerify && !person.portalEnabled ? null : (
+          <Button type="submit" variant="secondary" disabled={enablePending}>
+            {enablePending
+              ? "Saving…"
+              : needsVerify
+                ? "Turn portal off"
+                : "Save portal access"}
+          </Button>
+        )}
       </form>
 
-      {person.portalEnabled && person.email ? (
+      {person.portalEnabled && person.email && person.emailVerified ? (
         <form action={inviteAction} className="space-y-4">
           <input type="hidden" name="personId" value={person.id} />
           <input type="hidden" name="clientId" value={person.clientId} />

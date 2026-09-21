@@ -17,6 +17,7 @@ import { deleteWasConfirmed, recordAudit } from "@/lib/audit";
 import { readOptional, readTrimmed } from "@/lib/forms";
 import { isUuid } from "@/lib/ids";
 import { requireSessionUser } from "@/lib/current-user";
+import { personCanUsePortal } from "@/lib/person-email-verify";
 
 export type FormState = { error: string | null };
 
@@ -60,7 +61,7 @@ export async function createDeskNotificationAction(
       return { error: "Pick a portal person." };
     }
     const person = await getPerson(personId);
-    if (!person?.portalEnabled) {
+    if (!person || !personCanUsePortal(person)) {
       return { error: "That person does not have portal access." };
     }
     await createNotification({

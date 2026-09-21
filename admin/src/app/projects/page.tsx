@@ -23,7 +23,7 @@ import { InactiveBadge } from "@/components/inactive-badge";
 import {
   inactiveRowProps,
   tableClassName,
-  tableFrameClassName,
+  TableFrame,
 } from "@/lib/tables";
 import type { ProjectGate, ProjectStatus } from "@/db/schema";
 import PortalProjectsPage from "@/app/portal/projects/page";
@@ -142,7 +142,7 @@ export default async function ProjectsPage({ searchParams }: ProjectsPageProps) 
             </CardContent>
           </Card>
         ) : (
-          <div className={tableFrameClassName}>
+          <TableFrame>
             <table className={tableClassName}>
               <thead className="bg-gray-50 text-gray-600">
                 <tr>
@@ -203,7 +203,7 @@ export default async function ProjectsPage({ searchParams }: ProjectsPageProps) 
                 ))}
               </tbody>
             </table>
-          </div>
+          </TableFrame>
         )}
     </DeskShell>
   );

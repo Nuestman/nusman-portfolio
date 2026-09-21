@@ -11,7 +11,7 @@ import {
   TIMELINE_MANUAL_VALUE,
   TIMELINE_OPTIONS,
 } from "@/lib/form-options";
-import { qualifyOutcomeLabel } from "@/lib/labels";
+import { qualifyOutcomeLabel, WANT_BUILT_LABEL } from "@/lib/labels";
 import { saveQualifyAction, type FormState } from "./actions";
 
 const initialState: FormState = { error: null };
@@ -45,6 +45,7 @@ export function QualifyForm({
     outcome: QualifyOutcome;
     whoFor: string;
     painToday: string;
+    wantBuilt: string;
     neededBy: string;
     budgetNote: string;
     callAt: string;
@@ -78,6 +79,7 @@ export function QualifyForm({
         <>
           <input type="hidden" name="whoFor" value={qualify.whoFor} />
           <input type="hidden" name="painToday" value={qualify.painToday} />
+          <input type="hidden" name="wantBuilt" value={qualify.wantBuilt} />
           <input type="hidden" name="neededBy" value={qualify.neededBy} />
           <input type="hidden" name="budgetNote" value={qualify.budgetNote} />
           <input type="hidden" name="callAt" value={qualify.callAt} />
@@ -126,6 +128,21 @@ export function QualifyForm({
       </div>
 
       <div>
+        <label htmlFor="qualify-wantBuilt" className={labelClassName}>
+          {WANT_BUILT_LABEL}
+        </label>
+        <textarea
+          id="qualify-wantBuilt"
+          name="wantBuilt"
+          rows={3}
+          defaultValue={qualify.wantBuilt}
+          className={fieldClassName}
+          placeholder="After the problem is clear — the thing both sides agree to make"
+          disabled={fieldsLocked}
+        />
+      </div>
+
+      <div>
         <label htmlFor="qualify-whoFor" className={labelClassName}>
           Who it is for
         </label>
@@ -134,7 +151,7 @@ export function QualifyForm({
           name="whoFor"
           defaultValue={qualify.whoFor}
           className={fieldClassName}
-          placeholder="Buyer, daily users, organisation…"
+          placeholder="Who uses it, who pays, who decides?"
           disabled={fieldsLocked}
         />
       </div>

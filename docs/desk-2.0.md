@@ -2,7 +2,7 @@
 
 Living plan for the **next major cut** of Desk + Portal. Goal: a clean guided process — CRM, playbook, live job, and client portal each do one job. Update this file when a decision changes.
 
-Supersedes the “kitchen sink project page” behaviour of Desk **1.3.0**. Prior snapshots: [archive/desk-1.1.md](./archive/desk-1.1.md). Live status: [desk-status.md](./desk-status.md) (**2.6.0**). Detail still useful in [desk.md](./desk.md) and [portal.md](./portal.md); **this file wins** where they conflict.
+Supersedes the “kitchen sink project page” behaviour of Desk **1.3.0**. Prior snapshots: [archive/desk-1.1.md](./archive/desk-1.1.md). Live status: [desk-status.md](./desk-status.md) (**2.7.0**). Detail still useful in [desk.md](./desk.md) and [portal.md](./portal.md); **this file wins** where they conflict.
 
 Schema changes are allowed — no production clients on the system yet.
 
@@ -61,6 +61,7 @@ The playbook was supposed to *guide* work. Forms on the project were supposed to
 |---|---|
 | `/clients` | Hiring parties list |
 | `/clients/[id]` | **View-first** org + notes, people (with Portal status), projects. Add/edit behind Edit/Add — not always-open forms |
+| `/clients/[id]/people/[personId]` | Person **profile** on Desk (same identity as Portal `/profile`) |
 | `/clients/[id]/people/[personId]/edit` | Contact + portal enable + magic link |
 
 CRM answers: *Who is this? Who do I talk to? Can they use Portal?*  
@@ -105,10 +106,11 @@ Copy templates: short “Copy from playbook” on the **current** gate only, or 
 | Route | Purpose |
 |---|---|
 | `/` | Landing |
-| `/login`, `/auth/magic` | Magic link |
-| `/profile` | Read-only person |
+| `/login`, `/auth/magic`, `/auth/verify-email` | Magic link; person email confirm |
+| `/profile` | Person profile (You card + organisation and projects) |
 | `/projects` | Their hiring projects |
 | `/projects/[id]` | Progress, package, updates |
+| `/projects/[id]/brief` | Locked client brief |
 | `/projects/[id]/intake` | Intake when open |
 | `/projects/[id]/messages` | Thread (Desk also has `/messages`) |
 | `/schedule` | Appointments across their projects |
@@ -225,4 +227,4 @@ Index: `(project_id, starts_at)`.
 
 ## Immediate next step
 
-Desk **2.0.0** cut is shipped. Current product version is **2.6.0** ([desk-status.md](./desk-status.md), [changelog.md](./changelog.md)). Further work is ordinary product iteration (routing cleanup, calendar sync, Today refinements, etc.), not this cut.
+Desk **2.0.0** cut is shipped. Current product version is **2.7.0** ([desk-status.md](./desk-status.md), [changelog.md](./changelog.md)). Further work is ordinary product iteration (routing cleanup, calendar sync, Today refinements, etc.), not this cut.
