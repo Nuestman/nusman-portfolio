@@ -111,10 +111,10 @@ export function ClientForm({
           ))}
         </select>
       </div>
-      {source === "other" ? (
+      {source === "other" || source === "social_media" ? (
         <div>
           <label htmlFor="sourceOther" className={labelClassName}>
-            Source detail
+            {source === "social_media" ? "Which platform?" : "Source detail"}
           </label>
           <input
             id="sourceOther"
@@ -122,7 +122,11 @@ export function ClientForm({
             required
             maxLength={200}
             className={fieldClassName}
-            placeholder="Where did they hear about this work?"
+            placeholder={
+              source === "social_media"
+                ? "e.g. Instagram, LinkedIn, X, Facebook"
+                : "Where did they hear about this work?"
+            }
           />
         </div>
       ) : null}

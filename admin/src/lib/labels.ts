@@ -36,9 +36,11 @@ export function clientSourceLabel(source: ClientSource): string {
     case "referral":
       return "Referral";
     case "family_friends":
-      return "Family and friends";
+      return "Family / Friend";
     case "work_colleague":
       return "Work colleague";
+    case "social_media":
+      return "Social media";
     case "inbound":
       return "Inbound / website";
     case "repeat":

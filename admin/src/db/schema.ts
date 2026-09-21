@@ -15,6 +15,7 @@ export const CLIENT_SOURCES = [
   "referral",
   "family_friends",
   "work_colleague",
+  "social_media",
   "inbound",
   "repeat",
   "other",
@@ -581,5 +582,40 @@ export const notifications = pgTable(
       table.createdAt,
     ),
     index("notifications_read_at_idx").on(table.readAt),
+  ],
+);
+
+/** Public /start onboarding — full brief saved; verify creates Desk project. */
+export const inboundLeadDrafts = pgTable(
+  "inbound_lead_drafts",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    email: text("email").notNull(),
+    name: text("name").notNull(),
+    phone: text("phone"),
+    organisation: text("organisation"),
+    source: clientSourceEnum("source").notNull(),
+    sourceOther: text("source_other"),
+    problem: text("problem").notNull().default(""),
+    wantBuilt: text("want_built").notNull().default(""),
+    whoFor: text("who_for").notNull().default(""),
+    successLooksLike: text("success_looks_like").notNull().default(""),
+    timeline: text("timeline"),
+    budget: text("budget"),
+    verifyTokenHash: text("verify_token_hash").notNull(),
+    verifiedAt: timestamp("verified_at", { withTimezone: true }),
+    completedAt: timestamp("completed_at", { withTimezone: true }),
+    projectId: uuid("project_id").references(() => projects.id, {
+      onDelete: "set null",
+    }),
+    expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+    ...timestamps,
+  },
+  (table) => [
+    uniqueIndex("inbound_lead_drafts_verify_token_hash_uidx").on(
+      table.verifyTokenHash,
+    ),
+    index("inbound_lead_drafts_email_idx").on(table.email),
+    index("inbound_lead_drafts_expires_at_idx").on(table.expiresAt),
   ],
 );

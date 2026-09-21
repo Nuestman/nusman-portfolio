@@ -27,3 +27,17 @@ export function portalPublicBaseUrl(): string {
   }
   return "https://portal.nusman.dev";
 }
+
+/** Public marketing site (nusman.dev / Vite). Used for Portal “Go Home” links. */
+export function marketingPublicBaseUrl(): string {
+  const fromEnv =
+    process.env.PUBLIC_SITE_URL?.trim() ||
+    process.env.MARKETING_SITE_URL?.trim();
+  if (fromEnv) {
+    return fromEnv.replace(/\/$/, "");
+  }
+  if (process.env.NODE_ENV !== "production") {
+    return "http://localhost:5173";
+  }
+  return "https://nusman.dev";
+}

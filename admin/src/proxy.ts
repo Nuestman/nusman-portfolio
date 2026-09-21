@@ -28,7 +28,10 @@ function isMagicPath(pathname: string) {
 }
 
 function isDeskPublicApiPath(pathname: string) {
-  return pathname === "/api/inbound-lead";
+  return (
+    pathname === "/api/inbound-lead" ||
+    pathname.startsWith("/api/inbound-lead/")
+  );
 }
 
 /**

@@ -5,6 +5,7 @@ import { buttonClassName } from "@/components/ui/button";
 import { PortalHeroBackdrop } from "@/components/portal-hero-backdrop";
 import { getPortalSessionPerson } from "@/lib/current-person";
 import { PAGE_FRAME_CLASS } from "@/lib/layout";
+import { marketingPublicBaseUrl } from "@/lib/portal-host";
 
 export const dynamic = "force-dynamic";
 
@@ -12,11 +13,10 @@ export const metadata: Metadata = {
   title: "Welcome",
 };
 
-const MARKETING_SITE = "https://nusman.dev";
-
 export default async function PortalLandingPage() {
   const session = await getPortalSessionPerson().catch(() => null);
   const signedIn = Boolean(session);
+  const marketingSite = marketingPublicBaseUrl();
 
   return (
     <div className="relative min-h-dvh overflow-hidden bg-gray-50">
@@ -24,9 +24,9 @@ export default async function PortalLandingPage() {
 
       <header className={`relative z-10 flex items-center justify-between py-5 ${PAGE_FRAME_CLASS}`}>
         <a
-          href={MARKETING_SITE}
+          href={marketingSite}
           className="flex h-12 items-center"
-          aria-label="Numan Usman — back to nusman.dev"
+          aria-label="Numan Usman — public site"
         >
           <Image
             src="/logos/nusman-logo-wide.png"
@@ -34,6 +34,7 @@ export default async function PortalLandingPage() {
             width={252}
             height={48}
             className="h-10 w-auto object-contain"
+            style={{ width: "auto" }}
             priority
           />
         </a>
@@ -76,7 +77,7 @@ export default async function PortalLandingPage() {
               </Link>
             )}
             <a
-              href={MARKETING_SITE}
+              href={marketingSite}
               className={buttonClassName("secondary", "lg")}
             >
               Go Home

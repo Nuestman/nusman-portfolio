@@ -24,6 +24,7 @@ import {
   notifications,
   sessions,
   users,
+  inboundLeadDrafts,
 } from "./schema";
 import type {
   ChangeStatus,
@@ -2220,4 +2221,91 @@ export async function countUnreadPortalNotifications(personId: string) {
       ),
     );
   return row?.value ?? 0;
+}
+
+export type InboundLeadDraftPayload = {
+  email: string;
+  name: string;
+  phone: string | null;
+  organisation: string | null;
+  source: ClientSource;
+  sourceOther: string | null;
+  problem: string;
+  wantBuilt: string;
+  whoFor: string;
+  successLooksLike: string;
+  timeline: string | null;
+  budget: string | null;
+  verifyTokenHash: string;
+  expiresAt: Date;
+};
+
+export async function createInboundLeadDraft(values: InboundLeadDraftPayload) {
+  const db = getDb();
+  const [row] = await db
+    .insert(inboundLeadDrafts)
+    .values(values)
+    .returning({ id: inboundLeadDrafts.id });
+  if (!row) {
+    throw new Error("Could not create inbound draft");
+  }
+  return row.id;
+}
+
+/** Open = not completed; prefers newest. */
+export async function getInboundLeadDraftByEmailOpen(email: string) {
+  const db = getDb();
+  const [row] = await db
+    .select()
+    .from(inboundLeadDrafts)
+    .where(
+      and(
+        eq(inboundLeadDrafts.email, email),
+        isNull(inboundLeadDrafts.completedAt),
+      ),
+    )
+    .orderBy(desc(inboundLeadDrafts.createdAt))
+    .limit(1);
+  return row ?? null;
+}
+
+export async function getInboundLeadDraftByVerifyHash(verifyTokenHash: string) {
+  const db = getDb();
+  const [row] = await db
+    .select()
+    .from(inboundLeadDrafts)
+    .where(eq(inboundLeadDrafts.verifyTokenHash, verifyTokenHash))
+    .limit(1);
+  return row ?? null;
+}
+
+export async function upsertInboundLeadDraftPayload(
+  id: string,
+  values: Omit<InboundLeadDraftPayload, "email">,
+) {
+  const db = getDb();
+  await db
+    .update(inboundLeadDrafts)
+    .set({
+      ...values,
+      verifiedAt: null,
+      updatedAt: new Date(),
+    })
+    .where(eq(inboundLeadDrafts.id, id));
+}
+
+export async function markInboundLeadDraftCompleted(
+  id: string,
+  projectId: string,
+) {
+  const db = getDb();
+  await db
+    .update(inboundLeadDrafts)
+    .set({
+      completedAt: new Date(),
+      verifiedAt: new Date(),
+      projectId,
+      updatedAt: new Date(),
+    })
+    .where(eq(inboundLeadDrafts.id, id));
 }

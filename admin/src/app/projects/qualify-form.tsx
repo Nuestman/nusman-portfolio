@@ -1,11 +1,16 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { FormError } from "@/components/form-error";
 import { QUALIFY_OUTCOMES, type QualifyOutcome } from "@/db/schema";
 import { fieldClassName, labelClassName } from "@/lib/forms";
-import { BUDGET_OPTIONS, TIMELINE_OPTIONS } from "@/lib/form-options";
+import {
+  BUDGET_OPTIONS,
+  isPresetTimeline,
+  TIMELINE_MANUAL_VALUE,
+  TIMELINE_OPTIONS,
+} from "@/lib/form-options";
 import { qualifyOutcomeLabel } from "@/lib/labels";
 import { saveQualifyAction, type FormState } from "./actions";
 
@@ -19,6 +24,16 @@ function selectWithCurrent(
     return [...options];
   }
   return [current, ...options];
+}
+
+function initialTimelineChoice(neededBy: string): string {
+  if (!neededBy) {
+    return "";
+  }
+  if (isPresetTimeline(neededBy)) {
+    return neededBy;
+  }
+  return TIMELINE_MANUAL_VALUE;
 }
 
 export function QualifyForm({
@@ -41,8 +56,20 @@ export function QualifyForm({
     initialState,
   );
   const fieldsLocked = qualify.outcome === "no";
-  const timelineOptions = selectWithCurrent(TIMELINE_OPTIONS, qualify.neededBy);
+  const [timelineChoice, setTimelineChoice] = useState(() =>
+    initialTimelineChoice(qualify.neededBy),
+  );
+  const [timelineManual, setTimelineManual] = useState(() =>
+    isPresetTimeline(qualify.neededBy) || !qualify.neededBy
+      ? ""
+      : qualify.neededBy,
+  );
   const budgetOptions = selectWithCurrent(BUDGET_OPTIONS, qualify.budgetNote);
+
+  const timelineValue =
+    timelineChoice === TIMELINE_MANUAL_VALUE
+      ? timelineManual.trim()
+      : timelineChoice;
 
   return (
     <form action={action} className="space-y-5">
@@ -56,7 +83,9 @@ export function QualifyForm({
           <input type="hidden" name="callAt" value={qualify.callAt} />
           <input type="hidden" name="notes" value={qualify.notes} />
         </>
-      ) : null}
+      ) : (
+        <input type="hidden" name="neededBy" value={timelineValue} />
+      )}
 
       <div>
         <label htmlFor="qualify-outcome" className={labelClassName}>
@@ -117,18 +146,36 @@ export function QualifyForm({
           </label>
           <select
             id="qualify-neededBy"
-            name="neededBy"
-            defaultValue={qualify.neededBy}
+            value={timelineChoice}
             className={fieldClassName}
             disabled={fieldsLocked}
+            onChange={(event) => {
+              setTimelineChoice(event.target.value);
+              if (event.target.value !== TIMELINE_MANUAL_VALUE) {
+                setTimelineManual("");
+              }
+            }}
           >
             <option value="">Not set</option>
-            {timelineOptions.map((option) => (
+            {TIMELINE_OPTIONS.map((option) => (
               <option key={option} value={option}>
                 {option}
               </option>
             ))}
+            <option value={TIMELINE_MANUAL_VALUE}>Enter manually</option>
           </select>
+          {timelineChoice === TIMELINE_MANUAL_VALUE && !fieldsLocked ? (
+            <input
+              id="qualify-neededBy-manual"
+              type="text"
+              value={timelineManual}
+              onChange={(event) => setTimelineManual(event.target.value)}
+              required
+              maxLength={200}
+              className={`${fieldClassName} mt-2`}
+              placeholder="e.g. before Easter, mid-July"
+            />
+          ) : null}
         </div>
         <div>
           <label htmlFor="qualify-budgetNote" className={labelClassName}>
@@ -151,7 +198,7 @@ export function QualifyForm({
         </div>
         <div>
           <label htmlFor="qualify-callAt" className={labelClassName}>
-            Call / window
+            Call / meet
           </label>
           <input
             id="qualify-callAt"

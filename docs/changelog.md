@@ -1,5 +1,20 @@
 # Changelog
 
+## 21 Sep 2026 — Desk 2.5.0 / Portal 1.5 · public 4.2.0
+
+### Desk / Portal (`admin/` → **2.5.0**)
+
+- **Inbound draft → verify** — migrations `0015_inbound_lead_drafts` + `0016_inbound_draft_brief`. Public `/start` saves the full brief as a draft; confirm-link `POST /api/inbound-lead/verify` creates the Desk lead and sends the receipt. Resend rotates the verify token. Direct `POST /api/inbound-lead` remains for trusted callers.
+- **Client source** — migration `0014_client_source_social` (`social_media`). Other and Social media require a detail line.
+- **Shared selects** — `NOT_SURE_YET` stored as text (not blank) for timeline/budget on Portal start and Qualify; week-based timeline (+ Flexible / Enter manually); GH₵ budget ranges.
+- **Portal / Desk chrome** — marketing home URL via `marketingPublicBaseUrl()`; PageSpread profile split from `md` (768px).
+
+### Public site (**4.2.0**)
+
+- `/start` — four-step brief (About you [incl. source] → Challenge → Outcome → Timing & budget), then post-submit “confirm your email”; `/start/continue` verifies and lands the lead. Gold progress indicator (step label + bar + checkpoints). Email + phone on one row. Timeline/budget default to “Not sure yet”.
+
+---
+
 ## 20 Sep 2026 — Desk 2.4.0 / Portal 1.4 · public 4.1.3
 
 ### Desk / Portal (`admin/` → **2.4.0**)
@@ -12,12 +27,12 @@
 - **Portal schedule** — project schedule matches Desk cards; confirm / decline / cancel with `next` return.
 - **Project brief vs questions** — `/projects/[id]/brief` is the locked client document (package, deadline, problem, success, in/out scope; empty fields show “—”). `/projects/[id]/intake` is the questions form only, and only while intake is open. Dual-mode alias under Desk `/projects/[id]/brief`.
 - **Messages** — Plain / rich composer (`MessageComposer`). Rich mode is self-hosted TinyMCE 8 GPL (`licenseKey="gpl"`), copied to `public/tinymce` on install/build (gitignored). Toolbar: headings, bold/italic/underline/strike, lists, checklist, blockquote, code sample, link, table. HTML is sanitized on save and on render (`sanitize-html`); inbox previews and email alerts use plain-text excerpts.
-- **Client source** — migration `0013_client_source_expand` adds `family_friends` and `work_colleague`. Public `/start` and Desk client form share heard-about options; Other requires a detail line. Inbound stores the chosen source (not always `inbound`).
-- **Shared selects** — `form-options.ts`: timeline and budget on Qualify, Portal start-project, and public `/start`; operator titles on Profile.
+- **Client source** — migration `0013_client_source_expand` (`family_friends`, `work_colleague`). Public `/start` and Desk client form share heard-about options.
+- **Shared selects** — `form-options.ts`: week-based timeline (+ Flexible / Enter manually), GH₵ budget ranges on Qualify, Portal start-project, and public `/start`; operator titles on Profile.
 
 ### Public site (**4.1.3**)
 
-- `/start` — timeline and budget selects; required “How did you hear about us?”; Other detail field; posts the chosen source to Desk inbound.
+- `/start` — GH₵ budget; timeline in weeks + Flexible + Enter manually; Social media source (asks which platform); no “(optional)” labels on phone / org / timeline / budget.
 
 ---
 

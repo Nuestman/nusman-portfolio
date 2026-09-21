@@ -22,7 +22,7 @@ Favours, corridor promises, and a notes box on a public page are not the operati
 
 ## Non-goals (Desk)
 
-- Not a page on nusman.dev. Desk itself is not linked from public nav or footer. Clients reach **Portal** via [portal.nusman.dev](https://portal.nusman.dev) (linked from the public site). Public **Start a project** (`/start` on nusman.dev) posts to Desk `POST /api/inbound-lead` only — it does not expose Desk UI.
+- Not a page on nusman.dev. Desk itself is not linked from public nav or footer. Clients reach **Portal** via [portal.nusman.dev](https://portal.nusman.dev) (linked from the public site). Public **Start a project** (`/start` on nusman.dev) saves a draft via `POST /api/inbound-lead/draft`, then creates the Desk lead on email confirm (`/verify`) — it does not expose Desk UI.
 - Not AGAHF, Mineaid, Uventory, or any other existing app/database. Desk does not query those systems. Own products appear on Desk as records only until a later data import.
 - Not where clients log in. Clients use **Portal** ([portal.md](./portal.md)). Desk is Usman’s (and operators’) workbench.
 - Not a rewrite of the marketing site.
@@ -259,7 +259,10 @@ Every list table has an Actions column (Edit + Remove). Playbook and Style table
 
 | Route | Purpose |
 |---|---|
-| `/api/inbound-lead` | Public POST from nusman.dev `/start` (CORS + honeypot + rate limit) |
+| `/api/inbound-lead` | Public POST (legacy / trusted); CORS + honeypot + rate limit |
+| `/api/inbound-lead/draft` | Public `/start` — store full brief + send verify email |
+| `/api/inbound-lead/verify` | Confirm link — create Desk lead + receipt |
+| `/api/inbound-lead/resend` | Rotate verify token for an open draft |
 | `/login` | Sign in |
 | `/` | Today: active projects, current gate, journal, templates |
 | `/log` | Journal: personal work that is not a client job |
@@ -430,4 +433,4 @@ Do not add Desk links to `Header` / `Footer` / `sitemap.xml`.
 
 ## Immediate next step
 
-Desk **2.4.0** is the current cut (wide canvas, project brief vs questions, Progress path, TinyMCE messages, shared source/timeline/budget selects; surfaces still follow [desk-2.0.md](./desk-2.0.md)). Invite a person from Desk, rewrite package summaries for clients, open intake when ready, keep an export after a real job starts. Later: Portal routing cleanup ([portal.md](./portal.md#later--routing-cleanup-best-practice)); form-shaped readonly panels; import product databases — only when you choose to, and never by pointing Desk at their `DATABASE_URL`.
+Desk **2.5.0** is the current cut (inbound draft→verify from public `/start`, wide canvas, project brief vs questions, Progress path, TinyMCE messages, shared source/timeline/budget selects; surfaces still follow [desk-2.0.md](./desk-2.0.md)). Invite a person from Desk, rewrite package summaries for clients, open intake when ready, keep an export after a real job starts. Later: Portal routing cleanup ([portal.md](./portal.md#later--routing-cleanup-best-practice)); form-shaped readonly panels; import product databases — only when you choose to, and never by pointing Desk at their `DATABASE_URL`.
