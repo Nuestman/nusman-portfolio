@@ -76,6 +76,12 @@ import {
   qualifyOutcomeLabel,
 } from "@/lib/labels";
 import { parseDatetimeLocal, formatEventWhen } from "@/lib/text";
+import {
+  confirmInboundDraftForProject,
+  resendInboundVerifyForProject,
+} from "@/lib/inbound-draft";
+import { sendInboundVerifyEmail } from "@/lib/inbound-email";
+import { emailReady } from "@/lib/notify-email";
 import { INTAKE_QUESTIONS, isOptionStarterSummary } from "@/lib/templates";
 import {
   notifyClientsOfMilestone,
@@ -1480,4 +1486,73 @@ export async function saveMilestoneNoteAction(
   });
   revalidateProject(projectId, project.clientId);
   redirect(`/projects/${projectId}`);
+}
+
+function redirectWithNotice(path: string, notice: string): never {
+  const safe = safeInternalPath(path);
+  const hashIndex = safe.indexOf("#");
+  const withoutHash = hashIndex >= 0 ? safe.slice(0, hashIndex) : safe;
+  const hash = hashIndex >= 0 ? safe.slice(hashIndex) : "";
+  const queryIndex = withoutHash.indexOf("?");
+  const pathname =
+    queryIndex >= 0 ? withoutHash.slice(0, queryIndex) : withoutHash;
+  const search = queryIndex >= 0 ? withoutHash.slice(queryIndex + 1) : "";
+  const params = new URLSearchParams(search);
+  params.set("notice", notice);
+  redirect(`${pathname}?${params.toString()}${hash}`);
+}
+
+export async function confirmInboundEmailAction(formData: FormData) {
+  const user = await requireSessionUser();
+  const projectId = readTrimmed(formData, "projectId");
+  const next = readTrimmed(formData, "next") || `/projects/${projectId}`;
+  if (!isUuid(projectId)) {
+    redirect("/projects");
+  }
+
+  const result = await confirmInboundDraftForProject(projectId, user.email);
+  const project = await getProject(projectId);
+  if (project) {
+    revalidateProject(projectId, project.clientId);
+  }
+  if (!result.ok) {
+    redirectWithNotice(next, "inbound-confirm-failed");
+  }
+  redirectWithNotice(
+    next,
+    result.alreadyDone ? "inbound-already" : "inbound-confirmed",
+  );
+}
+
+export async function resendInboundEmailAction(formData: FormData) {
+  await requireSessionUser();
+  const projectId = readTrimmed(formData, "projectId");
+  const next = readTrimmed(formData, "next") || `/projects/${projectId}`;
+  if (!isUuid(projectId)) {
+    redirect("/projects");
+  }
+
+  const issued = await resendInboundVerifyForProject(projectId);
+  if (!issued) {
+    redirectWithNotice(next, "inbound-resend-missing");
+  }
+  if (!emailReady()) {
+    redirectWithNotice(next, "inbound-resend-failed");
+  }
+
+  const mail = await sendInboundVerifyEmail({
+    to: issued.email,
+    name: issued.name,
+    verifyUrl: issued.verifyUrl,
+  });
+  if (!mail.sent) {
+    console.error("Desk inbound confirm resend failed", mail.error);
+    redirectWithNotice(next, "inbound-resend-failed");
+  }
+
+  const project = await getProject(projectId);
+  if (project) {
+    revalidateProject(projectId, project.clientId);
+  }
+  redirectWithNotice(next, "inbound-resent");
 }

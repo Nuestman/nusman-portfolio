@@ -1,3 +1,4 @@
+import { sql } from "drizzle-orm";
 import {
   boolean,
   index,
@@ -52,6 +53,7 @@ export const PROCESS_GATES = [
 export type ProcessGate = (typeof PROCESS_GATES)[number];
 
 export const PROJECT_STATUSES = [
+  "inactive",
   "active",
   "paused",
   "won",
@@ -585,7 +587,7 @@ export const notifications = pgTable(
   ],
 );
 
-/** Public /start onboarding — full brief saved; verify creates Desk project. */
+/** Public /start onboarding — Desk project is created inactive; verify activates. */
 export const inboundLeadDrafts = pgTable(
   "inbound_lead_drafts",
   {
@@ -615,7 +617,11 @@ export const inboundLeadDrafts = pgTable(
     uniqueIndex("inbound_lead_drafts_verify_token_hash_uidx").on(
       table.verifyTokenHash,
     ),
+    uniqueIndex("inbound_lead_drafts_email_open_uidx")
+      .on(table.email)
+      .where(sql`${table.completedAt} is null`),
     index("inbound_lead_drafts_email_idx").on(table.email),
     index("inbound_lead_drafts_expires_at_idx").on(table.expiresAt),
+    index("inbound_lead_drafts_project_id_idx").on(table.projectId),
   ],
 );

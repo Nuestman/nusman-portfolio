@@ -1,14 +1,14 @@
 # Desk status
 
-Checked 21 Sep 2026 against the code in `admin/`. Product version: **2.5.0** (`admin/package.json`). Product rules: [desk-2.0.md](./desk-2.0.md) (wins) and [desk.md](./desk.md). Portal: [portal.md](./portal.md). Archive: [archive/desk-1.1.md](./archive/desk-1.1.md). Visual: [style-guide.md](./style-guide.md). Deploy: [deploy.md](./deploy.md). Update this file when something ships or an open item is closed.
+Checked 21 Sep 2026 against the code in `admin/`. Product version: **2.6.0** (`admin/package.json`). Product rules: [desk-2.0.md](./desk-2.0.md) (wins) and [desk.md](./desk.md). Portal: [portal.md](./portal.md). Archive: [archive/desk-1.1.md](./archive/desk-1.1.md). Visual: [style-guide.md](./style-guide.md). Deploy: [deploy.md](./deploy.md). Update this file when something ships or an open item is closed.
 
-Desk **2.5.0** / Portal **1.5** are usable. Public site **4.2.0** posts `/start` drafts into Desk; email confirm creates the lead.
+Desk **2.6.0** / Portal **1.6** are usable. Public site **4.3.0** posts `/start` into Desk as an **inactive** project; email confirm (or Desk confirm) activates it.
 
 ---
 
 ## Live
 
-Hiring jobs with gate records, **process milestones**, table-row edit/remove, playbook on Desk, multi-format export, own products as records, an audit trail with before/after, operator profiles, sessions for device revoke, **Portal** (magic link + start project), **Messages** inbox (plain / rich TinyMCE composer), **Schedule** hubs (Cards/Calendar), **Resend alerts** (on-brand HTML + CID logo; messages, schedule, milestones, stages, inbound receipt, portal access), **in-app notifications** (feed + table; unread on the account bell), **inbound leads** from public `/start` (full-brief draft → email verify → Desk lead; heard-about source; timeline/budget including “Not sure yet”), and a **1400px** Desk/Portal canvas (PageSpread, gold card titles, outline header actions, sticky project timeline).
+Hiring jobs with gate records, **process milestones**, table-row edit/remove, playbook on Desk, multi-format export, own products as records, an audit trail with before/after, operator profiles, sessions for device revoke, **Portal** (magic link + start project), **Messages** inbox (plain / rich TinyMCE composer), **Schedule** hubs (Cards/Calendar), **Resend alerts** (on-brand HTML + CID logo; messages, schedule, milestones, stages, inbound receipt, portal access), **in-app notifications** (feed + table; unread on the account bell), **inbound leads** from public `/start` (creates inactive client + project on submit; email or Desk confirm activates; heard-about source; timeline/budget including “Not sure yet”), **hiring party** view with empty fields shown as “—”, inactive rows highlighted in lists, and a **1400px** Desk/Portal canvas (PageSpread, gold card titles, outline header actions, sticky project timeline).
 
 ### Routes
 
@@ -18,9 +18,9 @@ Hiring jobs with gate records, **process milestones**, table-row edit/remove, pl
 | `/` | Today — active projects + **Next 7 days** schedule teaser |
 | `/log`, `/log/[id]/edit` | Live. UI says **Journal**; URL stays `/log` |
 | `/audit`, `/audit/[id]` | Live. Row click opens detail |
-| `/clients` … `/clients/[id]/people/[personId]/edit` | Live. Person edit includes portal enable + magic link |
+| `/clients` … `/clients/[id]/people/[personId]/edit` | Live. Person edit includes portal enable + magic link. Hiring party shows empty fields. Inactive clients highlighted. Pending-email banner + Desk confirm / resend |
 | `/schedule` | Live. Hub: Cards / Calendar; create/edit still on project |
-| `/projects` … gate records, notes, options, changes, demos, **milestones** | Live. Current gate first; earlier stages collapsed; timeline; **Schedule** (`project_events`); portal strip; Qualify Real ↔ qualified milestone |
+| `/projects` … gate records, notes, options, changes, demos, **milestones** | Live. Current gate first; earlier stages collapsed; timeline; **Schedule** (`project_events`); portal strip; Qualify Real ↔ qualified milestone. Inactive status + pending-email banner |
 | `/messages`, `/messages/new`, `/messages/[projectId]` | Live. Chat-style portal conversation inbox; compose/reply with plain or rich (TinyMCE) |
 | `/notifications`, `/notifications/new`, `/notifications/[id]/edit` | Live. Feed + table; compose + edit only if you sent it |
 | `/products`, `/products/new` | Live. Own-product records only |
@@ -29,9 +29,9 @@ Hiring jobs with gate records, **process milestones**, table-row edit/remove, pl
 | `/export`, `/export/download` | Live. JSON, YAML, CSV zip, Markdown, HTML |
 | `/profile` | Live. Self-edit, password, optional authenticator, devices; owner adds / deactivates operators. You card uses the default gold/white avatar when no photo |
 | `/profile/photo/[id]` | Live. Session required. Static photos: `/avatars/` (default `/avatars/default-user.png`) |
-| `/api/inbound-lead` | Live. Direct create (CORS + honeypot + rate limit); still used as fallback |
-| `/api/inbound-lead/draft` | Live. Public `/start` stores full brief; sends verify email (debug URL when Resend unset) |
-| `/api/inbound-lead/verify` | Live. Confirm link creates Desk lead + receipt + Desk alert |
+| `/api/inbound-lead` | Live. Same as `/draft` (CORS + honeypot + rate limit) |
+| `/api/inbound-lead/draft` | Live. Public `/start` creates inactive client + project; sends verify email (debug URL when Resend unset) |
+| `/api/inbound-lead/verify` | Live. Confirm link activates the existing project + receipt (idempotent) |
 | `/api/inbound-lead/resend` | Live. New verify token for an open draft |
 
 ### Portal host (`portal.*` / `portal.localhost`)
@@ -72,7 +72,9 @@ Migrations on Neon **nusmandotdev** (`sparkling-art-67399165`) only:
 | `0013_client_source_expand` | `client_source` enum: `family_friends`, `work_colleague` |
 | `0014_client_source_social` | `client_source` enum: `social_media` |
 | `0015_inbound_lead_drafts` | Public `/start` email-verify drafts + tokens |
-| `0016_inbound_draft_brief` | Draft stores full brief; verify creates Desk lead |
+| `0016_inbound_draft_brief` | Draft stores full brief |
+| `0017_project_status_inactive` | `project_status` enum: `inactive` |
+| `0018_inbound_draft_email_open` | One open inbound draft per email; draft↔project index |
 
 Apply from `admin/` with `npm run db:migrate`. Do not point `DATABASE_URL` at Mineaid, Uventory, church, or any other Neon project.
 
@@ -123,7 +125,7 @@ These are leftover product work, not bugs in the last UI pass.
 ### Portal / messages
 
 - No unread badges on new portal **messages** (notifications unread on the account bell is live).
-- Several readonly panels still look like forms (`InfoList`): Agreement, Discovery answers, Call notes & scope, Launch, Portal Your package, Client details, classic project, audit. Redesign later — not part of 2.5.0.
+- Several readonly panels still look like forms (`InfoList`): Agreement, Discovery answers, Call notes & scope, Launch, Portal Your package, classic project, audit. Hiring party is redesigned. Redesign the rest later — not part of 2.6.0.
 - Operator replies do not store which operator wrote them (`author_kind` only).
 - Chosen package with leftover coaching text in `summary` must be rewritten on Desk before Choose / before Portal looks complete.
 - **Routing cleanup (later):** collapse Desk/Portal overlapping `/projects*` trees so soft-nav does not need dual-mode. See [portal.md](./portal.md#later--routing-cleanup-best-practice).

@@ -75,6 +75,8 @@ export function isProjectStatus(value: string): value is ProjectStatus {
 
 export function projectStatusLabel(status: ProjectStatus): string {
   switch (status) {
+    case "inactive":
+      return "Inactive";
     case "active":
       return "Active";
     case "paused":

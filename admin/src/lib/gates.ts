@@ -134,7 +134,12 @@ export const GATE_MOVE_BLOCKS = [
 export type GateMoveBlock = (typeof GATE_MOVE_BLOCKS)[number];
 
 export function gatesLocked(status: ProjectStatus): boolean {
-  return status === "won" || status === "lost" || status === "done";
+  return (
+    status === "inactive" ||
+    status === "won" ||
+    status === "lost" ||
+    status === "done"
+  );
 }
 
 export function gateMoveBlockMessage(code: GateMoveBlock): string {
@@ -150,7 +155,7 @@ export function gateMoveBlockMessage(code: GateMoveBlock): string {
     case "option":
       return "Choose a package before leaving Plan.";
     case "status":
-      return "Won, lost, and done projects stay on their stage. Change status first.";
+      return "Inactive, won, lost, and done projects stay on their stage. Confirm the email or change status first.";
     case "qualify":
       return "Record the qualify outcome as a real project before you leave Qualify.";
     case "discover":

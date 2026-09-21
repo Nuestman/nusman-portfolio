@@ -6,6 +6,7 @@ import {
   createProject,
   deleteClient,
   deleteProject,
+  patchProject,
   upsertQualify,
 } from "@/db/queries";
 import { recordAuditSafe } from "@/lib/audit";
@@ -16,7 +17,7 @@ import {
 } from "@/lib/inbound-email";
 import { clientSourceLabel } from "@/lib/labels";
 import { deskNotifyRecipients } from "@/lib/mail";
-import type { ClientSource } from "@/db/schema";
+import type { ClientSource, ProjectStatus } from "@/db/schema";
 
 export type InboundLeadPayload = {
   name: string;
@@ -33,6 +34,12 @@ export type InboundLeadPayload = {
   budget: string | null;
 };
 
+export type CreateInboundLeadOptions = {
+  status?: Extract<ProjectStatus, "inactive" | "active">;
+  notifyDesk?: boolean;
+  sendReceipt?: boolean;
+};
+
 function projectTitle(organisation: string | null) {
   if (organisation) {
     return oneLine(`${organisation} — inbound`, 120);
@@ -40,9 +47,14 @@ function projectTitle(organisation: string | null) {
   return "Project Title";
 }
 
-/** Create client + person + project for a verified /start lead. */
+function sourceLine(source: ClientSource, sourceOther: string | null) {
+  return `Heard about us: ${clientSourceLabel(source)}${sourceOther ? ` — ${sourceOther}` : ""}.`;
+}
+
+/** Create client + person + project for a /start lead. */
 export async function createInboundLead(
   payload: InboundLeadPayload,
+  options: CreateInboundLeadOptions = {},
 ): Promise<{ clientId: string; projectId: string }> {
   const {
     name,
@@ -58,10 +70,13 @@ export async function createInboundLead(
     timeline,
     budget,
   } = payload;
+  const status = options.status ?? "active";
+  const notifyDesk = options.notifyDesk ?? true;
+  const sendReceipt = options.sendReceipt ?? true;
 
   const clientNotes = [
     "Created from nusman.dev Start a project form.",
-    `Heard about us: ${clientSourceLabel(source)}${sourceOther ? ` — ${sourceOther}` : ""}.`,
+    sourceLine(source, sourceOther),
   ].join("\n");
 
   let clientId: string | null = null;
@@ -94,6 +109,7 @@ export async function createInboundLead(
       problemSentence: problem,
       successLooksLike,
       deadlineNote: timeline,
+      status,
     });
 
     await upsertQualify(projectId, {
@@ -104,9 +120,11 @@ export async function createInboundLead(
       budgetNote: budget,
       callAt: null,
       notes: [
-        "Inbound lead — contact ASAP.",
+        status === "inactive"
+          ? "Inbound lead — pending email confirmation."
+          : "Inbound lead — contact ASAP.",
         phone ? `Phone: ${phone}` : null,
-        `Heard about us: ${clientSourceLabel(source)}${sourceOther ? ` — ${sourceOther}` : ""}.`,
+        sourceLine(source, sourceOther),
         `Want built: ${wantBuilt}`,
       ]
         .filter(Boolean)
@@ -117,10 +135,13 @@ export async function createInboundLead(
       projectId,
       [
         "Opened from public Start a project form (inbound).",
+        status === "inactive"
+          ? "Status inactive until the visitor confirms their email (or Desk confirms it)."
+          : null,
         "",
         `Contact: ${name} <${email}>${phone ? ` · ${phone}` : ""}`,
         organisation ? `Organisation: ${organisation}` : null,
-        `Heard about us: ${clientSourceLabel(source)}${sourceOther ? ` — ${sourceOther}` : ""}`,
+        sourceLine(source, sourceOther),
         timeline ? `Timeline: ${timeline}` : null,
         budget ? `Budget: ${budget}` : null,
         "",
@@ -135,7 +156,10 @@ export async function createInboundLead(
 
     await recordAuditSafe({
       action: "inbound.lead",
-      summary: `Inbound lead from ${name} (${email}).`,
+      summary:
+        status === "inactive"
+          ? `Inbound lead from ${name} (${email}) — pending email confirmation.`
+          : `Inbound lead from ${name} (${email}).`,
       entityType: "project",
       entityId: projectId,
       projectId,
@@ -144,58 +168,66 @@ export async function createInboundLead(
         clientId,
         projectId,
         source: "nusman.dev/start",
+        status,
       },
     });
 
-    const base = deskPublicBaseUrl();
-    await createDeskNotificationsForActiveUsers({
-      kind: "inbound",
-      title: `Inbound lead: ${oneLine(name)}`,
-      body: organisation
-        ? `${oneLine(organisation)} — ${problem.slice(0, 240)}`
-        : problem.slice(0, 280),
-      href: `/projects/${projectId}`,
-      clientId,
-      projectId,
-    }).catch((error) => {
-      console.error("Inbound lead in-app notify failed", error);
-    });
+    if (notifyDesk) {
+      const base = deskPublicBaseUrl();
+      await createDeskNotificationsForActiveUsers({
+        kind: "inbound",
+        title:
+          status === "inactive"
+            ? `Inbound lead pending email: ${oneLine(name)}`
+            : `Inbound lead: ${oneLine(name)}`,
+        body: organisation
+          ? `${oneLine(organisation)} — ${problem.slice(0, 240)}`
+          : problem.slice(0, 280),
+        href: `/projects/${projectId}`,
+        clientId,
+        projectId,
+      }).catch((error) => {
+        console.error("Inbound lead in-app notify failed", error);
+      });
 
-    const mail = await sendInboundLeadEmail({
-      to: deskNotifyRecipients(),
-      name: oneLine(name),
-      email,
-      phone,
-      organisation: organisation ? oneLine(organisation) : null,
-      problem,
-      wantBuilt,
-      whoFor,
-      successLooksLike,
-      timeline,
-      budget,
-      projectUrl: `${base}/projects/${projectId}`,
-      clientUrl: `${base}/clients/${clientId}`,
-    });
+      const mail = await sendInboundLeadEmail({
+        to: deskNotifyRecipients(),
+        name: oneLine(name),
+        email,
+        phone,
+        organisation: organisation ? oneLine(organisation) : null,
+        problem,
+        wantBuilt,
+        whoFor,
+        successLooksLike,
+        timeline,
+        budget,
+        projectUrl: `${base}/projects/${projectId}`,
+        clientUrl: `${base}/clients/${clientId}`,
+      });
 
-    if (!mail.sent && mail.error) {
-      console.error("Inbound lead email failed", mail.error);
+      if (!mail.sent && mail.error) {
+        console.error("Inbound lead email failed", mail.error);
+      }
     }
 
-    const receipt = await sendInboundLeadReceiptEmail({
-      to: email,
-      name: oneLine(name),
-      organisation: organisation ? oneLine(organisation) : null,
-      problem,
-      wantBuilt,
-      whoFor,
-      successLooksLike,
-      timeline,
-      budget,
-      phone,
-    });
+    if (sendReceipt) {
+      const receipt = await sendInboundLeadReceiptEmail({
+        to: email,
+        name: oneLine(name),
+        organisation: organisation ? oneLine(organisation) : null,
+        problem,
+        wantBuilt,
+        whoFor,
+        successLooksLike,
+        timeline,
+        budget,
+        phone,
+      });
 
-    if (!receipt.sent && receipt.error) {
-      console.error("Inbound lead receipt email failed", receipt.error);
+      if (!receipt.sent && receipt.error) {
+        console.error("Inbound lead receipt email failed", receipt.error);
+      }
     }
 
     return { clientId, projectId };
@@ -212,4 +244,52 @@ export async function createInboundLead(
     }
     throw error;
   }
+}
+
+export async function refreshInboundProjectBrief(
+  projectId: string,
+  payload: InboundLeadPayload,
+) {
+  await patchProject(projectId, {
+    problemSentence: payload.problem,
+    successLooksLike: payload.successLooksLike,
+    deadlineNote: payload.timeline,
+  });
+  await upsertQualify(projectId, {
+    outcome: "undecided",
+    whoFor: payload.whoFor,
+    painToday: payload.problem,
+    neededBy: payload.timeline,
+    budgetNote: payload.budget,
+    callAt: null,
+    notes: [
+      "Inbound lead — pending email confirmation.",
+      payload.phone ? `Phone: ${payload.phone}` : null,
+      sourceLine(payload.source, payload.sourceOther),
+      `Want built: ${payload.wantBuilt}`,
+    ]
+      .filter(Boolean)
+      .join("\n"),
+  });
+}
+
+export async function sendInboundReceipt(payload: InboundLeadPayload) {
+  const receipt = await sendInboundLeadReceiptEmail({
+    to: payload.email,
+    name: oneLine(payload.name),
+    organisation: payload.organisation
+      ? oneLine(payload.organisation)
+      : null,
+    problem: payload.problem,
+    wantBuilt: payload.wantBuilt,
+    whoFor: payload.whoFor,
+    successLooksLike: payload.successLooksLike,
+    timeline: payload.timeline,
+    budget: payload.budget,
+    phone: payload.phone,
+  });
+  if (!receipt.sent && receipt.error) {
+    console.error("Inbound lead receipt email failed", receipt.error);
+  }
+  return receipt;
 }

@@ -22,7 +22,7 @@ Favours, corridor promises, and a notes box on a public page are not the operati
 
 ## Non-goals (Desk)
 
-- Not a page on nusman.dev. Desk itself is not linked from public nav or footer. Clients reach **Portal** via [portal.nusman.dev](https://portal.nusman.dev) (linked from the public site). Public **Start a project** (`/start` on nusman.dev) saves a draft via `POST /api/inbound-lead/draft`, then creates the Desk lead on email confirm (`/verify`) — it does not expose Desk UI.
+- Not a page on nusman.dev. Desk itself is not linked from public nav or footer. Clients reach **Portal** via [portal.nusman.dev](https://portal.nusman.dev) (linked from the public site). Public **Start a project** (`/start` on nusman.dev) posts `POST /api/inbound-lead/draft`, which creates the Desk client + inactive project, then email confirm (`/verify`) or a Desk operator activates it — it does not expose Desk UI.
 - Not AGAHF, Mineaid, Uventory, or any other existing app/database. Desk does not query those systems. Own products appear on Desk as records only until a later data import.
 - Not where clients log in. Clients use **Portal** ([portal.md](./portal.md)). Desk is Usman’s (and operators’) workbench.
 - Not a rewrite of the marketing site.
@@ -128,7 +128,7 @@ The hiring party (person or org paying / commissioning the work), or the practic
 - kind: `client` | `practice` (v1: one practice row, hidden from the Clients list)
 - name, email, phone
 - organisation (optional)
-- source (referral, family_friends, work_colleague, inbound, repeat, other)
+- source (referral, family_friends, work_colleague, social_media, inbound, repeat, other)
 - notes
 - timestamps
 
@@ -149,7 +149,7 @@ Humans attached to a client (buyer vs daily user vs other).
 - problem_sentence (the one sentence both sides can repeat)
 - success_looks_like
 - current_gate: the seven ids above
-- status: `active` | `paused` | `won` | `lost` | `done`
+- status: `inactive` | `active` | `paused` | `won` | `lost` | `done`
 - budget_note, deadline_note (text in v1, not a billing system)
 - timestamps
 
@@ -250,7 +250,7 @@ Every list table has an Actions column (Edit + Remove). Playbook and Style table
 - Write the problem sentence before leaving Discover.
 - Choose a package before leaving Propose.
 - `build` is not allowed until `agree`. Leaving Agree toward Build requires deposit paid and written confirm.
-- Won, lost, and done stay on their gate.
+- Won, lost, done, and inactive stay on their gate. Inactive inbound jobs wait on email confirm (visitor or Desk).
 - Deleting a project or product requires typing its title. Other deletes still need a confirm step. Optional reason is stored on the audit row.
 
 ---
@@ -259,9 +259,9 @@ Every list table has an Actions column (Edit + Remove). Playbook and Style table
 
 | Route | Purpose |
 |---|---|
-| `/api/inbound-lead` | Public POST (legacy / trusted); CORS + honeypot + rate limit |
-| `/api/inbound-lead/draft` | Public `/start` — store full brief + send verify email |
-| `/api/inbound-lead/verify` | Confirm link — create Desk lead + receipt |
+| `/api/inbound-lead` | Public POST — same as `/draft` |
+| `/api/inbound-lead/draft` | Public `/start` — create inactive Desk lead + send verify email |
+| `/api/inbound-lead/verify` | Confirm link — activate existing project + receipt |
 | `/api/inbound-lead/resend` | Rotate verify token for an open draft |
 | `/login` | Sign in |
 | `/` | Today: active projects, current gate, journal, templates |
@@ -433,4 +433,4 @@ Do not add Desk links to `Header` / `Footer` / `sitemap.xml`.
 
 ## Immediate next step
 
-Desk **2.5.0** is the current cut (inbound draft→verify from public `/start`, wide canvas, project brief vs questions, Progress path, TinyMCE messages, shared source/timeline/budget selects; surfaces still follow [desk-2.0.md](./desk-2.0.md)). Invite a person from Desk, rewrite package summaries for clients, open intake when ready, keep an export after a real job starts. Later: Portal routing cleanup ([portal.md](./portal.md#later--routing-cleanup-best-practice)); form-shaped readonly panels; import product databases — only when you choose to, and never by pointing Desk at their `DATABASE_URL`.
+Desk **2.6.0** is the current cut (inbound creates inactive on `/start` submit, email or Desk confirm activates; hiring party shows empty fields; inactive rows highlighted; wide canvas, project brief vs questions, Progress path, TinyMCE messages, shared source/timeline/budget selects; surfaces still follow [desk-2.0.md](./desk-2.0.md)). Invite a person from Desk, rewrite package summaries for clients, open intake when ready, keep an export after a real job starts. Later: Portal routing cleanup ([portal.md](./portal.md#later--routing-cleanup-best-practice)); form-shaped readonly panels; import product databases — only when you choose to, and never by pointing Desk at their `DATABASE_URL`.

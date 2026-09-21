@@ -15,7 +15,8 @@ import { buttonClassName } from "@/components/ui/button";
 import { gateGuide } from "@/lib/gates";
 import { projectStatusLabel } from "@/lib/labels";
 import { linkClassName } from "@/lib/links";
-import { tableClassName, tableFrameClassName } from "@/lib/tables";
+import { tableClassName, tableFrameClassName, inactiveRowProps } from "@/lib/tables";
+import { InactiveBadge } from "@/components/inactive-badge";
 import { KNOWN_PRODUCTS } from "@/lib/products";
 import { deleteProjectAction } from "@/app/projects/actions";
 import { RecordKnownProducts } from "./record-known";
@@ -88,14 +89,23 @@ export default async function ProductsPage() {
                   </thead>
                   <tbody>
                     {loaded.data.map((product) => (
-                      <tr key={product.id} className="border-t border-gray-100">
+                      <tr
+                        key={product.id}
+                        className="border-t border-gray-100"
+                        {...inactiveRowProps(product.status === "inactive")}
+                      >
                         <td className="px-4 py-3">
-                          <Link
-                            href={`/projects/${product.id}`}
-                            className={linkClassName("table")}
-                          >
-                            {product.title}
-                          </Link>
+                          <span className="inline-flex flex-wrap items-center gap-2">
+                            <Link
+                              href={`/projects/${product.id}`}
+                              className={linkClassName("table")}
+                            >
+                              {product.title}
+                            </Link>
+                            {product.status === "inactive" ? (
+                              <InactiveBadge />
+                            ) : null}
+                          </span>
                         </td>
                         <td className="px-4 py-3 text-gray-700">
                           {gateGuide(product.currentGate).label}

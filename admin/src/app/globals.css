@@ -113,13 +113,21 @@ select:disabled,
   transition: background-color 300ms;
 }
 
-.desk-table tbody tr:nth-child(even):not([data-current]),
-.desk-table tbody tr:hover:not([data-current]) {
+.desk-table tbody tr:nth-child(even):not([data-current]):not([data-inactive]),
+.desk-table tbody tr:hover:not([data-current]):not([data-inactive]) {
   background-color: #f9fafb;
 }
 
 .desk-table tbody tr[data-current] {
   background-color: #fefce8;
+}
+
+.desk-table tbody tr[data-inactive] {
+  background-color: rgba(185, 140, 27, 0.12);
+}
+
+.desk-table tbody tr[data-inactive]:hover {
+  background-color: rgba(185, 140, 27, 0.18);
 }
 
 @media (min-width: 768px) {

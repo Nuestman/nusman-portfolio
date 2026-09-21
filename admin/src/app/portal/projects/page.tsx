@@ -6,6 +6,8 @@ import { buttonClassName } from "@/components/ui/button";
 import { requirePortalPerson } from "@/lib/current-person";
 import { gateGuide } from "@/lib/gates";
 import { projectStatusLabel } from "@/lib/labels";
+import { cn } from "@/lib/utils";
+import { InactiveBadge } from "@/components/inactive-badge";
 
 export const dynamic = "force-dynamic";
 
@@ -47,22 +49,33 @@ export default async function PortalProjectsPage() {
         </div>
       ) : (
         <ul className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-          {projects.map((project) => (
+          {projects.map((project) => {
+            const inactive = project.status === "inactive";
+            return (
             <li key={project.id}>
               <Link
                 href={`/projects/${project.id}`}
-                className="block h-full rounded-2xl border border-gray-200 bg-white p-6 shadow-sm transition-colors duration-300 hover:border-gold-400 hover:shadow-md"
+                className={cn(
+                  "block h-full rounded-2xl border bg-white p-6 shadow-sm transition-colors duration-300 hover:shadow-md",
+                  inactive
+                    ? "border-gold-500/40 bg-gold-500/10 hover:border-gold-500"
+                    : "border-gray-200 hover:border-gold-400",
+                )}
               >
-                <h2 className="font-heading text-2xl text-gold-500">
-                  {project.title}
-                </h2>
+                <span className="flex flex-wrap items-center gap-2">
+                  <h2 className="font-heading text-2xl text-gold-500">
+                    {project.title}
+                  </h2>
+                  {inactive ? <InactiveBadge /> : null}
+                </span>
                 <p className="mt-2 text-sm text-gray-600">
                   {gateGuide(project.currentGate).publicStep} ·{" "}
                   {projectStatusLabel(project.status)}
                 </p>
               </Link>
             </li>
-          ))}
+            );
+          })}
         </ul>
       )}
     </PortalShell>

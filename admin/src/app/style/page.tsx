@@ -524,7 +524,9 @@ export default async function StylePage() {
         <h2 className="section-heading">Tables</h2>
         <p className="text-gray-700">
           White frame, rounded-2xl, gray-200 border. Header gray-50. Cells px-4
-          py-3. Even rows and hover: gray-50. Current row: gold-50. Do not
+          py-3. Even rows and hover: gray-50. Current row: gold-50. Inactive
+          row: gold wash via{" "}
+          <code className="text-sm text-dark-950">data-inactive</code>. Do not
           zebra in gold. Use{" "}
           <code className="text-sm text-dark-950">desk-table</code>. Names in
           cells use table links. Last column is Actions (Edit / Remove).
@@ -598,12 +600,32 @@ export default async function StylePage() {
                   </a>
                 </td>
               </tr>
+              <tr data-inactive={true}>
+                <td>
+                  <span className="inline-flex flex-wrap items-center gap-2">
+                    <a href="#table" className={linkClassName("table")}>
+                      Inbound brief
+                    </a>
+                    <span className="inline-flex rounded-full border border-gray-200 bg-gray-100 px-2 py-0.5 text-[11px] font-medium tracking-wide text-gray-600">
+                      Inactive
+                    </span>
+                  </span>
+                </td>
+                <td className="text-gray-700">1. Qualify</td>
+                <td className="text-gray-700">Inactive</td>
+                <td className="text-right">
+                  <a href="#table" className={linkClassName("back")}>
+                    Edit
+                  </a>
+                </td>
+              </tr>
             </tbody>
           </table>
         </div>
         <p className="text-sm text-gray-600">
-          Second row is current (gold-50). Hover any other row for gray-50 —
-          the same tint as even zebra rows.
+          Second row is current (gold-50). Last row is inactive (gold wash).
+          Hover any other row for gray-50 — the same tint as even zebra rows,
+          not gold.
         </p>
       </section>
 

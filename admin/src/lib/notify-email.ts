@@ -519,7 +519,7 @@ export async function sendInboundVerifyEmail(input: {
   const text = [
     `Hi ${input.name},`,
     "",
-    "Thanks for starting a project with me. Confirm your email to continue — it takes <10 seconds>.",
+    "Thanks for starting a project with me. Confirm your email so I know this request is real — it takes <10 seconds>.",
     "",
     `Confirm here: ${input.verifyUrl}`,
     "",
@@ -532,7 +532,7 @@ export async function sendInboundVerifyEmail(input: {
   return sendResendEmail({
     to: input.to,
     replyTo: practiceContactEmail(),
-    subject: "Confirm your email to complete your request.",
+    subject: "Confirm your email — your request is on my Desk.",
     text,
     html: renderBrandedEmailHtml({
       eyebrow: "Start a project",
@@ -540,10 +540,10 @@ export async function sendInboundVerifyEmail(input: {
       preheader: "This confirms your project request is real.",
       greeting: `Hi ${input.name},`,
       bodyHtml: htmlParagraphs([
-        "Thanks for starting a project with me. Confirm your email, and I’ll review and respond within 24 hours.",
+        "Thanks for starting a project with me. Confirm your email, and I’ll review and respond within 24 hours. Your request is already on my Desk as inactive until you confirm.",
         "This link expires in 48 hours. If you did not start a project, you can ignore this email.",
       ]),
-      cta: { label: "Confirm and complete", url: input.verifyUrl },
+      cta: { label: "Confirm your email", url: input.verifyUrl },
     }),
   });
 }

@@ -6,6 +6,7 @@ import {
   getLaunch,
   getProject,
   getProjectGateWork,
+  getInboundLeadDraftByProject,
   listChangeRequests,
   listDemos,
   listNotes,
@@ -21,6 +22,10 @@ import { InfoList } from "@/components/info-list";
 import { ProjectTimeline } from "@/components/project-timeline";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { QueryNotice } from "@/components/query-notice";
+import {
+  inboundEmailNotice,
+  PendingEmailBanner,
+} from "@/components/pending-email-banner";
 import { PROCESS_GATES, type ProcessGate } from "@/db/schema";
 import { isUuid } from "@/lib/ids";
 import {
@@ -74,7 +79,7 @@ function projectNotice(raw: string | undefined): string | null {
   if (raw === "confirm-title") {
     return "Type the title exactly to delete this record.";
   }
-  return null;
+  return inboundEmailNotice(raw);
 }
 
 function templatesForGate(
@@ -146,6 +151,11 @@ export default async function ClassicProjectPage({
   if (!client) {
     notFound();
   }
+
+  const inboundDraft =
+    !isProduct && project.status === "inactive"
+      ? await getInboundLeadDraftByProject(id)
+      : null;
 
   const noticeRaw = Array.isArray(query.notice) ? query.notice[0] : query.notice;
   const notice = projectNotice(noticeRaw);
@@ -266,6 +276,13 @@ export default async function ClassicProjectPage({
       </div>
 
       <QueryNotice message={notice} />
+
+      {inboundDraft && project.status === "inactive" ? (
+        <PendingEmailBanner
+          projectId={project.id}
+          next={`/projects/${project.id}/classic`}
+        />
+      ) : null}
 
       <Card>
         <CardHeader>

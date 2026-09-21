@@ -19,7 +19,12 @@ import { PROJECT_STATUSES } from "@/db/schema";
 import { linkClassName } from "@/lib/links";
 import { shouldServePortalUi } from "@/lib/serve-portal";
 import { dualModeMetadata } from "@/lib/surface-meta";
-import { tableClassName, tableFrameClassName } from "@/lib/tables";
+import { InactiveBadge } from "@/components/inactive-badge";
+import {
+  inactiveRowProps,
+  tableClassName,
+  tableFrameClassName,
+} from "@/lib/tables";
 import type { ProjectGate, ProjectStatus } from "@/db/schema";
 import PortalProjectsPage from "@/app/portal/projects/page";
 import { deleteProjectAction } from "./actions";
@@ -150,14 +155,23 @@ export default async function ProjectsPage({ searchParams }: ProjectsPageProps) 
               </thead>
               <tbody>
                 {loaded.data.map((project) => (
-                  <tr key={project.id} className="border-t border-gray-100">
+                  <tr
+                    key={project.id}
+                    className="border-t border-gray-100"
+                    {...inactiveRowProps(project.status === "inactive")}
+                  >
                     <td className="px-4 py-3">
-                      <Link
-                        href={`/projects/${project.id}`}
-                        className={linkClassName("table")}
-                      >
-                        {project.title}
-                      </Link>
+                      <span className="inline-flex flex-wrap items-center gap-2">
+                        <Link
+                          href={`/projects/${project.id}`}
+                          className={linkClassName("table")}
+                        >
+                          {project.title}
+                        </Link>
+                        {project.status === "inactive" ? (
+                          <InactiveBadge />
+                        ) : null}
+                      </span>
                     </td>
                     <td className="px-4 py-3 text-gray-700">
                       <Link

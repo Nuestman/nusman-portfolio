@@ -9,6 +9,7 @@ import {
   getPortalProjectForPerson,
   getProject,
   getProjectGateWork,
+  getInboundLeadDraftByProject,
   listChangeRequests,
   listDemos,
   listNotes,
@@ -23,6 +24,10 @@ import { ProjectTimeline } from "@/components/project-timeline";
 import { ScrollChain } from "@/components/scroll-chain";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { QueryNotice } from "@/components/query-notice";
+import {
+  inboundEmailNotice,
+  PendingEmailBanner,
+} from "@/components/pending-email-banner";
 import { PROCESS_GATES, type ProcessGate } from "@/db/schema";
 import { getPortalSessionPerson } from "@/lib/current-person";
 import { isUuid } from "@/lib/ids";
@@ -101,7 +106,7 @@ function projectNotice(raw: string | undefined): string | null {
   if (raw === "milestone-reopen") {
     return "Reopen later milestones first, then this one.";
   }
-  return null;
+  return inboundEmailNotice(raw);
 }
 
 function pastProcessGates(current: ProcessGate): ProcessGate[] {
@@ -164,6 +169,11 @@ export default async function ProjectDetailPage({
   if (!client) {
     notFound();
   }
+
+  const inboundDraft =
+    !isProduct && project.status === "inactive"
+      ? await getInboundLeadDraftByProject(id)
+      : null;
 
   const noticeRaw = Array.isArray(query.notice) ? query.notice[0] : query.notice;
   const notice = projectNotice(noticeRaw);
@@ -282,6 +292,13 @@ export default async function ProjectDetailPage({
       </div>
 
       <QueryNotice message={notice} />
+
+      {inboundDraft && project.status === "inactive" ? (
+        <PendingEmailBanner
+          projectId={project.id}
+          next={`/projects/${project.id}`}
+        />
+      ) : null}
 
       {disqualified ? (
         <p className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-900">
