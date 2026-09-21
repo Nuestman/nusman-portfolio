@@ -16,7 +16,7 @@ export async function PortalShell({
   const unreadCount = await countUnreadPortalNotifications(person.id);
 
   return (
-    <div className="min-h-full">
+    <div className="grid min-h-full min-w-0 grid-cols-[minmax(0,1fr)]">
       <a
         href="#portal-main"
         className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-md focus:bg-white focus:px-3 focus:py-2 focus:text-sm focus:text-dark-950"

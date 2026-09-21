@@ -15,7 +15,7 @@ import { buttonClassName } from "@/components/ui/button";
 import { gateGuide } from "@/lib/gates";
 import { projectStatusLabel } from "@/lib/labels";
 import { linkClassName } from "@/lib/links";
-import { tableClassName, tableFrameClassName, inactiveRowProps } from "@/lib/tables";
+import { tableClassName, TableFrame, inactiveRowProps } from "@/lib/tables";
 import { InactiveBadge } from "@/components/inactive-badge";
 import { KNOWN_PRODUCTS } from "@/lib/products";
 import { deleteProjectAction } from "@/app/projects/actions";
@@ -77,7 +77,7 @@ export default async function ProductsPage() {
                 </CardContent>
               </Card>
             ) : (
-              <div className={tableFrameClassName}>
+              <TableFrame>
                 <table className={tableClassName}>
                   <thead className="bg-gray-50 text-gray-600">
                     <tr>
@@ -129,7 +129,7 @@ export default async function ProductsPage() {
                     ))}
                   </tbody>
                 </table>
-              </div>
+              </TableFrame>
             )}
           </>
         )}

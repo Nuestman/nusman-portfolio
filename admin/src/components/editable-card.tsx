@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 export function EditableCard({
   title,
   hint,
+  badge,
   editLabel = "Edit",
   showEdit = true,
   always,
@@ -15,6 +16,7 @@ export function EditableCard({
 }: {
   title: string;
   hint?: string;
+  badge?: ReactNode;
   editLabel?: string;
   showEdit?: boolean;
   always?: ReactNode;
@@ -27,7 +29,10 @@ export function EditableCard({
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between gap-4 space-y-0">
-        <CardTitle>{title}</CardTitle>
+        <div className="flex min-w-0 flex-wrap items-center gap-2">
+          <CardTitle>{title}</CardTitle>
+          {badge}
+        </div>
         {canEdit ? (
           <Button
             type="button"

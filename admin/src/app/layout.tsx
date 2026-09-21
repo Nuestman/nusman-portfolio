@@ -37,11 +37,11 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${inter.variable} ${odibee.variable} h-full antialiased`}
+      className={`${inter.variable} ${odibee.variable} h-full w-full antialiased`}
       suppressHydrationWarning
     >
       <body
-        className="min-h-full bg-gray-50 font-sans text-dark-950"
+        className="min-h-full w-full min-w-0 bg-gray-50 font-sans text-dark-950"
         suppressHydrationWarning
       >
         {children}

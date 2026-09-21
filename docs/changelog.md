@@ -1,5 +1,20 @@
 # Changelog
 
+## 21 Sep 2026 — Desk 2.7.0 / Portal 1.7 · public 4.3.0
+
+### Desk / Portal (`admin/` → **2.7.0**)
+
+- **Person email confirmation** — migration `0020_person_email_verified` (`people.email_verified_at` + 48h confirm token). Portal needs a confirmed email **and** `portal_enabled`. Desk blocks Portal enable until then (**Confirm email** / **Resend confirmation**). Confirm from Desk emails a notice; Resend sends the verify link. Login on an unconfirmed address sends verify instead of a magic link (`/auth/verify-email`). Changing the person email clears confirmation. Inbound email confirm still activates the project and now marks matching people verified. Only inbound-confirmed drafts were backfilled — Desk-added people start unverified.
+- **Person profiles** — Desk `/clients/[id]/people/[personId]` (stacked You card, details, hiring party, projects, notes, Portal access). Name in the people list opens the profile. Portal `/profile` uses the same layout (organisation + that client’s projects; client-facing stage labels).
+- **What we’re building** — migration `0019_project_want_built`. Brief / Qualify / Portal brief show the field (copied from inbound drafts / old notes where present).
+- **Locked brief** — more client-facing fields (who it is for, needed by, budget, call/meet, notes); empty values use the unset mark + **Incomplete info** badge; Fill details while intake is open.
+- **Account menu** — signed-in name at the top of the panel; chip `aria-label` uses the name.
+- **Narrow layout** — page frame is a `minmax(0,1fr)` grid; table cards (`TableFrame`) isolate min-content with `contain: layout paint` so tables scroll inside the card without widening the document canvas (empty strip beside `body` in Firefox). Hiring party emails wrap inside the card.
+
+Public site **4.3.0** is unchanged.
+
+---
+
 ## 21 Sep 2026 — Desk 2.6.0 / Portal 1.6 · public 4.3.0
 
 ### Desk / Portal (`admin/` → **2.6.0**)

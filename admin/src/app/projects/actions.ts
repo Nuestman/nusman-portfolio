@@ -192,6 +192,7 @@ export async function createProjectAction(
     clientId,
     title,
     problemSentence: readOptional(formData, "problemSentence"),
+    wantBuilt: readOptional(formData, "wantBuilt"),
     successLooksLike: readOptional(formData, "successLooksLike"),
   });
 
@@ -206,6 +207,7 @@ export async function createProjectAction(
       clientId,
       title,
       problemSentence: readOptional(formData, "problemSentence"),
+      wantBuilt: readOptional(formData, "wantBuilt"),
       successLooksLike: readOptional(formData, "successLooksLike"),
     },
   });
@@ -242,6 +244,7 @@ export async function updateProjectAction(
   const nextValues = {
     title,
     problemSentence: readOptional(formData, "problemSentence"),
+    wantBuilt: readOptional(formData, "wantBuilt"),
     successLooksLike: readOptional(formData, "successLooksLike"),
     budgetNote: readOptional(formData, "budgetNote"),
     deadlineNote: readOptional(formData, "deadlineNote"),
@@ -687,6 +690,9 @@ export async function saveQualifyAction(
   };
   const previousQualify = await getQualify(projectId);
   await upsertQualify(projectId, nextQualify);
+  await patchProject(projectId, {
+    wantBuilt: readOptional(formData, "wantBuilt"),
+  });
 
   if (outcomeRaw === "no") {
     await patchProject(projectId, { status: "lost" });

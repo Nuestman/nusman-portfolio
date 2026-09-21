@@ -141,6 +141,32 @@ function signOutWrapClass(variant: AccountMenuVariant): string {
   }
 }
 
+function nameWrapClass(variant: AccountMenuVariant): string {
+  switch (variant) {
+    case "panel":
+      return "border-b border-gray-100 px-4 py-2.5";
+    case "menu":
+      return "pb-1";
+    default: {
+      const exhaustive: never = variant;
+      return exhaustive;
+    }
+  }
+}
+
+function nameTextClass(variant: AccountMenuVariant): string {
+  switch (variant) {
+    case "panel":
+      return "truncate font-heading text-xl leading-tight text-dark-950";
+    case "menu":
+      return "font-heading text-2xl leading-tight text-dark-950";
+    default: {
+      const exhaustive: never = variant;
+      return exhaustive;
+    }
+  }
+}
+
 function listClass(variant: AccountMenuVariant): string {
   switch (variant) {
     case "panel":
@@ -271,8 +297,8 @@ export function AccountMenu({
         className="inline-flex items-center gap-1.5 overflow-visible rounded-md bg-gray-100 py-1 pl-1 pr-2 text-gray-900 transition-colors duration-300 hover:bg-gray-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold-500 focus-visible:ring-offset-2"
         aria-label={
           unreadCount > 0
-            ? `Account, ${unreadCount} unread`
-            : "Account"
+            ? `${profile.name}, ${unreadCount} unread`
+            : profile.name
         }
         aria-haspopup="true"
         aria-expanded={open}
@@ -288,6 +314,9 @@ export function AccountMenu({
       </button>
       {open ? (
         <ul id={menuId} className={listClass(variant)}>
+          <li className={nameWrapClass(variant)}>
+            <p className={nameTextClass(variant)}>{profile.name}</p>
+          </li>
           {links.map((item) => {
             const active = accountLinkIsActive(pathname, item.href);
             const showUnread = item.icon === "notifications" && unreadCount > 0;

@@ -104,6 +104,10 @@ export function displayText(value: string | null | undefined): string {
   return text.length > 0 ? text : "—";
 }
 
+export function isBlank(value: string | null | undefined): boolean {
+  return !(value?.trim());
+}
+
 export function displayYesNo(value: boolean): string {
   return value ? "Yes" : "No";
 }

@@ -218,8 +218,8 @@ Last nav item. Identity, not a marketing caricature.
 
 - Chip: `bg-gray-100 hover:bg-gray-200` (same fill as `secondary`), circular photo, **no gold ring at rest**. Gold ring only on `focus-visible`. Missing photos use `/avatars/default-user.png` — gold-500 fill, white silhouette, no ring.
 - Badge includes the notifications bell and unread count. The Notifications menu row shows the same bubble.
-- Menu: Notifications, Playbook, Profile, Journal, Sign out. Ink rows, grey hover. Inline SVG icons — not lucide, not Framer.
-- Journal, Notifications, and Playbook live here, not in the main nav. Portal account menu: Notifications, Profile, Sign out.
+- Menu: signed-in name, then Notifications, Playbook, Profile, Journal, Sign out. Ink rows, grey hover. Inline SVG icons — not lucide, not Framer.
+- Journal, Notifications, and Playbook live here, not in the main nav. Portal account menu: signed-in name, Notifications, Profile, Sign out.
 
 The live header is the specimen. `/style` #nav describes it in copy and does not mount a dummy dropdown.
 

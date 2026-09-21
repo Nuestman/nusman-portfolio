@@ -4,11 +4,12 @@ import { notFound } from "next/navigation";
 import {
   getDiscovery,
   getPortalProjectForPerson,
+  getQualify,
   getSelectedOption,
 } from "@/db/queries";
 import { PortalProjectBrief } from "@/components/portal-project-brief";
 import { PortalShell } from "@/components/portal-shell";
-import { Card, CardContent } from "@/components/ui/card";
+import { QueryNotice } from "@/components/query-notice";
 import { getPortalSessionPerson, requirePortalPerson } from "@/lib/current-person";
 import { isUuid } from "@/lib/ids";
 import { PAGE_NARROW_CLASS } from "@/lib/layout";
@@ -19,6 +20,7 @@ export const dynamic = "force-dynamic";
 
 type PortalBriefPageProps = {
   params: Promise<{ id: string }>;
+  searchParams: Promise<{ notice?: string | string[] }>;
 };
 
 export async function generateMetadata({
@@ -44,6 +46,7 @@ export async function generateMetadata({
 
 export default async function PortalBriefPage({
   params,
+  searchParams,
 }: PortalBriefPageProps) {
   const { id } = await params;
   if (!isUuid(id)) {
@@ -56,12 +59,15 @@ export default async function PortalBriefPage({
     notFound();
   }
 
-  const [discovery, selected] = await Promise.all([
+  const [discovery, selected, qualify, query] = await Promise.all([
     getDiscovery(project.id),
     getSelectedOption(project.id),
+    getQualify(project.id),
+    searchParams,
   ]);
   const inScope = discovery?.inScope?.trim() || selected?.inScope || null;
   const outOfScope = discovery?.outOfScope?.trim() || selected?.outOfScope || null;
+  const noticeRaw = Array.isArray(query.notice) ? query.notice[0] : query.notice;
 
   return (
     <PortalShell>
@@ -76,18 +82,27 @@ export default async function PortalBriefPage({
           <h1 className="mt-3 section-heading">Project brief</h1>
         </div>
 
-        <Card>
-          <CardContent className="pt-6">
-            <PortalProjectBrief
-              problem={project.problemSentence}
-              success={project.successLooksLike}
-              inScope={inScope}
-              outOfScope={outOfScope}
-              deadline={project.deadlineNote}
-              packageName={selected ? optionKindLabel(selected.kind) : null}
-            />
-          </CardContent>
-        </Card>
+        {noticeRaw === "saved" ? (
+          <QueryNotice message="Brief saved." />
+        ) : null}
+
+        <PortalProjectBrief
+          projectId={project.id}
+          title={project.title}
+          canEdit={project.portalIntakeOpen}
+          problem={project.problemSentence}
+          wantBuilt={project.wantBuilt}
+          success={project.successLooksLike}
+          inScope={inScope}
+          outOfScope={outOfScope}
+          deadline={project.deadlineNote}
+          packageName={selected ? optionKindLabel(selected.kind) : null}
+          whoFor={qualify?.whoFor ?? null}
+          neededBy={qualify?.neededBy ?? null}
+          budgetNote={qualify?.budgetNote ?? null}
+          callAt={qualify?.callAt ?? null}
+          notes={qualify?.notes ?? null}
+        />
       </div>
     </PortalShell>
   );

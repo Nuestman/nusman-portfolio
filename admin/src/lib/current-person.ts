@@ -3,11 +3,8 @@ import {
   clearPortalSessionCookie,
   getPortalSessionPayload,
 } from "@/lib/portal-auth";
-import {
-  deletePortalSession,
-  getPortalPerson,
-  getPortalSessionRow,
-} from "@/db/queries";
+import { personCanUsePortal } from "@/lib/person-email-verify";
+import { deletePortalSession, getPortalPerson, getPortalSessionRow } from "@/db/queries";
 
 export async function getPortalSessionPerson() {
   const payload = await getPortalSessionPayload();
@@ -24,7 +21,7 @@ export async function getPortalSessionPerson() {
   }
 
   const row = await getPortalPerson(session.personId);
-  if (!row || !row.person.portalEnabled) {
+  if (!row || !personCanUsePortal(row.person)) {
     return null;
   }
 

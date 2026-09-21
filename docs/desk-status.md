@@ -1,14 +1,14 @@
 # Desk status
 
-Checked 21 Sep 2026 against the code in `admin/`. Product version: **2.6.0** (`admin/package.json`). Product rules: [desk-2.0.md](./desk-2.0.md) (wins) and [desk.md](./desk.md). Portal: [portal.md](./portal.md). Archive: [archive/desk-1.1.md](./archive/desk-1.1.md). Visual: [style-guide.md](./style-guide.md). Deploy: [deploy.md](./deploy.md). Update this file when something ships or an open item is closed.
+Checked 21 Sep 2026 against the code in `admin/`. Product version: **2.7.0** (`admin/package.json`). Product rules: [desk-2.0.md](./desk-2.0.md) (wins) and [desk.md](./desk.md). Portal: [portal.md](./portal.md). Archive: [archive/desk-1.1.md](./archive/desk-1.1.md). Visual: [style-guide.md](./style-guide.md). Deploy: [deploy.md](./deploy.md). Update this file when something ships or an open item is closed.
 
-Desk **2.6.0** / Portal **1.6** are usable. Public site **4.3.0** posts `/start` into Desk as an **inactive** project; email confirm (or Desk confirm) activates it.
+Desk **2.7.0** / Portal **1.7** are usable. Public site **4.3.0** posts `/start` into Desk as an **inactive** project; email confirm (or Desk confirm) activates it. Portal sign-in requires a **confirmed** person email.
 
 ---
 
 ## Live
 
-Hiring jobs with gate records, **process milestones**, table-row edit/remove, playbook on Desk, multi-format export, own products as records, an audit trail with before/after, operator profiles, sessions for device revoke, **Portal** (magic link + start project), **Messages** inbox (plain / rich TinyMCE composer), **Schedule** hubs (Cards/Calendar), **Resend alerts** (on-brand HTML + CID logo; messages, schedule, milestones, stages, inbound receipt, portal access), **in-app notifications** (feed + table; unread on the account bell), **inbound leads** from public `/start` (creates inactive client + project on submit; email or Desk confirm activates; heard-about source; timeline/budget including “Not sure yet”), **hiring party** view with empty fields shown as “—”, inactive rows highlighted in lists, and a **1400px** Desk/Portal canvas (PageSpread, gold card titles, outline header actions, sticky project timeline).
+Hiring jobs with gate records, **process milestones**, table-row edit/remove, playbook on Desk, multi-format export, own products as records, an audit trail with before/after, operator profiles, sessions for device revoke, **Portal** (confirmed person email + magic link + start project), **Messages** inbox (plain / rich TinyMCE composer), **Schedule** hubs (Cards/Calendar), **Resend alerts** (on-brand HTML + CID logo; messages, schedule, milestones, stages, inbound receipt, portal access, person email confirm), **in-app notifications** (feed + table; unread on the account bell), **inbound leads** from public `/start` (creates inactive client + project on submit; email or Desk confirm activates; heard-about source; timeline/budget including “Not sure yet”), **hiring party** view with empty fields shown as “—” and long emails wrapping in the card, inactive rows highlighted in lists, **person profiles** on Desk and Portal, **What we’re building** on the brief, and a **1400px** Desk/Portal canvas that does not grow a side strip from table min-width (PageSpread, gold card titles, outline header actions, sticky project timeline).
 
 ### Routes
 
@@ -18,7 +18,7 @@ Hiring jobs with gate records, **process milestones**, table-row edit/remove, pl
 | `/` | Today — active projects + **Next 7 days** schedule teaser |
 | `/log`, `/log/[id]/edit` | Live. UI says **Journal**; URL stays `/log` |
 | `/audit`, `/audit/[id]` | Live. Row click opens detail |
-| `/clients` … `/clients/[id]/people/[personId]/edit` | Live. Person edit includes portal enable + magic link. Hiring party shows empty fields. Inactive clients highlighted. Pending-email banner + Desk confirm / resend |
+| `/clients` … `/clients/[id]/people/[personId]` · `/edit` | Live. Person **profile** on Desk (`/profile` layout: stacked You card + Details, Organisation, Projects, Notes, Portal access). Name in the people list opens the profile; Edit is on the You card and in the row. Organisation lists the hiring party; Projects lists every job on that client. Person `/edit` still has the form + magic link. Portal enable is blocked until the person’s email is confirmed (**Confirm email** / **Resend confirmation**). Unconfirmed emails are marked on the people list. Hiring party shows empty fields. Inactive clients highlighted. Pending-email banner + Desk confirm / resend |
 | `/schedule` | Live. Hub: Cards / Calendar; create/edit still on project |
 | `/projects` … gate records, notes, options, changes, demos, **milestones** | Live. Current gate first; earlier stages collapsed; timeline; **Schedule** (`project_events`); portal strip; Qualify Real ↔ qualified milestone. Inactive status + pending-email banner |
 | `/messages`, `/messages/new`, `/messages/[projectId]` | Live. Chat-style portal conversation inbox; compose/reply with plain or rich (TinyMCE) |
@@ -38,10 +38,10 @@ Hiring jobs with gate records, **process milestones**, table-row edit/remove, pl
 
 | Route | Status |
 |---|---|
-| `/`, `/login`, `/auth/magic` | Live. Magic links finish on Portal origin |
-| `/profile` | Live. Read-only You card (split photo + type); account chip matches Desk |
+| `/`, `/login`, `/auth/magic`, `/auth/verify-email` | Live. Magic links finish on Portal origin. Unconfirmed emails cannot sign in; login sends a confirm link instead |
+| `/profile` | Live. Read-only `/profile` layout: stacked You card + Details, Organisation, Projects (client-facing stage labels; Start a project) |
 | `/projects`, `/projects/new`, `/projects/[id]` | Live. List, start project, Progress (gold path), package, updates |
-| `/projects/[id]/brief` | Live. Locked client brief (package, deadline, problem, success, scope; empty fields “—”) |
+| `/projects/[id]/brief` | Live. Locked client brief (project name header, package, deadline, problem, what we’re building, success, who it is for, needed by, budget, call/meet, notes, scope; empty fields “Not set.”; Incomplete info badge; Fill details while intake is open) |
 | `/projects/[id]/intake` | Live. Questions form only while intake is open; otherwise points at the brief |
 | `/projects/[id]/schedule` | Live. Project cards with confirm / decline / cancel |
 | `/messages`, `/messages/[projectId]` | Live. Hub + thread; same plain / rich composer as Desk |
@@ -75,17 +75,19 @@ Migrations on Neon **nusmandotdev** (`sparkling-art-67399165`) only:
 | `0016_inbound_draft_brief` | Draft stores full brief |
 | `0017_project_status_inactive` | `project_status` enum: `inactive` |
 | `0018_inbound_draft_email_open` | One open inbound draft per email; draft↔project index |
+| `0019_project_want_built` | `projects.want_built` — “What we’re building” on Desk/Portal brief |
+| `0020_person_email_verified` | `people.email_verified_at` + confirm token; Portal requires confirmed email |
 
 Apply from `admin/` with `npm run db:migrate`. Do not point `DATABASE_URL` at Mineaid, Uventory, church, or any other Neon project.
 
 ### Auth (as built)
 
 - Cookie `desk_session`: JWT HS256, 14 days, claims `email`, `uid`, `sid`.
-- Cookie `portal_session`: JWT for a `people` row; magic links are one-time.
+- Cookie `portal_session`: JWT for a `people` row; magic links are one-time. Person must have `portal_enabled` **and** `email_verified_at`. Changing the email clears confirmation.
 - Proxy and all Desk pages/actions require a live `sessions` row. Revoked or expired cookies are cleared.
 - Env `ADMIN_PASSWORD` only works while the owner’s `password_hash` is empty (bootstrap). After that, hash only.
 - Optional TOTP on Profile. After password, login asks for a 6-digit code or a one-time recovery code. `drizzle/0007_totp.sql`.
-- Public without Desk login: `/_next/*`, favicons, `/logos/`, `/favicon/`, `/avatars/`, `/tinymce/`, `POST /api/inbound-lead`.
+- Public without Desk login: `/_next/*`, favicons, `/logos/`, `/favicon/`, `/avatars/`, `/tinymce/`, `POST /api/inbound-lead`. Portal public: `/login`, `/auth/magic`, `/auth/verify-email`.
 - Photos: PNG / JPEG / WebP, max 400 KB. `image_url` (seeded `/avatars/numan.png`) or `image_data` + `image_mime`. Server actions body limit 1 MB.
 - Exports omit `password_hash`, `image_data`, and TOTP secrets. `sessions` is not exported.
 - Login failures: 5 per IP per 15 minutes, in memory, per server instance.
@@ -94,11 +96,11 @@ Apply from `admin/` with `npm run db:migrate`. Do not point `DATABASE_URL` at Mi
 
 Main nav: Today, Audit, Clients, Projects, **Schedule**, Messages, Products, Style, Export.
 
-Account menu (last nav item): grey chip (`bg-gray-100 hover:bg-gray-200`), circular photo (default gold fill + white silhouette, **no gold ring at rest**). Badge includes the notifications bell and unread count. Opens **Notifications** (unread on that row too), **Playbook**, Profile, Journal, Sign out. Inline SVG icons. Journal, Notifications, and Playbook are not in the main nav.
+Account menu (last nav item): grey chip (`bg-gray-100 hover:bg-gray-200`), circular photo (default gold fill + white silhouette, **no gold ring at rest**). Badge includes the notifications bell and unread count. Menu opens with the **signed-in name**, then **Notifications** (unread on that row too), **Playbook**, Profile, Journal, Sign out. Inline SVG icons. Journal, Notifications, and Playbook are not in the main nav.
 
-Portal header mirrors Desk chrome; account chip opens Notifications, Profile, and Sign out.
+Portal header mirrors Desk chrome; account chip opens the signed-in name, Notifications, Profile, and Sign out.
 
-Pages use `PAGE_FRAME_CLASS` (`max-w-[1400px]`). Card titles are `font-heading text-2xl text-gold-500`. Card header actions (Add, Edit, Open) are `outline` buttons.
+Pages use `PAGE_FRAME_CLASS` (`max-w-[1400px]`, `grid-cols-[minmax(0,1fr)]`). Table cards (`TableFrame`) scroll inside the card (`contain: layout paint`) so table min-width does not widen the document canvas. Card titles are `font-heading text-2xl text-gold-500`. Card header actions (Add, Edit, Open) are `outline` buttons.
 
 Header: hamburger `<500px`; stacked centred logo + wrapping nav `500–1023px` (logo in normal flow); one row `1024px+`.
 
@@ -125,7 +127,7 @@ These are leftover product work, not bugs in the last UI pass.
 ### Portal / messages
 
 - No unread badges on new portal **messages** (notifications unread on the account bell is live).
-- Several readonly panels still look like forms (`InfoList`): Agreement, Discovery answers, Call notes & scope, Launch, Portal Your package, classic project, audit. Hiring party is redesigned. Redesign the rest later — not part of 2.6.0.
+- Several readonly panels still look like forms (`InfoList`): Agreement, Discovery answers, Call notes & scope, Launch, Portal Your package, classic project, audit. Hiring party is redesigned. Redesign the rest later — not part of 2.7.0.
 - Operator replies do not store which operator wrote them (`author_kind` only).
 - Chosen package with leftover coaching text in `summary` must be rewritten on Desk before Choose / before Portal looks complete.
 - **Routing cleanup (later):** collapse Desk/Portal overlapping `/projects*` trees so soft-nav does not need dual-mode. See [portal.md](./portal.md#later--routing-cleanup-best-practice).

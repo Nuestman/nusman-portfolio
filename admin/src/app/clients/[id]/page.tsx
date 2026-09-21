@@ -32,9 +32,10 @@ import {
 } from "@/lib/labels";
 import { dailyUserRecordedWhenNeeded, gateGuide } from "@/lib/gates";
 import { linkClassName } from "@/lib/links";
-import { tableClassName, tableFrameClassName, inactiveRowProps } from "@/lib/tables";
+import { tableClassName, TableFrame, inactiveRowProps } from "@/lib/tables";
 import { InactiveBadge } from "@/components/inactive-badge";
 import { displayYesNo } from "@/lib/text";
+import { isPersonEmailVerified } from "@/lib/person-email-verify";
 import { ClientForm } from "../client-form";
 import { PersonForm } from "../person-form";
 import { deleteClientAction, deletePersonAction } from "../actions";
@@ -137,7 +138,7 @@ export default async function ClientDetailPage({
 
       <EditableCard
         title="People"
-        hint="Buyer, daily user, and anyone else. Portal invite lives on each person’s edit page."
+        hint="Buyer, daily user, and anyone else. Open a name for their profile. Portal invite is on Edit."
         editLabel="Add"
         always={
           <div className="space-y-4">
@@ -160,7 +161,7 @@ export default async function ClientDetailPage({
                     ? ` · ${portalPeople} with Portal enabled`
                     : " · none on Portal yet"}
                 </p>
-                <div className={tableFrameClassName}>
+                <TableFrame>
                   <table className={tableClassName}>
                     <thead className="bg-gray-50 text-gray-600">
                       <tr>
@@ -182,7 +183,7 @@ export default async function ClientDetailPage({
                         >
                           <td className="px-4 py-3">
                             <Link
-                              href={`/clients/${client.id}/people/${person.id}/edit`}
+                              href={`/clients/${client.id}/people/${person.id}`}
                               className={linkClassName("table")}
                             >
                               {person.name}
@@ -192,7 +193,14 @@ export default async function ClientDetailPage({
                             {personRoleLabel(person.role)}
                           </td>
                           <td className="hidden px-4 py-3 text-gray-700 sm:table-cell">
-                            {person.email ?? "—"}
+                            <span className="inline-flex flex-wrap items-center gap-2">
+                              {person.email ?? "—"}
+                              {person.email && !isPersonEmailVerified(person) ? (
+                                <span className="text-xs font-medium text-gold-700">
+                                  Unconfirmed
+                                </span>
+                              ) : null}
+                            </span>
                           </td>
                           <td className="px-4 py-3 text-gray-700">
                             {person.isDecisionMaker ? "Yes" : "—"}
@@ -225,7 +233,7 @@ export default async function ClientDetailPage({
                       ))}
                     </tbody>
                   </table>
-                </div>
+                </TableFrame>
               </>
             )}
           </div>
@@ -264,7 +272,7 @@ export default async function ClientDetailPage({
               No hiring jobs yet. Open a project when you know what they need.
             </p>
           ) : (
-            <div className={tableFrameClassName}>
+            <TableFrame>
               <table className={tableClassName}>
                 <thead className="bg-gray-50 text-gray-600">
                   <tr>
@@ -318,7 +326,7 @@ export default async function ClientDetailPage({
                   ))}
                 </tbody>
               </table>
-            </div>
+            </TableFrame>
           )}
         </CardContent>
       </Card>

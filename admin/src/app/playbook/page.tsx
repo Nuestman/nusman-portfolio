@@ -20,7 +20,7 @@ import { OPTION_KINDS, type ProjectGate } from "@/db/schema";
 import { optionKindLabel } from "@/lib/labels";
 import { linkClassName } from "@/lib/links";
 import { PAGE_FRAME_CLASS } from "@/lib/layout";
-import { tableClassName, tableFrameClassName } from "@/lib/tables";
+import { tableClassName, TableFrame } from "@/lib/tables";
 import { cn } from "@/lib/utils";
 import { CopyButton } from "@/app/projects/copy-templates";
 
@@ -63,8 +63,9 @@ export default async function PlaybookPage() {
         <div className="sticky top-[var(--desk-header-height)] z-30 border-b border-gray-200 bg-white">
           <nav
             aria-label="Playbook sections"
-            className={`${PAGE_FRAME_CLASS} overflow-x-auto py-3`}
+            className={`${PAGE_FRAME_CLASS} overflow-x-auto contain-layout contain-paint py-3`}
           >
+            <div className="w-0 min-w-full">
             <ul className="flex min-w-max gap-2">
               {JUMP_LINKS.map((link) => (
                 <li key={link.href}>
@@ -77,6 +78,7 @@ export default async function PlaybookPage() {
                 </li>
               ))}
             </ul>
+            </div>
           </nav>
         </div>
       }
@@ -190,7 +192,7 @@ export default async function PlaybookPage() {
             <div className="w-1/6 bg-gray-400" title="Launch & Support" />
           </div>
           <p className="text-sm text-gray-500">4 plan · 1 build · 1 launch</p>
-          <div className={tableFrameClassName}>
+          <TableFrame>
             <table className={tableClassName}>
               <thead className="bg-gray-50 text-gray-600">
                 <tr>
@@ -217,7 +219,7 @@ export default async function PlaybookPage() {
                 ))}
               </tbody>
             </table>
-          </div>
+          </TableFrame>
           {current ? (
             <Card>
               <CardHeader>
@@ -251,7 +253,7 @@ export default async function PlaybookPage() {
             Send after the 15-min qualify. Written answers beat a chat dump. If they cannot answer
             “who uses it” and “what success looks like,” you do not have a project yet.
           </p>
-          <div className={tableFrameClassName}>
+          <TableFrame>
             <table className={tableClassName}>
               <thead className="bg-gray-50 text-gray-600">
                 <tr>
@@ -270,7 +272,7 @@ export default async function PlaybookPage() {
                 ))}
               </tbody>
             </table>
-          </div>
+          </TableFrame>
         </section>
 
         <section id="call" className="scroll-mt-[calc(var(--desk-header-height)+3.5rem)] space-y-4">
@@ -279,7 +281,7 @@ export default async function PlaybookPage() {
             <CopyButton text={afterCallMessage()} label="Copy follow-up" />
           </div>
           <div className="grid gap-4 md:grid-cols-[1.2fr_0.8fr]">
-            <div className={tableFrameClassName}>
+            <TableFrame>
               <table className={tableClassName}>
                 <thead className="bg-gray-50 text-gray-600">
                   <tr>
@@ -296,7 +298,7 @@ export default async function PlaybookPage() {
                   ))}
                 </tbody>
               </table>
-            </div>
+            </TableFrame>
             <div className="rounded-2xl border border-gray-200 bg-gray-200 p-5">
               <h3 className="mb-2 font-heading text-2xl text-dark-950">After the call</h3>
               <p className="leading-relaxed text-gray-800">
@@ -333,7 +335,7 @@ export default async function PlaybookPage() {
         <section id="agree" className="scroll-mt-[calc(var(--desk-header-height)+3.5rem)] space-y-4">
           <h2 className="section-heading">Agree — one page, then deposit</h2>
           <div className="grid gap-4 md:grid-cols-2">
-            <div className={tableFrameClassName}>
+            <TableFrame>
               <table className={tableClassName}>
                 <thead className="bg-gray-50 text-gray-600">
                   <tr>
@@ -350,7 +352,7 @@ export default async function PlaybookPage() {
                   ))}
                 </tbody>
               </table>
-            </div>
+            </TableFrame>
             <div className="rounded-2xl border border-red-200 bg-red-50 p-5">
               <h3 className="mb-2 font-heading text-2xl text-dark-950">Do not start the build unpaid</h3>
               <p className="leading-relaxed text-gray-800">
@@ -367,7 +369,7 @@ export default async function PlaybookPage() {
             Extra gates stay on this page. After each client, reuse the same message, eight
             questions, agenda, and one-pager.
           </p>
-          <div className={tableFrameClassName}>
+          <TableFrame>
             <table className={tableClassName}>
               <thead className="bg-gray-50 text-gray-600">
                 <tr>
@@ -386,7 +388,7 @@ export default async function PlaybookPage() {
                 ))}
               </tbody>
             </table>
-          </div>
+          </TableFrame>
         </section>
 
         <div className="rounded-2xl border border-red-200 bg-red-50 p-5">

@@ -124,6 +124,7 @@ export default async function PortalProjectPage({
                 publicStep={guide.publicStep}
                 status={project.status}
                 problem={project.problemSentence}
+                wantBuilt={project.wantBuilt}
                 success={project.successLooksLike}
                 milestones={milestones}
               />

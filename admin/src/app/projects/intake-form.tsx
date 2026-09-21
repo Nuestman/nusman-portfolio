@@ -4,7 +4,7 @@ import { useActionState } from "react";
 import { Button } from "@/components/ui/button";
 import { FormError } from "@/components/form-error";
 import { fieldClassName } from "@/lib/forms";
-import { tableClassName, tableFrameClassName } from "@/lib/tables";
+import { tableClassName, TableFrame } from "@/lib/tables";
 import { saveIntakeAction, type FormState } from "./actions";
 
 const initialState: FormState = { error: null };
@@ -30,7 +30,7 @@ export function IntakeForm({
   return (
     <form action={action} className="space-y-4">
       <input type="hidden" name="projectId" value={projectId} />
-      <div className={tableFrameClassName}>
+      <TableFrame>
         <table className={tableClassName}>
           <thead className="bg-gray-50 text-gray-600">
             <tr>
@@ -64,7 +64,7 @@ export function IntakeForm({
             ))}
           </tbody>
         </table>
-      </div>
+      </TableFrame>
       <FormError>{state.error}</FormError>
       <Button type="submit" disabled={pending}>
         {pending ? "Saving…" : "Save discovery answers"}

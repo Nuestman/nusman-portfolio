@@ -12,12 +12,12 @@ function Field({
 }) {
   const text = value?.trim() ?? "";
   return (
-    <div>
+    <div className="min-w-0">
       <p className="text-xs font-medium uppercase tracking-[0.16em] text-gold-700">
         {label}
       </p>
       {text && href ? (
-        <p className="mt-2 text-xl">
+        <p className="mt-2 min-w-0 break-all text-xl">
           <a href={href} className={linkClassName("inline")}>
             {text}
           </a>
@@ -26,7 +26,7 @@ function Field({
         <p
           className={
             text
-              ? "mt-2 text-xl text-dark-950"
+              ? "mt-2 min-w-0 break-words text-xl text-dark-950"
               : "mt-2 text-xl text-gray-400"
           }
         >
@@ -59,32 +59,32 @@ export function HiringPartyView({
   const sourceLine = sourceLabel?.trim() ?? "";
 
   return (
-    <div className="space-y-6">
-      <div>
+    <div className="min-w-0 space-y-6">
+      <div className="min-w-0">
         <p className="text-xs font-medium uppercase tracking-[0.16em] text-gold-700">
           Name
         </p>
-        <p className="mt-2 font-heading text-5xl leading-none text-dark-950 sm:text-6xl">
+        <p className="mt-2 min-w-0 break-words font-heading text-5xl leading-none text-dark-950 sm:text-6xl">
           {name}
         </p>
       </div>
 
-      <div className="grid gap-5 sm:grid-cols-2">
-        <div>
+      <div className="grid grid-cols-1 gap-5 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
+        <div className="min-w-0">
           <p className="text-xs font-medium uppercase tracking-[0.16em] text-gold-700">
             Organisation
           </p>
           <p
             className={
               orgLine
-                ? "mt-2 text-2xl text-gold-600"
+                ? "mt-2 min-w-0 break-words text-2xl text-gold-600"
                 : "mt-2 text-2xl text-gray-400"
             }
           >
             {displayText(organisation)}
           </p>
         </div>
-        <div>
+        <div className="min-w-0">
           <p className="text-xs font-medium uppercase tracking-[0.16em] text-gold-700">
             How they heard about us
           </p>
@@ -100,7 +100,7 @@ export function HiringPartyView({
         </div>
       </div>
 
-      <div className="grid gap-5 sm:grid-cols-2">
+      <div className="grid grid-cols-1 gap-5 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
         <Field
           label="Email"
           value={email}
@@ -113,14 +113,14 @@ export function HiringPartyView({
         />
       </div>
 
-      <div className="rounded-2xl border border-gold-100 bg-gold-50/60 px-5 py-4">
+      <div className="min-w-0 rounded-2xl border border-gold-100 bg-gold-50/60 px-5 py-4">
         <p className="text-xs font-medium uppercase tracking-[0.16em] text-gold-700">
           Notes
         </p>
         <p
           className={
             notesLine
-              ? "mt-2 whitespace-pre-wrap text-base leading-relaxed text-dark-950"
+              ? "mt-2 min-w-0 whitespace-pre-wrap break-words text-base leading-relaxed text-dark-950"
               : "mt-2 text-base text-gray-400"
           }
         >

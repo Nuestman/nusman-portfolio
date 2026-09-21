@@ -13,6 +13,7 @@ const initialState: PortalLoginState = {
   error: null,
   sent: false,
   emailed: false,
+  verify: false,
 };
 
 export function PortalLoginForm() {
@@ -25,9 +26,13 @@ export function PortalLoginForm() {
     return (
       <div className="space-y-3">
         <p className="rounded-lg bg-gray-100 px-4 py-3 text-sm text-gray-800">
-          {state.emailed
-            ? "Check your inbox for a one-time sign-in link."
-            : "Your account was found, but the sign-in email did not go out."}
+          {state.verify
+            ? state.emailed
+              ? "Check your inbox to confirm this email first. After that, you can request a sign-in link."
+              : "This email is not confirmed yet, and the confirmation email did not go out."
+            : state.emailed
+              ? "Check your inbox for a one-time sign-in link."
+              : "Your account was found, but the sign-in email did not go out."}
         </p>
         <FormError>{state.error}</FormError>
       </div>

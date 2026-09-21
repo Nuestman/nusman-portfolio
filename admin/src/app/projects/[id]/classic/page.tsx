@@ -35,7 +35,7 @@ import {
   processGateIndex,
   toProcessGate,
 } from "@/lib/gates";
-import { projectStatusLabel, workKindLabel } from "@/lib/labels";
+import { projectStatusLabel, workKindLabel, WANT_BUILT_LABEL } from "@/lib/labels";
 import { linkClassName } from "@/lib/links";
 import {
   deskCopyTemplates,
@@ -184,6 +184,7 @@ export default async function ClassicProjectPage({
     ? {
         projectId: project.id,
         qualify: gateWork.qualify,
+        wantBuilt: project.wantBuilt,
         intake: gateWork.intake,
         discovery: gateWork.discovery,
       }
@@ -313,6 +314,9 @@ export default async function ClassicProjectPage({
             items={[
               { label: "Title", value: project.title },
               { label: "Problem sentence", value: project.problemSentence },
+              ...(isProduct
+                ? []
+                : [{ label: WANT_BUILT_LABEL, value: project.wantBuilt }]),
               { label: "Success looks like", value: project.successLooksLike },
               { label: "Budget note", value: project.budgetNote },
               { label: "Deadline note", value: project.deadlineNote },
@@ -326,11 +330,13 @@ export default async function ClassicProjectPage({
               id: project.id,
               title: project.title,
               problemSentence: project.problemSentence ?? "",
+              wantBuilt: project.wantBuilt ?? "",
               successLooksLike: project.successLooksLike ?? "",
               budgetNote: project.budgetNote ?? "",
               deadlineNote: project.deadlineNote ?? "",
               status: project.status,
             }}
+            hideWantBuilt={isProduct}
           />
         }
       />

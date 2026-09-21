@@ -32,11 +32,15 @@ export type FormState = {
 const PRACTICE_CLIENTS_MESSAGE =
   "Practice people live with Products, not Clients.";
 
-async function revalidateClient(clientId: string) {
+async function revalidateClient(clientId: string, personId?: string) {
   revalidatePath("/clients");
   revalidatePath(`/clients/${clientId}`);
   revalidatePath("/");
   revalidatePath("/projects");
+  if (personId) {
+    revalidatePath(`/clients/${clientId}/people/${personId}`);
+    revalidatePath(`/clients/${clientId}/people/${personId}/edit`);
+  }
   const clientProjects = await listProjectsForClient(clientId);
   for (const project of clientProjects) {
     revalidatePath(`/projects/${project.id}`);
@@ -310,7 +314,19 @@ export async function updatePersonAction(
     return { error: PRACTICE_CLIENTS_MESSAGE };
   }
 
-  await updatePerson(id, parsed.values);
+  const emailChanged =
+    (person.email ?? "").trim().toLowerCase() !==
+    (parsed.values.email ?? "").trim().toLowerCase();
+  await updatePerson(id, {
+    ...parsed.values,
+    ...(emailChanged
+      ? {
+          emailVerifiedAt: null,
+          emailVerifyTokenHash: null,
+          emailVerifyExpiresAt: null,
+        }
+      : {}),
+  });
   await recordAudit({
     action: "person.update",
     summary: `Updated ${parsed.values.name} on “${client.name}”.`,
@@ -319,8 +335,8 @@ export async function updatePersonAction(
     before: person,
     after: parsed.values,
   });
-  await revalidateClient(clientId);
-  redirect(`/clients/${clientId}`);
+  await revalidateClient(clientId, id);
+  redirect(`/clients/${clientId}/people/${id}`);
 }
 
 export async function deletePersonAction(formData: FormData) {

@@ -15,16 +15,25 @@ function isPortalPublicPath(pathname: string) {
     pathname === "/login" ||
     pathname === "/auth/magic" ||
     pathname.startsWith("/auth/magic/") ||
+    pathname === "/auth/verify-email" ||
+    pathname.startsWith("/auth/verify-email/") ||
     // Rewrite destinations can re-enter proxy; these must stay public too.
     pathname === "/portal" ||
     pathname === "/portal/login" ||
     pathname === "/portal/auth/magic" ||
-    pathname.startsWith("/portal/auth/magic/")
+    pathname.startsWith("/portal/auth/magic/") ||
+    pathname === "/portal/auth/verify-email" ||
+    pathname.startsWith("/portal/auth/verify-email/")
   );
 }
 
-function isMagicPath(pathname: string) {
-  return pathname === "/auth/magic" || pathname.startsWith("/auth/magic/");
+function isPortalAuthTokenPath(pathname: string) {
+  return (
+    pathname === "/auth/magic" ||
+    pathname.startsWith("/auth/magic/") ||
+    pathname === "/auth/verify-email" ||
+    pathname.startsWith("/auth/verify-email/")
+  );
 }
 
 function isDeskPublicApiPath(pathname: string) {
@@ -208,7 +217,7 @@ export async function proxy(request: NextRequest) {
   // Local / same-origin: magic link and live portal sessions use Portal chrome
   // on localhost so we do not depend on portal.localhost DNS.
   if (process.env.NODE_ENV !== "production") {
-    if (isMagicPath(request.nextUrl.pathname)) {
+    if (isPortalAuthTokenPath(request.nextUrl.pathname)) {
       const portalResponse = await handlePortal(request);
       if (portalResponse) {
         return portalResponse;
@@ -227,8 +236,8 @@ export async function proxy(request: NextRequest) {
       }
       // Desk-exclusive path while a portal cookie is live: prefer Desk.
     }
-  } else if (isMagicPath(request.nextUrl.pathname)) {
-    // Production Desk host: send magic links to the Portal domain.
+  } else if (isPortalAuthTokenPath(request.nextUrl.pathname)) {
+    // Production Desk host: send magic / verify links to the Portal domain.
     return NextResponse.redirect(
       new URL(
         `${request.nextUrl.pathname}${request.nextUrl.search}`,

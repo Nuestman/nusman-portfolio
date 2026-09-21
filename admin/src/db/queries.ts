@@ -470,7 +470,7 @@ export async function listPortalNotifyPeople(clientId: string) {
   const rows = await listPeople(clientId);
   return rows.flatMap((person) => {
     const email = person.email?.trim();
-    if (!person.portalEnabled || !email) {
+    if (!person.portalEnabled || !person.emailVerifiedAt || !email) {
       return [];
     }
     return [{ ...person, email }];
@@ -523,6 +523,9 @@ export async function updatePerson(
     isDecisionMaker: boolean;
     notes: string | null;
     portalEnabled?: boolean;
+    emailVerifiedAt?: Date | null;
+    emailVerifyTokenHash?: string | null;
+    emailVerifyExpiresAt?: Date | null;
   },
 ) {
   const db = getDb();
@@ -601,6 +604,7 @@ export async function createProject(values: {
   clientId: string;
   title: string;
   problemSentence: string | null;
+  wantBuilt?: string | null;
   successLooksLike: string | null;
   workKind?: WorkKind;
   currentGate?: ProjectGate;
@@ -614,6 +618,7 @@ export async function createProject(values: {
       clientId: values.clientId,
       title: values.title,
       problemSentence: values.problemSentence,
+      wantBuilt: values.wantBuilt,
       successLooksLike: values.successLooksLike,
       workKind: values.workKind ?? "client",
       currentGate: values.currentGate ?? "qualify",
@@ -673,6 +678,7 @@ export async function updateProject(
   values: {
     title: string;
     problemSentence: string | null;
+    wantBuilt: string | null;
     successLooksLike: string | null;
     budgetNote: string | null;
     deadlineNote: string | null;
@@ -690,6 +696,7 @@ export async function patchProject(
   id: string,
   values: {
     problemSentence?: string | null;
+    wantBuilt?: string | null;
     successLooksLike?: string | null;
     budgetNote?: string | null;
     deadlineNote?: string | null;
@@ -1684,6 +1691,64 @@ export async function setPersonPortalEnabled(id: string, portalEnabled: boolean)
     .where(eq(people.id, id));
 }
 
+export async function markPersonEmailVerified(id: string) {
+  const db = getDb();
+  await db
+    .update(people)
+    .set({
+      emailVerifiedAt: new Date(),
+      emailVerifyTokenHash: null,
+      emailVerifyExpiresAt: null,
+      updatedAt: new Date(),
+    })
+    .where(eq(people.id, id));
+}
+
+export async function markPeopleEmailVerifiedByEmail(email: string) {
+  const db = getDb();
+  const normalized = email.trim().toLowerCase();
+  if (!normalized) {
+    return;
+  }
+  await db
+    .update(people)
+    .set({
+      emailVerifiedAt: new Date(),
+      emailVerifyTokenHash: null,
+      emailVerifyExpiresAt: null,
+      updatedAt: new Date(),
+    })
+    .where(sql`lower(${people.email}) = ${normalized}`);
+}
+
+export async function setPersonEmailVerifyToken(
+  id: string,
+  values: {
+    emailVerifyTokenHash: string;
+    emailVerifyExpiresAt: Date;
+  },
+) {
+  const db = getDb();
+  await db
+    .update(people)
+    .set({
+      emailVerifyTokenHash: values.emailVerifyTokenHash,
+      emailVerifyExpiresAt: values.emailVerifyExpiresAt,
+      updatedAt: new Date(),
+    })
+    .where(eq(people.id, id));
+}
+
+export async function getPersonByEmailVerifyHash(tokenHash: string) {
+  const db = getDb();
+  const [row] = await db
+    .select()
+    .from(people)
+    .where(eq(people.emailVerifyTokenHash, tokenHash))
+    .limit(1);
+  return row ?? null;
+}
+
 export async function setProjectPortalIntakeOpen(
   id: string,
   portalIntakeOpen: boolean,
@@ -2039,7 +2104,10 @@ export async function listActiveUsers() {
 
 export async function listPortalEnabledPeople(clientId: string) {
   const rows = await listPeople(clientId);
-  return rows.filter((person) => person.portalEnabled);
+  return rows.filter(
+    (person) =>
+      person.portalEnabled && Boolean(person.emailVerifiedAt) && Boolean(person.email?.trim()),
+  );
 }
 
 export async function listDeskNotifications(userId: string) {

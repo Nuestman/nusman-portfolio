@@ -9,7 +9,7 @@ import {
 import { notificationKindLabel } from "@/lib/labels";
 import { linkClassName } from "@/lib/links";
 import { snippet } from "@/lib/text";
-import { tableClassName, tableFrameClassName } from "@/lib/tables";
+import { tableClassName, TableFrame } from "@/lib/tables";
 import { cn } from "@/lib/utils";
 import type { NotificationKind } from "@/db/schema";
 
@@ -250,7 +250,7 @@ function TableView({
   currentUserId: string | null;
 }) {
   return (
-    <div className={tableFrameClassName}>
+    <TableFrame>
       <table className={tableClassName}>
         <thead>
           <tr>
@@ -328,7 +328,7 @@ function TableView({
           })}
         </tbody>
       </table>
-    </div>
+    </TableFrame>
   );
 }
 

@@ -205,9 +205,19 @@ export const people = pgTable(
     isDecisionMaker: boolean("is_decision_maker").notNull().default(false),
     notes: text("notes"),
     portalEnabled: boolean("portal_enabled").notNull().default(false),
+    emailVerifiedAt: timestamp("email_verified_at", { withTimezone: true }),
+    emailVerifyTokenHash: text("email_verify_token_hash"),
+    emailVerifyExpiresAt: timestamp("email_verify_expires_at", {
+      withTimezone: true,
+    }),
     ...timestamps,
   },
-  (table) => [index("people_client_id_idx").on(table.clientId)],
+  (table) => [
+    index("people_client_id_idx").on(table.clientId),
+    uniqueIndex("people_email_verify_token_hash_uidx")
+      .on(table.emailVerifyTokenHash)
+      .where(sql`${table.emailVerifyTokenHash} is not null`),
+  ],
 );
 
 export const projects = pgTable(
@@ -220,6 +230,7 @@ export const projects = pgTable(
     workKind: workKindEnum("work_kind").notNull().default("client"),
     title: text("title").notNull(),
     problemSentence: text("problem_sentence"),
+    wantBuilt: text("want_built"),
     successLooksLike: text("success_looks_like"),
     currentGate: projectGateEnum("current_gate").notNull().default("qualify"),
     status: projectStatusEnum("status").notNull().default("active"),
