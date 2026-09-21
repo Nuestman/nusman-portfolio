@@ -208,6 +208,18 @@ async function postJson(path: string, payload: Record<string, unknown>) {
   return { response, data }
 }
 
+const verifyByToken = new Map<string, ReturnType<typeof postJson>>()
+
+function verifyTokenOnce(token: string) {
+  const existing = verifyByToken.get(token)
+  if (existing) {
+    return existing
+  }
+  const pending = postJson('/verify', { token })
+  verifyByToken.set(token, pending)
+  return pending
+}
+
 function networkErrorMessage(error: unknown, fallback: string) {
   const message = error instanceof Error ? error.message : null
   const looksLikeNetwork =
@@ -687,7 +699,7 @@ export function StartProjectForm() {
                         }
                         onClick={() => void submitDraft()}
                       >
-                        {pending ? 'Sending…' : 'Email me a confirmation link'}
+                        {pending ? 'Sending…' : 'Send request'}
                       </Button>
                     </div>
                   </motion.div>
@@ -704,9 +716,9 @@ export function StartProjectForm() {
                       Confirm your email
                     </h2>
                     <p className="text-gray-700 leading-relaxed">
-                      Your brief is saved. We sent a link to{' '}
+                      Your request is on my Desk. We sent a link to{' '}
                       <span className="font-medium text-dark-950">{form.email}</span>.
-                      Open it to confirm your request is real.
+                      Open it to confirm your email — the project stays inactive until then.
                     </p>
                     {debugUrl ? (
                       <p className="text-left text-xs text-gray-500 break-all rounded-lg bg-gray-50 p-3">
@@ -750,7 +762,7 @@ export function StartProjectForm() {
   )
 }
 
-/** Confirm link landing — creates Desk lead + triggers receipt. */
+/** Confirm link landing — activates the Desk project already created on submit. */
 export function StartContinueForm() {
   const [searchParams] = useSearchParams()
   const token = searchParams.get('token')?.trim() ?? ''
@@ -771,7 +783,7 @@ export function StartContinueForm() {
         return
       }
       try {
-        const { response, data } = await postJson('/verify', { token })
+        const { response, data } = await verifyTokenOnce(token)
         if (!response.ok || !data?.ok) {
           throw new Error(
             typeof data?.error === 'string'
@@ -821,7 +833,7 @@ export function StartContinueForm() {
             <CardContent className="p-6 md:p-8">
               {phase === 'loading' ? (
                 <p className="text-center text-gray-600 py-10">
-                  Sending your request to the Desk…
+                  Confirming your email…
                 </p>
               ) : null}
 
@@ -846,8 +858,8 @@ export function StartContinueForm() {
                   </h2>
                   <p className="text-gray-700 leading-relaxed">
                     {alreadyDone
-                      ? 'This request was already on my Desk. Check your inbox for the receipt, or email me if anything changed.'
-                      : 'Your project request is on my Desk. I\'ll review it and reach out soon, usually within a business day.'}
+                      ? 'This request was already confirmed. Check your inbox for the receipt, or email me if anything changed.'
+                      : 'Your email is confirmed and the project is active on my Desk. I\'ll review it and reach out soon, usually within a business day.'}
                   </p>
                   <Button asChild>
                     <Link to="/">Back home</Link>

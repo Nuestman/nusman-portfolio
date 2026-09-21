@@ -120,6 +120,20 @@
       "when": 1790010000000,
       "tag": "0016_inbound_draft_brief",
       "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "7",
+      "when": 1790100000000,
+      "tag": "0017_project_status_inactive",
+      "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "7",
+      "when": 1790110000000,
+      "tag": "0018_inbound_draft_email_open",
+      "breakpoints": true
     }
   ]
 }

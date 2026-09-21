@@ -149,7 +149,8 @@ Add domain `portal.nusman.dev` on the same Vercel project as Desk. Magic links u
 10. Start project, messages hub, Resend alerts, `/projects*` soft-nav dual-mode — done (Portal **1.1** / Desk **2.1.0**)  
 11. In-app notifications (feed + table; mark read / delete) + on-brand email shell — done (Portal **1.2** / Desk **2.2.0**)  
 12. Wide canvas, Progress path, locked Brief vs Questions, default avatar, account unread bell, TinyMCE messages, shared source/timeline/budget selects — done (Portal **1.4** / Desk **2.4.0**)
-13. Public `/start` full-brief draft → email verify → Desk lead; “Not sure yet” stored on timeline/budget; marketing home URL for Portal chrome — done (Portal **1.5** / Desk **2.5.0** / public **4.2.0**)  
+13. Public `/start` full-brief draft → email verify → Desk lead; “Not sure yet” stored on timeline/budget; marketing home URL for Portal chrome — done (Portal **1.5** / Desk **2.5.0** / public **4.2.0**)
+14. `/start` creates inactive Desk project on submit; email or Desk confirm activates; hiring party empty fields; inactive list highlight — done (Portal **1.6** / Desk **2.6.0** / public **4.3.0**)  
 
 ---
 

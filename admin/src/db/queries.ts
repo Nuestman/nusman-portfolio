@@ -320,11 +320,21 @@ export async function listClients() {
   }
 
   const ids = rows.map((row) => row.id);
-  const [projectRows, personRows] = await Promise.all([
+  const [projectRows, inactiveRows, personRows] = await Promise.all([
     db
       .select({ clientId: projects.clientId, value: count() })
       .from(projects)
       .where(inArray(projects.clientId, ids))
+      .groupBy(projects.clientId),
+    db
+      .select({ clientId: projects.clientId, value: count() })
+      .from(projects)
+      .where(
+        and(
+          inArray(projects.clientId, ids),
+          eq(projects.status, "inactive"),
+        ),
+      )
       .groupBy(projects.clientId),
     db
       .select({ clientId: people.clientId, value: count() })
@@ -336,6 +346,9 @@ export async function listClients() {
   const projectCount = new Map(
     projectRows.map((row) => [row.clientId, row.value]),
   );
+  const inactiveProjectCount = new Map(
+    inactiveRows.map((row) => [row.clientId, row.value]),
+  );
   const personCount = new Map(
     personRows.map((row) => [row.clientId, row.value]),
   );
@@ -343,6 +356,7 @@ export async function listClients() {
   return rows.map((row) => ({
     ...row,
     projectCount: projectCount.get(row.id) ?? 0,
+    inactiveProjectCount: inactiveProjectCount.get(row.id) ?? 0,
     personCount: personCount.get(row.id) ?? 0,
   }));
 }
@@ -2240,7 +2254,9 @@ export type InboundLeadDraftPayload = {
   expiresAt: Date;
 };
 
-export async function createInboundLeadDraft(values: InboundLeadDraftPayload) {
+export async function createInboundLeadDraft(
+  values: InboundLeadDraftPayload & { projectId?: string | null },
+) {
   const db = getDb();
   const [row] = await db
     .insert(inboundLeadDrafts)
@@ -2281,7 +2297,7 @@ export async function getInboundLeadDraftByVerifyHash(verifyTokenHash: string) {
 
 export async function upsertInboundLeadDraftPayload(
   id: string,
-  values: Omit<InboundLeadDraftPayload, "email">,
+  values: Omit<InboundLeadDraftPayload, "email"> & { projectId?: string | null },
 ) {
   const db = getDb();
   await db
@@ -2308,4 +2324,117 @@ export async function markInboundLeadDraftCompleted(
       updatedAt: new Date(),
     })
     .where(eq(inboundLeadDrafts.id, id));
+}
+
+/** Claim an open draft so a second verify cannot create another project. */
+export async function claimInboundLeadDraft(id: string) {
+  const db = getDb();
+  const [row] = await db
+    .update(inboundLeadDrafts)
+    .set({
+      completedAt: new Date(),
+      verifiedAt: new Date(),
+      updatedAt: new Date(),
+    })
+    .where(
+      and(eq(inboundLeadDrafts.id, id), isNull(inboundLeadDrafts.completedAt)),
+    )
+    .returning();
+  return row ?? null;
+}
+
+export async function attachInboundLeadDraftProject(
+  id: string,
+  projectId: string,
+) {
+  const db = getDb();
+  await db
+    .update(inboundLeadDrafts)
+    .set({ projectId, updatedAt: new Date() })
+    .where(eq(inboundLeadDrafts.id, id));
+}
+
+/** Attach only if this draft still has no project — concurrent submits cannot fork. */
+export async function attachInboundLeadDraftProjectIfNull(
+  id: string,
+  projectId: string,
+) {
+  const db = getDb();
+  const [row] = await db
+    .update(inboundLeadDrafts)
+    .set({ projectId, updatedAt: new Date() })
+    .where(
+      and(eq(inboundLeadDrafts.id, id), isNull(inboundLeadDrafts.projectId)),
+    )
+    .returning({ id: inboundLeadDrafts.id, projectId: inboundLeadDrafts.projectId });
+  return row ?? null;
+}
+
+export async function listPendingEmailConfirmationProjects(clientId: string) {
+  const db = getDb();
+  return db
+    .select({
+      projectId: projects.id,
+      projectTitle: projects.title,
+    })
+    .from(projects)
+    .innerJoin(inboundLeadDrafts, eq(inboundLeadDrafts.projectId, projects.id))
+    .where(
+      and(eq(projects.clientId, clientId), eq(projects.status, "inactive")),
+    )
+    .orderBy(desc(projects.updatedAt));
+}
+
+export async function getOpenInboundLeadDraftByProject(projectId: string) {
+  const db = getDb();
+  const [row] = await db
+    .select()
+    .from(inboundLeadDrafts)
+    .where(
+      and(
+        eq(inboundLeadDrafts.projectId, projectId),
+        isNull(inboundLeadDrafts.completedAt),
+      ),
+    )
+    .orderBy(desc(inboundLeadDrafts.createdAt))
+    .limit(1);
+  return row ?? null;
+}
+
+export async function getInboundLeadDraftByProject(projectId: string) {
+  const db = getDb();
+  const [row] = await db
+    .select()
+    .from(inboundLeadDrafts)
+    .where(eq(inboundLeadDrafts.projectId, projectId))
+    .orderBy(desc(inboundLeadDrafts.createdAt))
+    .limit(1);
+  return row ?? null;
+}
+
+export async function listOpenInboundDraftsForClient(clientId: string) {
+  const db = getDb();
+  return db
+    .select({
+      draft: inboundLeadDrafts,
+      projectId: projects.id,
+      projectTitle: projects.title,
+    })
+    .from(inboundLeadDrafts)
+    .innerJoin(projects, eq(projects.id, inboundLeadDrafts.projectId))
+    .where(
+      and(
+        eq(projects.clientId, clientId),
+        isNull(inboundLeadDrafts.completedAt),
+      ),
+    )
+    .orderBy(desc(inboundLeadDrafts.createdAt));
+}
+
+export async function activateInboundProject(id: string) {
+  const db = getDb();
+  await db
+    .update(projects)
+    .set({ status: "active", updatedAt: new Date() })
+    .where(and(eq(projects.id, id), eq(projects.status, "inactive")));
 }

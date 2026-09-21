@@ -14,7 +14,12 @@ import {
 } from "@/components/table-actions";
 import { clientSourceLabel } from "@/lib/labels";
 import { linkClassName } from "@/lib/links";
-import { tableClassName, tableFrameClassName } from "@/lib/tables";
+import { InactiveBadge } from "@/components/inactive-badge";
+import {
+  inactiveRowProps,
+  tableClassName,
+  tableFrameClassName,
+} from "@/lib/tables";
 import { deleteClientAction } from "./actions";
 
 export const dynamic = "force-dynamic";
@@ -66,15 +71,24 @@ export default async function ClientsPage() {
               </tr>
             </thead>
             <tbody>
-              {loaded.data.map((client) => (
-                <tr key={client.id} className="border-t border-gray-100">
+              {loaded.data.map((client) => {
+                const inactive = Number(client.inactiveProjectCount) > 0;
+                return (
+                <tr
+                  key={client.id}
+                  className="border-t border-gray-100"
+                  {...inactiveRowProps(inactive)}
+                >
                   <td className="px-4 py-3">
-                    <Link
-                      href={`/clients/${client.id}`}
-                      className={linkClassName("table")}
-                    >
-                      {client.name}
-                    </Link>
+                    <span className="inline-flex flex-wrap items-center gap-2">
+                      <Link
+                        href={`/clients/${client.id}`}
+                        className={linkClassName("table")}
+                      >
+                        {client.name}
+                      </Link>
+                      {inactive ? <InactiveBadge /> : null}
+                    </span>
                   </td>
                   <td className="px-4 py-3 text-gray-700">
                     {client.organisation ?? "—"}
@@ -104,7 +118,8 @@ export default async function ClientsPage() {
                     )}
                   </TableActionsCell>
                 </tr>
-              ))}
+                );
+              })}
             </tbody>
           </table>
         </div>

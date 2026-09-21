@@ -5,11 +5,12 @@ import {
   countProjectsForClient,
   getClient,
   listPeople,
+  listPendingEmailConfirmationProjects,
   listProjectsForClient,
 } from "@/db/queries";
 import { DeskShell } from "@/components/desk-shell";
 import { EditableCard } from "@/components/editable-card";
-import { InfoList } from "@/components/info-list";
+import { HiringPartyView } from "@/components/hiring-party-view";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { buttonClassName } from "@/components/ui/button";
 import { ConfirmDelete } from "@/components/confirm-submit";
@@ -19,6 +20,10 @@ import {
   TableActionsHeader,
 } from "@/components/table-actions";
 import { QueryNotice } from "@/components/query-notice";
+import {
+  inboundEmailNotice,
+  PendingEmailBanners,
+} from "@/components/pending-email-banner";
 import { isUuid } from "@/lib/ids";
 import {
   clientSourceLabel,
@@ -27,7 +32,8 @@ import {
 } from "@/lib/labels";
 import { dailyUserRecordedWhenNeeded, gateGuide } from "@/lib/gates";
 import { linkClassName } from "@/lib/links";
-import { tableClassName, tableFrameClassName } from "@/lib/tables";
+import { tableClassName, tableFrameClassName, inactiveRowProps } from "@/lib/tables";
+import { InactiveBadge } from "@/components/inactive-badge";
 import { displayYesNo } from "@/lib/text";
 import { ClientForm } from "../client-form";
 import { PersonForm } from "../person-form";
@@ -58,15 +64,18 @@ export default async function ClientDetailPage({
     redirect("/products");
   }
 
-  const [email, people, projectCount, clientProjects, query] = await Promise.all([
-    getSessionEmail(),
-    listPeople(id),
-    countProjectsForClient(id),
-    listProjectsForClient(id),
-    searchParams,
-  ]);
+  const [email, people, projectCount, clientProjects, pendingEmail, query] =
+    await Promise.all([
+      getSessionEmail(),
+      listPeople(id),
+      countProjectsForClient(id),
+      listProjectsForClient(id),
+      listPendingEmailConfirmationProjects(id),
+      searchParams,
+    ]);
 
   const noticeRaw = Array.isArray(query.notice) ? query.notice[0] : query.notice;
+  const inboundNotice = inboundEmailNotice(noticeRaw);
   const blockedByProjects =
     noticeRaw === "has-projects" || projectCount > 0;
   const missingDailyUser = !dailyUserRecordedWhenNeeded(people);
@@ -87,26 +96,27 @@ export default async function ClientDetailPage({
 
       {noticeRaw === "has-projects" ? (
         <QueryNotice message="This client has a project. Finish or move that work before deleting the client." />
+      ) : inboundNotice ? (
+        <QueryNotice message={inboundNotice} />
       ) : null}
+
+      <PendingEmailBanners
+        rows={pendingEmail}
+        next={`/clients/${client.id}`}
+      />
 
       <EditableCard
         title="Hiring party"
-        hint="Organisation and how they found you."
         view={
-          <InfoList
-            items={[
-              { label: "Name", value: client.name },
-              { label: "Organisation", value: client.organisation },
-              { label: "Email", value: client.email },
-              { label: "Phone", value: client.phone },
-              {
-                label: "Source",
-                value: client.source
-                  ? clientSourceLabel(client.source)
-                  : null,
-              },
-              { label: "Notes", value: client.notes },
-            ]}
+          <HiringPartyView
+            name={client.name}
+            organisation={client.organisation}
+            email={client.email}
+            phone={client.phone}
+            sourceLabel={
+              client.source ? clientSourceLabel(client.source) : null
+            }
+            notes={client.notes}
           />
         }
         form={
@@ -266,14 +276,21 @@ export default async function ClientDetailPage({
                 </thead>
                 <tbody>
                   {clientProjects.map((item) => (
-                    <tr key={item.id} className="border-t border-gray-100">
+                    <tr
+                      key={item.id}
+                      className="border-t border-gray-100"
+                      {...inactiveRowProps(item.status === "inactive")}
+                    >
                       <td className="px-4 py-3">
-                        <Link
-                          href={`/projects/${item.id}`}
-                          className={linkClassName("table")}
-                        >
-                          {item.title}
-                        </Link>
+                        <span className="inline-flex flex-wrap items-center gap-2">
+                          <Link
+                            href={`/projects/${item.id}`}
+                            className={linkClassName("table")}
+                          >
+                            {item.title}
+                          </Link>
+                          {item.status === "inactive" ? <InactiveBadge /> : null}
+                        </span>
                       </td>
                       <td className="px-4 py-3 text-gray-700">
                         {gateGuide(item.currentGate).label}

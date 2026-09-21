@@ -1,5 +1,20 @@
 # Changelog
 
+## 21 Sep 2026 — Desk 2.6.0 / Portal 1.6 · public 4.3.0
+
+### Desk / Portal (`admin/` → **2.6.0**)
+
+- **Inbound on submit** — `/start` creates the client, buyer, and project immediately (`inactive`). Confirming email (visitor link or Desk) activates that same project and sends the receipt. Re-submit of the same open email reuses the project (one open draft per email — `0018_inbound_draft_email_open`). Direct `POST /api/inbound-lead` uses the same path as `/draft`.
+- **Pending email** — client and project pages show a banner with **Confirm email** and **Resend confirmation** (Desk session actions; not a public inbound subroute). Stage moves stay locked while inactive.
+- **Project status `inactive`** — migration `0017_project_status_inactive`. Lists highlight inactive clients/projects (`data-inactive` gold wash + Inactive pill).
+- **Hiring party** — redesigned client view (name, gold org, source pill, notes). Empty organisation, source, email, phone, and notes stay visible as “—” so missing details are not hidden.
+
+### Public site (**4.3.0**)
+
+- `/start` — submit lands the request on Desk as inactive, then asks for email confirm. `/start/continue` only activates (idempotent). Copy matches that flow.
+
+---
+
 ## 21 Sep 2026 — Desk 2.5.0 / Portal 1.5 · public 4.2.0
 
 ### Desk / Portal (`admin/` → **2.5.0**)

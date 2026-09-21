@@ -27,6 +27,7 @@ function statusPillClass(status: ProjectStatus): string {
   switch (status) {
     case "active":
       return "bg-gold-100 text-gold-800";
+    case "inactive":
     case "paused":
       return "bg-gray-100 text-gray-700";
     case "won":

@@ -245,7 +245,7 @@ Live specimens: Desk `/style` #links.
 
 ### Tables (Desk)
 
-White frame: `desk-table` inside `rounded-2xl border border-gray-200 bg-white shadow-sm`. Header `bg-gray-50 text-gray-600`. Cells `px-4 py-3`. Even rows and hover: `gray-50`. Current row: `gold-50` (`data-current`). Names in cells use `linkClassName("table")`. Last column is Actions: Edit (`linkClassName("back")`) and Remove. Playbook, Style, and Audit tables have no Actions column.
+White frame: `desk-table` inside `rounded-2xl border border-gray-200 bg-white shadow-sm`. Header `bg-gray-50 text-gray-600`. Cells `px-4 py-3`. Even rows and hover: `gray-50`. Current row: `gold-50` (`data-current`). Inactive row: gold wash (`data-inactive`) plus an Inactive pill on the name. Names in cells use `linkClassName("table")`. Last column is Actions: Edit (`linkClassName("back")`) and Remove. Playbook, Style, and Audit tables have no Actions column.
 
 Use `tableFrameClassName` and `tableClassName` from `admin/src/lib/tables.ts`. Do not scatter zebra or hover classes on each `<tr>`.
 
