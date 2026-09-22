@@ -22,31 +22,41 @@ export default async function PortalLandingPage() {
     <div className="relative min-h-dvh overflow-hidden bg-gray-50">
       <PortalHeroBackdrop />
 
-      <header className={`relative z-10 flex items-center justify-between py-5 ${PAGE_FRAME_CLASS}`}>
-        <a
-          href={marketingSite}
-          className="flex h-12 items-center"
-          aria-label="Numan Usman — public site"
+      <header className="relative z-10">
+        <div
+          className={`flex items-center justify-between py-5 ${PAGE_FRAME_CLASS}`}
         >
-          <Image
-            src="/logos/nusman-logo-wide.png"
-            alt=""
-            width={252}
-            height={48}
-            className="h-10 w-auto object-contain"
-            style={{ width: "auto" }}
-            priority
-          />
-        </a>
-        {signedIn ? (
-          <Link href="/projects" className={buttonClassName("default", "sm")}>
-            Your projects
-          </Link>
-        ) : (
-          <Link href="/login" className={buttonClassName("default", "sm")}>
-            Sign in
-          </Link>
-        )}
+          <a
+            href={marketingSite}
+            className="flex h-12 shrink-0 items-center"
+            aria-label="Numan Usman — public site"
+          >
+            <Image
+              src="/logos/nusman-logo-wide.png"
+              alt=""
+              width={252}
+              height={48}
+              className="h-10 w-auto object-contain"
+              style={{ width: "auto" }}
+              priority
+            />
+          </a>
+          {signedIn ? (
+            <Link
+              href="/projects"
+              className={`${buttonClassName("default", "sm")} shrink-0`}
+            >
+              Your projects
+            </Link>
+          ) : (
+            <Link
+              href="/login"
+              className={`${buttonClassName("default", "sm")} shrink-0`}
+            >
+              Sign in
+            </Link>
+          )}
+        </div>
       </header>
 
       <main
