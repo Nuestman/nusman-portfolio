@@ -1,41 +1,55 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { LegalDoc } from '../components/LegalDoc'
 import {
   LEGAL_CONTACT,
-  PRIVACY_LAST_UPDATED,
-  PRIVACY_SECTIONS,
+  PRIVACY_DOC,
+  type LegalDocument,
 } from '../content/privacy'
 import { usePageMeta } from '../hooks/usePageMeta'
+import { fetchLegalDocument } from '../lib/legal-api'
 
 const PrivacyPage: React.FC = () => {
+  const [doc, setDoc] = useState<LegalDocument>(PRIVACY_DOC)
+
   usePageMeta({
     title: 'Privacy Policy · Numan Usman',
     description:
-      'How NUsman Tech Solutions / nusman.dev collects, uses, and protects personal data — Ghana Act 843 and GDPR where applicable.',
+      'How Nuestman Tech Solutions / nusman.dev collects, uses, and protects personal data — Ghana Act 843 and GDPR where applicable.',
     path: '/privacy',
   })
 
+  useEffect(() => {
+    let cancelled = false
+    void fetchLegalDocument('privacy', PRIVACY_DOC).then((next) => {
+      if (!cancelled) {
+        setDoc(next)
+      }
+    })
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
   return (
     <LegalDoc
-      title="Privacy Policy"
-      lastUpdated={PRIVACY_LAST_UPDATED}
-      sections={PRIVACY_SECTIONS}
+      title={doc.title}
+      lastUpdated={doc.lastUpdated}
+      sections={doc.sections}
       intro={
-        <p>
-          This policy describes how we collect, use, and protect personal data
-          in connection with {LEGAL_CONTACT.siteName}, the Start a project and
-          Contact flows, and the client Portal. It is designed to align with
-          the EU GDPR (where it applies) and Ghana’s Data Protection Act, 2012
-          (Act 843). See also our{' '}
-          <Link
-            to="/terms"
-            className="text-gold-600 underline hover:text-gold-700"
-          >
-            Terms of Service
-          </Link>
-          .
-        </p>
+        <>
+          <p>{doc.intro}</p>
+          <p>
+            See also our{' '}
+            <Link
+              to="/terms"
+              className="text-gold-600 underline hover:text-gold-700"
+            >
+              Terms of Service
+            </Link>
+            .
+          </p>
+        </>
       }
       footerNote={
         <p>

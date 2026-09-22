@@ -3,9 +3,13 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import {
   getPortalProjectForPerson,
+  listAttachmentsForMessageIds,
   listPortalConversationsForClient,
   listPortalMessages,
+  markPortalMessageNotificationsReadForProject,
+  unreadPortalMessageCountsByProject,
 } from "@/db/queries";
+import { withConversationUnread } from "@/components/messages/conversation-list";
 import { MessagesWorkspace } from "@/components/messages/messages-workspace";
 import { PortalMessageThread } from "@/components/portal-message-thread";
 import { PortalShell } from "@/components/portal-shell";
@@ -51,16 +55,29 @@ export default async function PortalConversationPage({
     notFound();
   }
 
-  const { client } = await requirePortalPerson();
+  const { client, person } = await requirePortalPerson();
   const project = await getPortalProjectForPerson(projectId, client.id);
   if (!project) {
     notFound();
   }
 
-  const [messages, conversations] = await Promise.all([
+  await markPortalMessageNotificationsReadForProject(person.id, project.id);
+
+  const [messages, conversations, unreadByProject] = await Promise.all([
     listPortalMessages(project.id),
     listPortalConversationsForClient(client.id),
+    unreadPortalMessageCountsByProject(person.id),
   ]);
+
+  const attachmentRows = await listAttachmentsForMessageIds(
+    messages.map((message) => message.id),
+  );
+  const attachmentsByMessage = new Map<string, typeof attachmentRows>();
+  for (const row of attachmentRows) {
+    const list = attachmentsByMessage.get(row.messageId) ?? [];
+    list.push(row);
+    attachmentsByMessage.set(row.messageId, list);
+  }
 
   const thread = messages.map((message) => ({
     id: message.id,
@@ -68,12 +85,16 @@ export default async function PortalConversationPage({
     authorLabel: message.authorKind === "client" ? "You" : "Usman",
     body: message.body,
     createdAtLabel: formatChatStamp(message.createdAt),
+    attachments: attachmentsByMessage.get(message.id) ?? [],
   }));
 
   return (
     <PortalShell mainClassName="space-y-0 py-4 md:py-6">
       <MessagesWorkspace
-        conversations={conversations}
+        conversations={withConversationUnread(
+          conversations,
+          unreadByProject,
+        )}
         activeProjectId={project.id}
         showListOnMobile={false}
         perspective="portal"

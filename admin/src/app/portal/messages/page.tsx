@@ -1,5 +1,9 @@
 import type { Metadata } from "next";
-import { listPortalConversationsForClient } from "@/db/queries";
+import {
+  listPortalConversationsForClient,
+  unreadPortalMessageCountsByProject,
+} from "@/db/queries";
+import { withConversationUnread } from "@/components/messages/conversation-list";
 import {
   MessagesEmptyPane,
   MessagesWorkspace,
@@ -14,13 +18,19 @@ export const metadata: Metadata = {
 };
 
 export default async function PortalMessagesInboxPage() {
-  const { client } = await requirePortalPerson();
-  const conversations = await listPortalConversationsForClient(client.id);
+  const { client, person } = await requirePortalPerson();
+  const [conversations, unreadByProject] = await Promise.all([
+    listPortalConversationsForClient(client.id),
+    unreadPortalMessageCountsByProject(person.id),
+  ]);
 
   return (
     <PortalShell mainClassName="space-y-0 py-4 md:py-6">
       <MessagesWorkspace
-        conversations={conversations}
+        conversations={withConversationUnread(
+          conversations,
+          unreadByProject,
+        )}
         showListOnMobile
         perspective="portal"
         hrefBase="/messages"

@@ -5,10 +5,15 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { AccountMenu, type AccountMenuVariant } from "@/components/account-menu";
+import {
+  CountBubble,
+  countBubbleInlineClassName,
+} from "@/components/count-bubble";
 import { Button } from "@/components/ui/button";
 import { PAGE_FRAME_CLASS } from "@/lib/layout";
 import { linkClassName } from "@/lib/links";
 import { portalLogout } from "@/app/portal/login/actions";
+import { cn } from "@/lib/utils";
 
 const NAV = [
   { href: "/", label: "Home" },
@@ -79,24 +84,41 @@ function NavLinks({
   profile,
   accountVariant,
   unreadCount,
+  unreadMessageCount = 0,
 }: {
   pathname: string;
   className?: string;
   profile: { name: string; imageSrc: string | null };
   accountVariant: AccountMenuVariant;
   unreadCount: number;
+  unreadMessageCount?: number;
 }) {
   return (
     <ul className={className}>
       {NAV.map((item) => {
         const active = navItemIsActive(pathname, item.href);
+        const isMessages = item.href === "/messages";
+        const messageBadge =
+          isMessages && unreadMessageCount > 0 ? unreadMessageCount : 0;
         return (
           <li key={item.href}>
             <Link
               href={item.href}
-              className={linkClassName(active ? "navActive" : "nav")}
+              className={cn(
+                linkClassName(active ? "navActive" : "nav"),
+                "inline-flex items-center gap-1.5",
+              )}
+              aria-label={
+                messageBadge > 0
+                  ? `${item.label}, ${messageBadge} unread`
+                  : undefined
+              }
             >
               {item.label}
+              <CountBubble
+                count={messageBadge}
+                className={countBubbleInlineClassName}
+              />
             </Link>
           </li>
         );
@@ -115,10 +137,14 @@ function NavLinks({
 
 export function PortalHeader({
   personName,
+  personImageSrc = null,
   unreadCount = 0,
+  unreadMessageCount = 0,
 }: {
   personName: string;
+  personImageSrc?: string | null;
   unreadCount?: number;
+  unreadMessageCount?: number;
 }) {
   const pathname = usePathname();
   const displayPath = portalDisplayPath(pathname);
@@ -126,7 +152,10 @@ export function PortalHeader({
   const [openOnPath, setOpenOnPath] = useState(pathname);
   const menuId = useId();
   const chromeRef = useRef<HTMLDivElement>(null);
-  const profile = { name: personName, imageSrc: null as string | null };
+  const profile = {
+    name: personName,
+    imageSrc: personImageSrc?.trim() || null,
+  };
 
   if (openOnPath !== pathname) {
     setOpenOnPath(pathname);
@@ -240,6 +269,7 @@ export function PortalHeader({
               profile={profile}
               accountVariant="panel"
               unreadCount={unreadCount}
+              unreadMessageCount={unreadMessageCount}
               className="flex w-full flex-wrap items-center justify-center gap-x-5 gap-y-3 pb-4 lg:justify-end lg:gap-x-6 lg:pb-0"
             />
           </nav>
@@ -257,6 +287,7 @@ export function PortalHeader({
               profile={profile}
               accountVariant="menu"
               unreadCount={unreadCount}
+              unreadMessageCount={unreadMessageCount}
               className="flex flex-col gap-3"
             />
           </nav>

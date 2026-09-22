@@ -2,7 +2,7 @@
 
 Living plan for the **next major cut** of Desk + Portal. Goal: a clean guided process — CRM, playbook, live job, and client portal each do one job. Update this file when a decision changes.
 
-Supersedes the “kitchen sink project page” behaviour of Desk **1.3.0**. Prior snapshots: [archive/desk-1.1.md](./archive/desk-1.1.md). Live status: [desk-status.md](./desk-status.md) (**2.7.3**). Detail still useful in [desk.md](./desk.md) and [portal.md](./portal.md); **this file wins** where they conflict.
+Supersedes the “kitchen sink project page” behaviour of Desk **1.3.0**. Prior snapshots: [archive/desk-1.1.md](./archive/desk-1.1.md). Live status: [desk-status.md](./desk-status.md) (**2.8.0**). Detail still useful in [desk.md](./desk.md) and [portal.md](./portal.md); **this file wins** where they conflict.
 
 Schema changes are allowed — no production clients on the system yet.
 
@@ -227,4 +227,4 @@ Index: `(project_id, starts_at)`.
 
 ## Immediate next step
 
-Desk **2.0.0** cut is shipped. Current product version is **2.7.3** ([desk-status.md](./desk-status.md), [changelog.md](./changelog.md)). Further work is ordinary product iteration (routing cleanup, calendar sync, Today refinements, etc.), not this cut.
+Desk **2.0.0** cut is shipped. Current product version is **2.8.0** ([desk-status.md](./desk-status.md), [changelog.md](./changelog.md)). Further work is ordinary product iteration (routing cleanup, calendar sync, Today refinements, etc.), not this cut.

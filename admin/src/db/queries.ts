@@ -23,6 +23,8 @@ import {
   projects,
   notifications,
   sessions,
+  siteLegalDocuments,
+  portalMessageAttachments,
   users,
   inboundLeadDrafts,
 } from "./schema";
@@ -40,6 +42,7 @@ import type {
   ProjectGate,
   ProjectStatus,
   QualifyOutcome,
+  SiteLegalSection,
   UserRole,
   WorkKind,
 } from "./schema";
@@ -2093,6 +2096,74 @@ export async function addPortalMessage(values: {
   return row.id;
 }
 
+export async function insertMessageAttachments(
+  rows: {
+    messageId: string;
+    projectId: string;
+    clientId: string;
+    blobUrl: string;
+    blobPathname: string;
+    originalFilename: string;
+    contentType: string;
+    byteSize: number;
+  }[],
+) {
+  if (rows.length === 0) {
+    return;
+  }
+  const db = getDb();
+  await db.insert(portalMessageAttachments).values(rows);
+}
+
+export async function listAttachmentsForMessageIds(messageIds: string[]) {
+  if (messageIds.length === 0) {
+    return [];
+  }
+  const db = getDb();
+  return db
+    .select({
+      id: portalMessageAttachments.id,
+      messageId: portalMessageAttachments.messageId,
+      originalFilename: portalMessageAttachments.originalFilename,
+      contentType: portalMessageAttachments.contentType,
+      byteSize: portalMessageAttachments.byteSize,
+    })
+    .from(portalMessageAttachments)
+    .where(inArray(portalMessageAttachments.messageId, messageIds))
+    .orderBy(portalMessageAttachments.createdAt);
+}
+
+export async function getAttachmentForDownload(id: string) {
+  const db = getDb();
+  const [row] = await db
+    .select({
+      id: portalMessageAttachments.id,
+      messageId: portalMessageAttachments.messageId,
+      projectId: portalMessageAttachments.projectId,
+      clientId: portalMessageAttachments.clientId,
+      blobUrl: portalMessageAttachments.blobUrl,
+      blobPathname: portalMessageAttachments.blobPathname,
+      originalFilename: portalMessageAttachments.originalFilename,
+      contentType: portalMessageAttachments.contentType,
+      byteSize: portalMessageAttachments.byteSize,
+    })
+    .from(portalMessageAttachments)
+    .where(eq(portalMessageAttachments.id, id))
+    .limit(1);
+  return row ?? null;
+}
+
+export async function updatePersonImageUrl(
+  id: string,
+  imageUrl: string | null,
+) {
+  const db = getDb();
+  await db
+    .update(people)
+    .set({ imageUrl, updatedAt: new Date() })
+    .where(eq(people.id, id));
+}
+
 export async function listActiveUsers() {
   const db = getDb();
   return db
@@ -2305,6 +2376,135 @@ export async function countUnreadPortalNotifications(personId: string) {
   return row?.value ?? 0;
 }
 
+export async function countUnreadDeskMessageNotifications(userId: string) {
+  const db = getDb();
+  const [row] = await db
+    .select({ value: count() })
+    .from(notifications)
+    .where(
+      and(
+        eq(notifications.audience, "desk"),
+        eq(notifications.kind, "message"),
+        or(eq(notifications.userId, userId), isNull(notifications.userId)),
+        isNull(notifications.readAt),
+      ),
+    );
+  return row?.value ?? 0;
+}
+
+export async function countUnreadPortalMessageNotifications(personId: string) {
+  const db = getDb();
+  const [row] = await db
+    .select({ value: count() })
+    .from(notifications)
+    .where(
+      and(
+        eq(notifications.audience, "portal"),
+        eq(notifications.kind, "message"),
+        eq(notifications.personId, personId),
+        isNull(notifications.readAt),
+      ),
+    );
+  return row?.value ?? 0;
+}
+
+/** Unread `message` notifications grouped by project (for conversation list badges). */
+export async function unreadDeskMessageCountsByProject(
+  userId: string,
+): Promise<Map<string, number>> {
+  const db = getDb();
+  const rows = await db
+    .select({
+      projectId: notifications.projectId,
+      value: count(),
+    })
+    .from(notifications)
+    .where(
+      and(
+        eq(notifications.audience, "desk"),
+        eq(notifications.kind, "message"),
+        or(eq(notifications.userId, userId), isNull(notifications.userId)),
+        isNull(notifications.readAt),
+      ),
+    )
+    .groupBy(notifications.projectId);
+
+  const map = new Map<string, number>();
+  for (const row of rows) {
+    if (row.projectId) {
+      map.set(row.projectId, row.value);
+    }
+  }
+  return map;
+}
+
+export async function unreadPortalMessageCountsByProject(
+  personId: string,
+): Promise<Map<string, number>> {
+  const db = getDb();
+  const rows = await db
+    .select({
+      projectId: notifications.projectId,
+      value: count(),
+    })
+    .from(notifications)
+    .where(
+      and(
+        eq(notifications.audience, "portal"),
+        eq(notifications.kind, "message"),
+        eq(notifications.personId, personId),
+        isNull(notifications.readAt),
+      ),
+    )
+    .groupBy(notifications.projectId);
+
+  const map = new Map<string, number>();
+  for (const row of rows) {
+    if (row.projectId) {
+      map.set(row.projectId, row.value);
+    }
+  }
+  return map;
+}
+
+export async function markDeskMessageNotificationsReadForProject(
+  userId: string,
+  projectId: string,
+) {
+  const db = getDb();
+  await db
+    .update(notifications)
+    .set({ readAt: new Date(), updatedAt: new Date() })
+    .where(
+      and(
+        eq(notifications.audience, "desk"),
+        eq(notifications.kind, "message"),
+        eq(notifications.projectId, projectId),
+        or(eq(notifications.userId, userId), isNull(notifications.userId)),
+        isNull(notifications.readAt),
+      ),
+    );
+}
+
+export async function markPortalMessageNotificationsReadForProject(
+  personId: string,
+  projectId: string,
+) {
+  const db = getDb();
+  await db
+    .update(notifications)
+    .set({ readAt: new Date(), updatedAt: new Date() })
+    .where(
+      and(
+        eq(notifications.audience, "portal"),
+        eq(notifications.kind, "message"),
+        eq(notifications.projectId, projectId),
+        eq(notifications.personId, personId),
+        isNull(notifications.readAt),
+      ),
+    );
+}
+
 export type InboundLeadDraftPayload = {
   email: string;
   name: string;
@@ -2505,4 +2705,53 @@ export async function activateInboundProject(id: string) {
     .update(projects)
     .set({ status: "active", updatedAt: new Date() })
     .where(and(eq(projects.id, id), eq(projects.status, "inactive")));
+}
+
+export async function listLegalDocuments() {
+  const db = getDb();
+  return db
+    .select({
+      slug: siteLegalDocuments.slug,
+      title: siteLegalDocuments.title,
+      lastUpdated: siteLegalDocuments.lastUpdated,
+      updatedAt: siteLegalDocuments.updatedAt,
+    })
+    .from(siteLegalDocuments)
+    .orderBy(asc(siteLegalDocuments.slug));
+}
+
+export async function getLegalDocument(slug: string) {
+  const db = getDb();
+  const [row] = await db
+    .select()
+    .from(siteLegalDocuments)
+    .where(eq(siteLegalDocuments.slug, slug))
+    .limit(1);
+  return row ?? null;
+}
+
+export async function updateLegalDocument(
+  slug: string,
+  values: {
+    title: string;
+    lastUpdated: string;
+    intro: string;
+    sections: SiteLegalSection[];
+    updatedByUserId: string | null;
+  },
+) {
+  const db = getDb();
+  const [row] = await db
+    .update(siteLegalDocuments)
+    .set({
+      title: values.title,
+      lastUpdated: values.lastUpdated,
+      intro: values.intro,
+      sections: values.sections,
+      updatedByUserId: values.updatedByUserId,
+      updatedAt: new Date(),
+    })
+    .where(eq(siteLegalDocuments.slug, slug))
+    .returning();
+  return row ?? null;
 }

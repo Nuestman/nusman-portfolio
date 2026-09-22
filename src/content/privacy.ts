@@ -1,6 +1,7 @@
 /**
  * Privacy policy for nusman.dev / Nuestman practice.
  * Adapted from MineAid HMS legal content (same controller entity).
+ * Static fallback when Desk GET /api/legal/privacy is unavailable.
  */
 
 const PHONE_E164 = '233206484034'
@@ -8,7 +9,7 @@ const WHATSAPP_PREFILL =
   'Hello, I have a privacy enquiry about nusman.dev / Portal.'
 
 export const LEGAL_CONTACT = {
-  orgName: 'NUsman Tech Solutions',
+  orgName: 'Nuestman Tech Solutions',
   /** Registered with Ghana ORC and DPC under this name */
   registeredName: 'Nuestman Links Enterprise',
   practiceName: 'Numan Usman',
@@ -20,7 +21,12 @@ export const LEGAL_CONTACT = {
   whatsappUrl: `https://wa.me/${PHONE_E164}?text=${encodeURIComponent(WHATSAPP_PREFILL)}`,
 } as const
 
+export const PRIVACY_TITLE = 'Privacy Policy'
+
 export const PRIVACY_LAST_UPDATED = 'September 2026'
+
+export const PRIVACY_INTRO =
+  'This policy describes how we collect, use, and protect personal data in connection with nusman.dev, the Start a project and Contact flows, and the client Portal. It is designed to align with the EU GDPR (where it applies) and Ghana’s Data Protection Act, 2012 (Act 843).'
 
 export type LegalSection = {
   id: string
@@ -28,12 +34,19 @@ export type LegalSection = {
   paragraphs: string[]
 }
 
+export type LegalDocument = {
+  title: string
+  lastUpdated: string
+  intro: string
+  sections: LegalSection[]
+}
+
 export const PRIVACY_SECTIONS: LegalSection[] = [
   {
     id: 'controller',
     title: '1. Data controller and contact',
     paragraphs: [
-      'Data controller: NUsman Tech Solutions (trading as the Numan Usman / nusman.dev practice). We are registered with the Office of the Registrar of Companies (ORC), Ghana, as Nuestman Links Enterprise, and the same entity is registered with the Data Protection Commission (DPC) for data protection compliance.',
+      'Data controller: Nuestman Tech Solutions (trading as the Numan Usman / nusman.dev practice). We are registered with the Office of the Registrar of Companies (ORC), Ghana, as Nuestman Links Enterprise, and the same entity is registered with the Data Protection Commission (DPC) for data protection compliance.',
       `Address: ${LEGAL_CONTACT.address}. For privacy requests, complaints, or questions (including data subject rights and Data Protection Commission matters), please use the contact details on this page.`,
       "Under Ghana's Data Protection Act, 2012 (Act 843), we are registered with the Data Protection Commission and ensure that our processing of personal data complies with the Act.",
     ],
@@ -95,38 +108,54 @@ export const PRIVACY_SECTIONS: LegalSection[] = [
     ],
   },
   {
+    id: 'cookies',
+    title: '9. Cookies and similar technologies',
+    paragraphs: [
+      'The public website (nusman.dev) does not set first-party cookies, does not use advertising or analytics cookies, and does not store authentication data in the browser’s local storage.',
+      'Desk (desk.nusman.dev) and the client Portal (portal.nusman.dev) use session cookies only — not advertising or tracking cookies. These are httpOnly, SameSite=lax, and Secure in production, and typically last about 14 days: desk_session (signed-in operator), desk_login_pending (short-lived step while finishing login or authenticator), and portal_session (signed-in client person). Switching between Desk and Portal clears the other surface’s session cookie.',
+      'We do not use third-party tracking cookies on these practice apps today. You can clear cookies in your browser; doing so will sign you out of Desk or Portal until you sign in again.',
+    ],
+  },
+  {
     id: 'breaches',
-    title: '9. Data breaches',
+    title: '10. Data breaches',
     paragraphs: [
       'Where a breach is likely to result in a risk to rights and freedoms, we will notify the relevant authority and affected people as required by applicable law (including Ghana Act 843 reporting to the Data Protection Commission where required, and GDPR supervisory authority notice where it applies).',
     ],
   },
   {
     id: 'transfers',
-    title: '10. International transfers',
+    title: '11. International transfers',
     paragraphs: [
       'Personal data may be processed or stored in countries outside your country of residence (for example hosting or email providers). Where we transfer data from the EEA or UK, we use appropriate safeguards where required (for example standard contractual clauses). Where we transfer data from Ghana, we comply with cross-border requirements under Act 843. More detail is available on request.',
     ],
   },
   {
     id: 'dpo-ghana',
-    title: '11. Data protection oversight (Ghana Act 843)',
+    title: '12. Data protection oversight (Ghana Act 843)',
     paragraphs: [
       'In line with Ghana Act 843, we maintain internal oversight for data protection compliance. For enquiries about Act 843 compliance or to exercise rights under the Act, contact us at the details in section 1.',
     ],
   },
   {
     id: 'changes',
-    title: '12. Changes to this policy',
+    title: '13. Changes to this policy',
     paragraphs: [
       'We may update this Privacy Policy from time to time. The current version will be posted on nusman.dev with a “Last updated” date. Material changes may also be communicated by email or through the Portal when relevant. Please review this policy periodically.',
     ],
   },
   {
     id: 'contact',
-    title: '13. Contact',
+    title: '14. Contact',
     paragraphs: [
-      `NUsman Tech Solutions, ${LEGAL_CONTACT.address}. For privacy, data subject rights, or Data Protection Commission–related enquiries, use the contact details on this page or email ${LEGAL_CONTACT.email}.`,
+      `Nuestman Tech Solutions, ${LEGAL_CONTACT.address}. For privacy, data subject rights, or Data Protection Commission–related enquiries, use the contact details on this page or email ${LEGAL_CONTACT.email}.`,
     ],
   },
 ]
+
+export const PRIVACY_DOC: LegalDocument = {
+  title: PRIVACY_TITLE,
+  lastUpdated: PRIVACY_LAST_UPDATED,
+  intro: PRIVACY_INTRO,
+  sections: PRIVACY_SECTIONS,
+}

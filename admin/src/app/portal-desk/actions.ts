@@ -18,6 +18,10 @@ import { requireSessionUser } from "@/lib/current-user";
 import { readTrimmed } from "@/lib/forms";
 import { isUuid } from "@/lib/ids";
 import { readMessageBodyFromForm } from "@/lib/message-body";
+import {
+  formHasAttachments,
+  persistMessageAttachments,
+} from "@/lib/message-attachments";
 import { notifyClientsOfPortalMessage } from "@/lib/notify";
 import { issuePortalMagicLink } from "@/lib/portal-magic";
 import { isPersonEmailVerified, issuePersonEmailVerify } from "@/lib/person-email-verify";
@@ -381,28 +385,38 @@ export async function replyPortalMessageAction(
   }
 
   const { body } = readMessageBodyFromForm(formData);
-  if (!body) {
-    return { error: "Write a reply first." };
+  const hasFiles = formHasAttachments(formData);
+  if (!body && !hasFiles) {
+    return { error: "Write a reply or attach a file." };
   }
 
-  await addPortalMessage({
+  const messageId = await addPortalMessage({
     projectId,
     personId: null,
     authorKind: "operator",
-    body,
+    body: body || "(attachment)",
   });
+  const attached = await persistMessageAttachments({
+    formData,
+    clientId: project.clientId,
+    projectId,
+    messageId,
+  });
+  if (!attached.ok) {
+    return { error: attached.error };
+  }
   await recordAudit({
     action: "portal.message",
     summary: `Replied on portal messages for “${project.title}”.`,
     entityType: "portal_message",
     projectId,
-    after: { body, authorKind: "operator" },
+    after: { body, authorKind: "operator", messageId, hasAttachments: hasFiles },
   });
   await notifyClientsOfPortalMessage({
     clientId: project.clientId,
     projectId,
     projectTitle: project.title,
-    body,
+    body: body || "(attachment)",
   });
   revalidateProjectPaths(projectId, project.clientId);
   redirect(`/messages/${projectId}`);

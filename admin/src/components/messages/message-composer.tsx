@@ -3,12 +3,15 @@
 import { useEffect, useId, useRef, useState, type ReactNode } from "react";
 import { Editor } from "@tinymce/tinymce-react";
 import type { Editor as TinyMCEEditor } from "tinymce";
+import { FilePickField } from "@/components/file-pick-field";
 import { fieldClassName } from "@/lib/forms";
 import {
   messageBodyPlainText,
   type MessageBodyFormat,
 } from "@/lib/message-body";
 import { cn } from "@/lib/utils";
+
+const ATTACHMENT_MAX_COUNT = 3;
 
 type MessageComposerProps = {
   id?: string;
@@ -25,6 +28,8 @@ type MessageComposerProps = {
   submitOnEnter?: boolean;
   autofocus?: boolean;
   disabled?: boolean;
+  /** PNG/JPEG/WebP/PDF — up to 3 files, field name `attachments`. */
+  allowAttachments?: boolean;
   /** Send control (compact) or extra controls beside the toggle. */
   actions?: ReactNode;
   hint?: ReactNode;
@@ -87,6 +92,7 @@ export function MessageComposer({
   submitOnEnter = false,
   autofocus = false,
   disabled = false,
+  allowAttachments = false,
   actions,
   hint,
 }: MessageComposerProps) {
@@ -119,6 +125,26 @@ export function MessageComposer({
     setValue(plain);
     setFormat("html");
   }
+
+  const attachmentInput = allowAttachments ? (
+    <div className="px-1">
+      <FilePickField
+        id={`${fieldId}-attachments`}
+        name="attachments"
+        multiple
+        maxFiles={ATTACHMENT_MAX_COUNT}
+        disabled={disabled}
+        accept="image/png,image/jpeg,image/webp,application/pdf"
+        label="Attachments (optional)"
+        hint={
+          <p className="mt-1 text-[11px] text-gray-400">
+            Up to {ATTACHMENT_MAX_COUNT} files · PNG, JPEG, WebP, or PDF · 5 MB
+            each
+          </p>
+        }
+      />
+    </div>
+  ) : null;
 
   const formatInput = (
     <input type="hidden" name="bodyFormat" value={format} />
@@ -172,6 +198,7 @@ export function MessageComposer({
         <div className={cn("w-full space-y-2", className)}>
           <div className="flex justify-end px-1">{toggle}</div>
           {formatInput}
+          {attachmentInput}
           <div className="flex items-end gap-2 rounded-[1.25rem] border border-gray-200 bg-white px-3 py-2 shadow-sm focus-within:border-gray-300 focus-within:ring-2 focus-within:ring-gray-200">
             <label htmlFor={fieldId} className="sr-only">
               Message
@@ -192,6 +219,7 @@ export function MessageComposer({
         </div>
         {formatInput}
         {textarea}
+        {attachmentInput}
         {actions}
         {hint}
       </div>
@@ -296,6 +324,7 @@ export function MessageComposer({
           }}
         />
       </div>
+      {attachmentInput}
       {actions ? (
         <div className="flex justify-end px-1">{actions}</div>
       ) : null}

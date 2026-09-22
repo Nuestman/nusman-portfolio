@@ -108,6 +108,7 @@ export function NewConversationForm({
         </label>
         <MessageComposer
           id="compose-body"
+          allowAttachments
           disabled={pending}
           placeholder="Say hello or leave blank to open an empty thread"
         />

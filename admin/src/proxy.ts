@@ -39,8 +39,15 @@ function isPortalAuthTokenPath(pathname: string) {
 function isDeskPublicApiPath(pathname: string) {
   return (
     pathname === "/api/inbound-lead" ||
-    pathname.startsWith("/api/inbound-lead/")
+    pathname.startsWith("/api/inbound-lead/") ||
+    pathname === "/api/legal" ||
+    pathname.startsWith("/api/legal/")
   );
+}
+
+/** Same-origin authenticated APIs used by Desk and Portal (no /portal rewrite). */
+function isSharedAuthApiPath(pathname: string) {
+  return pathname === "/api/files" || pathname.startsWith("/api/files/");
 }
 
 /**
@@ -69,6 +76,7 @@ function isDeskExclusivePath(pathname: string) {
     pathname.startsWith("/activities") ||
     pathname.startsWith("/audit") ||
     pathname.startsWith("/export") ||
+    pathname.startsWith("/legal") ||
     // Exact `/log` or `/log/...` only — `/login` must not match.
     pathname === "/log" ||
     pathname.startsWith("/log/") ||
@@ -137,6 +145,14 @@ async function handlePortal(request: NextRequest) {
   }
 
   if (isSharedDeskPortalPath(pathname)) {
+    const response = NextResponse.next();
+    if (request.cookies.has(SESSION_COOKIE)) {
+      response.cookies.delete(SESSION_COOKIE);
+    }
+    return response;
+  }
+
+  if (isSharedAuthApiPath(pathname)) {
     const response = NextResponse.next();
     if (request.cookies.has(SESSION_COOKIE)) {
       response.cookies.delete(SESSION_COOKIE);

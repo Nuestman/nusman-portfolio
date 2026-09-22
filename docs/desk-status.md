@@ -1,8 +1,8 @@
 # Desk status
 
-Checked 22 Sep 2026 against the code in `admin/`. Product version: **2.7.3** (`admin/package.json`). Product rules: [desk-2.0.md](./desk-2.0.md) (wins) and [desk.md](./desk.md). Portal: [portal.md](./portal.md). Archive: [archive/desk-1.1.md](./archive/desk-1.1.md). Visual: [style-guide.md](./style-guide.md). Deploy: [deploy.md](./deploy.md). Update this file when something ships or an open item is closed.
+Checked 22 Sep 2026 against the code in `admin/`. Product version: **2.8.0** (`admin/package.json`). Product rules: [desk-2.0.md](./desk-2.0.md) (wins) and [desk.md](./desk.md). Portal: [portal.md](./portal.md). Archive: [archive/desk-1.1.md](./archive/desk-1.1.md). Visual: [style-guide.md](./style-guide.md). Deploy: [deploy.md](./deploy.md). Update this file when something ships or an open item is closed.
 
-Desk **2.7.3** / Portal **1.7.3** are usable. Public site **4.4.0** posts `/start` into Desk as an **inactive** project; email confirm (or Desk confirm) activates it. Portal sign-in requires a **confirmed** person email. Public `/privacy` and `/terms` are live.
+Desk **2.8.0** / Portal **1.8.0** are usable. Public site **4.4.1** posts `/start` into Desk as an **inactive** project; email confirm (or Desk confirm) activates it. Portal sign-in requires a **confirmed** person email. Public `/privacy` and `/terms` load from Desk `GET /api/legal/[slug]` with a static fallback. Profile photos and message attachments use a **private** Vercel Blob store (proxied downloads). Messages nav + conversation list show unread message badges.
 
 ---
 
@@ -21,30 +21,34 @@ Hiring jobs with gate records, **process milestones**, table-row edit/remove, pl
 | `/clients` … `/clients/[id]/people/[personId]` · `/edit` | Live. Person **profile** on Desk (`/profile` layout: stacked You card + Details, Organisation, Projects, Notes, Portal access). Name in the people list opens the profile; Edit is on the You card and in the row. Organisation lists the hiring party; Projects lists every job on that client. Person `/edit` still has the form + magic link. Portal enable is blocked until the person’s email is confirmed (**Confirm email** / **Resend confirmation**). Unconfirmed emails are marked on the people list. Hiring party shows empty fields. Inactive clients highlighted. Pending-email banner + Desk confirm / resend |
 | `/schedule` | Live. Hub: Cards / Calendar; create/edit still on project |
 | `/projects` … gate records, notes, options, changes, demos, **milestones** | Live. Current gate first; earlier stages collapsed; timeline; **Schedule** (`project_events`); portal strip; Qualify Real ↔ qualified milestone. Inactive status + pending-email banner |
-| `/messages`, `/messages/new`, `/messages/[projectId]` | Live. Chat-style portal conversation inbox; compose/reply with plain or rich (TinyMCE) |
+| `/messages`, `/messages/new`, `/messages/[projectId]` | Live. Chat-style portal conversation inbox; compose/reply with plain or rich (TinyMCE); attachments; unread badges on nav + list; opening a thread clears that project’s message notifications |
 | `/notifications`, `/notifications/new`, `/notifications/[id]/edit` | Live. Feed + table; compose + edit only if you sent it |
 | `/products`, `/products/new` | Live. Own-product records only |
 | `/playbook` | Live on Desk. Public scratch page is gone |
+| `/legal`, `/legal/[slug]/edit` | Live. Privacy + Terms in Neon; account menu |
 | `/style` | Live specimens. Live header is the account-menu specimen |
 | `/export`, `/export/download` | Live. JSON, YAML, CSV zip, Markdown, HTML |
 | `/profile` | Live. Self-edit, password, optional authenticator, devices; owner adds / deactivates operators. You card uses the default gold/white avatar when no photo |
-| `/profile/photo/[id]` | Live. Session required. Static photos: `/avatars/` (default `/avatars/default-user.png`) |
+| `/profile/photo/[id]` | Live. Session required. Serves legacy DB `image_data` or streams **private** Blob from `users.image_url` |
+| `/api/files/attachment/[id]` | Live. Desk or Portal session; streams **private** message attachments |
+| `/api/files/person-avatar/[id]` | Live. Desk session, or Portal session for that person; streams **private** person photo |
 | `/api/inbound-lead` | Live. Same as `/draft` (CORS + honeypot + rate limit) |
 | `/api/inbound-lead/draft` | Live. Public `/start` creates inactive client + project; sends verify email (debug URL when Resend unset) |
 | `/api/inbound-lead/verify` | Live. Confirm link activates the existing project + receipt (idempotent) |
 | `/api/inbound-lead/resend` | Live. New verify token for an open draft |
+| `/api/legal/[slug]` | Live. Public GET + OPTIONS (CORS). Privacy / Terms JSON |
 
 ### Portal host (`portal.*` / `portal.localhost`)
 
 | Route | Status |
 |---|---|
 | `/`, `/login`, `/auth/magic`, `/auth/verify-email` | Live. Magic links finish on Portal origin. Unconfirmed emails cannot sign in; login sends a confirm link instead |
-| `/profile` | Live. Read-only `/profile` layout: stacked You card + Details, Organisation, Projects (client-facing stage labels; Start a project) |
+| `/profile` | Live. You card + photo upload (private Blob, remove-before-save); Details, Organisation, Projects (client-facing stage labels; Start a project) |
 | `/projects`, `/projects/new`, `/projects/[id]` | Live. List, start project, Progress (gold path), package, updates |
 | `/projects/[id]/brief` | Live. Locked client brief (project name header, package, deadline, problem, what we’re building, success, who it is for, needed by, budget, call/meet, notes, scope; empty fields “Not set.”; Incomplete info badge; Fill details while intake is open) |
 | `/projects/[id]/intake` | Live. Questions form only while intake is open; otherwise points at the brief |
 | `/projects/[id]/schedule` | Live. Project cards with confirm / decline / cancel |
-| `/messages`, `/messages/[projectId]` | Live. Hub + thread; same plain / rich composer as Desk |
+| `/messages`, `/messages/[projectId]` | Live. Hub + thread; composer with optional attachments; unread badges on nav + list |
 | `/notifications` | Live. Feed + table — mark read / delete only (account menu) |
 | `/schedule` | Live. Wide hub: Cards / Calendar; confirm/decline/cancel; request |
 
@@ -77,6 +81,8 @@ Migrations on Neon **nusmandotdev** (`sparkling-art-67399165`) only:
 | `0018_inbound_draft_email_open` | One open inbound draft per email; draft↔project index |
 | `0019_project_want_built` | `projects.want_built` — “What we’re building” on Desk/Portal brief |
 | `0020_person_email_verified` | `people.email_verified_at` + confirm token; Portal requires confirmed email |
+| `0021_site_legal_documents` | Privacy + Terms JSON docs; Desk `/legal`; public `GET /api/legal/[slug]` |
+| `0022_people_image_message_attachments` | `people.image_url`; `portal_message_attachments` for private Blob files |
 
 Apply from `admin/` with `npm run db:migrate`. Do not point `DATABASE_URL` at Mineaid, Uventory, church, or any other Neon project.
 
@@ -87,8 +93,8 @@ Apply from `admin/` with `npm run db:migrate`. Do not point `DATABASE_URL` at Mi
 - Proxy and all Desk pages/actions require a live `sessions` row. Revoked or expired cookies are cleared.
 - Env `ADMIN_PASSWORD` only works while the owner’s `password_hash` is empty (bootstrap). After that, hash only.
 - Optional TOTP on Profile. After password, login asks for a 6-digit code or a one-time recovery code. `drizzle/0007_totp.sql`.
-- Public without Desk login: `/_next/*`, favicons, `/logos/`, `/favicon/`, `/avatars/`, `/tinymce/`, `POST /api/inbound-lead`. Portal public: `/login`, `/auth/magic`, `/auth/verify-email`.
-- Photos: PNG / JPEG / WebP, max 400 KB. `image_url` (seeded `/avatars/numan.png`) or `image_data` + `image_mime`. Server actions body limit 1 MB.
+- Public without Desk login: `/_next/*`, favicons, `/logos/`, `/favicon/`, `/avatars/`, `/tinymce/`, `POST /api/inbound-lead`, `GET /api/legal/[slug]`. Portal public: `/login`, `/auth/magic`, `/auth/verify-email`.
+- Photos: PNG / JPEG / WebP, max 400 KB. Operator + Portal person uploads → **private Vercel Blob** (`users.image_url` / `people.image_url`). Paths: `operators/{userId}/…`, `clients/{clientId}/people/{personId}/…`. Served only via `/profile/photo/[id]` and `/api/files/person-avatar/[id]`. Legacy operator `image_data` still on `/profile/photo/[id]`. Message attachments: private Blob under `clients/…/projects/…/messages/…`; download `GET /api/files/attachment/[id]`. Server actions body limit 16 MB.
 - Exports omit `password_hash`, `image_data`, and TOTP secrets. `sessions` is not exported.
 - Login failures: 5 per IP per 15 minutes, in memory, per server instance.
 
@@ -96,7 +102,7 @@ Apply from `admin/` with `npm run db:migrate`. Do not point `DATABASE_URL` at Mi
 
 Main nav: Today, Audit, Clients, Projects, **Schedule**, Messages, Products, Style, Export.
 
-Account menu (last nav item): grey chip (`bg-gray-100 hover:bg-gray-200`), circular photo (default gold fill + white silhouette, **no gold ring at rest**). Badge includes the notifications bell and unread count. Menu opens with the **signed-in name**, then **Notifications** (unread on that row too), **Playbook**, Profile, Journal, Sign out. Inline SVG icons. Journal, Notifications, and Playbook are not in the main nav.
+Account menu (last nav item): grey chip (`bg-gray-100 hover:bg-gray-200`), circular photo (default gold fill + white silhouette, **no gold ring at rest**). Badge includes the notifications bell and unread count. Menu opens with the **signed-in name**, then **Notifications** (unread on that row too), **Playbook**, **Legal**, Profile, Journal, Sign out. Inline SVG icons. Journal, Notifications, Playbook, and Legal are not in the main nav.
 
 Portal header mirrors Desk chrome; account chip opens the signed-in name, Notifications, Profile, and Sign out. Shared minimal `AppFooter` (surface + version, Privacy · Terms · © N. Usman) sits under DeskShell and PortalShell only — not on the Portal landing page.
 
@@ -126,8 +132,7 @@ These are leftover product work, not bugs in the last UI pass.
 
 ### Portal / messages
 
-- No unread badges on new portal **messages** (notifications unread on the account bell is live).
-- Several readonly panels still look like forms (`InfoList`): Agreement, Discovery answers, Call notes & scope, Launch, Portal Your package, classic project, audit. Hiring party is redesigned. Redesign the rest later — not part of 2.7.3.
+- Several readonly panels still look like forms (`InfoList`): Agreement, Discovery answers, Call notes & scope, Launch, Portal Your package, classic project, audit. Hiring party is redesigned. Redesign the rest later — not part of 2.8.0.
 - Operator replies do not store which operator wrote them (`author_kind` only).
 - Chosen package with leftover coaching text in `summary` must be rewritten on Desk before Choose / before Portal looks complete.
 - **Routing cleanup (later):** collapse Desk/Portal overlapping `/projects*` trees so soft-nav does not need dual-mode. See [portal.md](./portal.md#later--routing-cleanup-best-practice).
@@ -160,4 +165,4 @@ Not a new phase unless you choose one:
 3. Add other operators from Profile when you need them.
 4. Later, import product databases — only when you choose to, and never by pointing Desk at their `DATABASE_URL`.
 
-Possible later work if you ask for it: Portal routing cleanup (one module per public URL — [portal.md](./portal.md#later--routing-cleanup-best-practice)); stages/milestones duplication cleanup (one progress model); unread badges on messages; form-shaped readonly `InfoList` panels; operator identity on replies; owner edit / password-reset for other operators; sweep expired sessions; require authenticator for all operators; Neon snapshots; product-data import.
+Possible later work if you ask for it: Portal routing cleanup (one module per public URL — [portal.md](./portal.md#later--routing-cleanup-best-practice)); stages/milestones duplication cleanup (one progress model); form-shaped readonly `InfoList` panels; operator identity on replies; owner edit / password-reset for other operators; sweep expired sessions; require authenticator for all operators; Neon snapshots; product-data import.

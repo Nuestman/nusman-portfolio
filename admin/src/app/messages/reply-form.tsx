@@ -36,7 +36,7 @@ export function DeskMessageReplyForm({ projectId }: { projectId: string }) {
       <MessageComposer
         id="desk-message-reply"
         variant="compact"
-        required
+        allowAttachments
         autofocus
         submitOnEnter
         disabled={replyPending}

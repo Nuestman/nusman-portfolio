@@ -8,6 +8,7 @@ import { EditableCard } from "@/components/editable-card";
 import { InactiveBadge } from "@/components/inactive-badge";
 import { PageSpread } from "@/components/page-spread";
 import { ProfileYouView } from "@/components/profile-you-view";
+import { personAvatarSrcOrNull } from "@/lib/person-avatar";
 import { ConfirmDelete } from "@/components/confirm-submit";
 import {
   EditLink,
@@ -142,7 +143,7 @@ export default async function PersonProfilePage({
             view={
               <ProfileYouView
                 name={person.name}
-                src={null}
+                src={personAvatarSrcOrNull(person)}
                 layout="stack"
                 role={personRoleLabel(person.role)}
                 email={person.email}

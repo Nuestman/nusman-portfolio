@@ -27,7 +27,7 @@ export function PortalMessageForm({ projectId }: { projectId: string }) {
         </label>
         <MessageComposer
           id="portal-message-body"
-          required
+          allowAttachments
           disabled={pending}
           placeholder="Question, update, or decision…"
         />

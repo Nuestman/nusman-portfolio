@@ -1,7 +1,10 @@
 import type { ReactNode } from "react";
 import { AppFooter } from "@/components/app-footer";
 import { DeskHeader } from "@/components/desk-header";
-import { countUnreadDeskNotifications } from "@/db/queries";
+import {
+  countUnreadDeskMessageNotifications,
+  countUnreadDeskNotifications,
+} from "@/db/queries";
 import { requireSessionUser, userAvatarSrc } from "@/lib/current-user";
 import { PAGE_FRAME_CLASS } from "@/lib/layout";
 import { cn } from "@/lib/utils";
@@ -17,7 +20,10 @@ export async function DeskShell({
   mainClassName?: string;
 }) {
   const user = await requireSessionUser();
-  const unreadCount = await countUnreadDeskNotifications(user.id);
+  const [unreadCount, unreadMessageCount] = await Promise.all([
+    countUnreadDeskNotifications(user.id),
+    countUnreadDeskMessageNotifications(user.id),
+  ]);
 
   return (
     <div className="flex min-h-dvh min-w-0 flex-col">
@@ -33,6 +39,7 @@ export async function DeskShell({
           imageSrc: userAvatarSrc(user),
         }}
         unreadCount={unreadCount}
+        unreadMessageCount={unreadMessageCount}
       />
       {beforeMain}
       <main

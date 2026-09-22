@@ -31,11 +31,14 @@ export function allowedOrigins(): string[] {
   return ["https://nusman.dev", "https://www.nusman.dev"];
 }
 
-export function corsHeaders(request: NextRequest): HeadersInit {
+export function corsHeaders(
+  request: NextRequest,
+  methods: string[] = ["POST", "OPTIONS"],
+): HeadersInit {
   const origin = request.headers.get("origin");
   const allowed = allowedOrigins();
   const headers: Record<string, string> = {
-    "Access-Control-Allow-Methods": "POST, OPTIONS",
+    "Access-Control-Allow-Methods": methods.join(", "),
     "Access-Control-Allow-Headers": "Content-Type",
     "Access-Control-Max-Age": "86400",
   };
@@ -44,6 +47,33 @@ export function corsHeaders(request: NextRequest): HeadersInit {
     headers.Vary = "Origin";
   }
   return headers;
+}
+
+const PUBLIC_GET_CORS_METHODS = ["GET", "OPTIONS"];
+
+export function publicGetCorsHeaders(request: NextRequest): HeadersInit {
+  return corsHeaders(request, PUBLIC_GET_CORS_METHODS);
+}
+
+export function publicGetJson(
+  request: NextRequest,
+  body: Record<string, unknown>,
+  status = 200,
+) {
+  return NextResponse.json(body, {
+    status,
+    headers: publicGetCorsHeaders(request),
+  });
+}
+
+export function publicGetOptions(request: NextRequest) {
+  if (!originAllowed(request)) {
+    return new NextResponse(null, { status: 403 });
+  }
+  return new NextResponse(null, {
+    status: 204,
+    headers: publicGetCorsHeaders(request),
+  });
 }
 
 export function originAllowed(request: NextRequest): boolean {

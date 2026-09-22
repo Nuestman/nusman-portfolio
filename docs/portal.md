@@ -158,7 +158,7 @@ Add domain `portal.nusman.dev` on the same Vercel project as Desk. Magic links u
 15. Person email confirmation before Portal; Desk + Portal person profiles; “What we’re building” on the brief; table/card overflow contained — done (Portal **1.7** / Desk **2.7.0**)
 16. Portal home header stays one row (`PAGE_FRAME_CLASS` width-only; narrow grid on `main`) — done (Portal **1.7.1** / Desk **2.7.1**)
 17. Minimal signed-in shell footer (surface + version, © N. Usman) — done (Portal **1.7.2** / Desk **2.7.2**)
-18. Public `/privacy` + `/terms`; shell footer links to them — done (Portal **1.7.3** / Desk **2.7.3** / public **4.4.0**)  
+18. Public `/privacy` + `/terms`; Desk-editable Neon copy; private Blob avatars + message attachments; unread message badges on nav + threads — done (Portal **1.8.0** / Desk **2.8.0** / public **4.4.1**)  
 
 ---
 

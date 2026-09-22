@@ -1,5 +1,44 @@
 # Changelog
 
+## 22 Sep 2026 — Desk 2.8.0 / Portal 1.8.0 · public 4.4.1
+
+### Desk / Portal (`admin/` → **2.8.0**)
+
+- **Legal docs in Neon** (also noted under 2.7.4) — migration `0021`; Desk `/legal`; public `GET /api/legal/[slug]`.
+- **Private Vercel Blob** (store must be private; `BLOB_STORE_ID` + OIDC / local `vercel env pull` with Development connected):
+  - **Operator + Portal person photos** — migration `0022` adds `people.image_url`. Uploads use `access: 'private'`. Display via authenticated proxies: `/profile/photo/[id]` (operators; also legacy `image_data`) and `GET /api/files/person-avatar/[id]` (people). Paths: `operators/{userId}/…`, `clients/{clientId}/people/{personId}/…`.
+  - **Message attachments** — up to 3 files per send (PNG/JPEG/WebP/PDF, 5 MB). Private under `clients/…/projects/…/messages/…`. Download `GET /api/files/attachment/[id]`. Server action body limit 16 MB.
+- **File pick UX** — selected attachments / avatar photos list with Remove (and Clear all when multiple) before submit; no page refresh to discard.
+- **Message bubbles** — long tokens/URLs wrap inside the bubble (`min-w-0` + overflow-wrap).
+- **Unread message badges** — gold count on the Messages nav (Desk + Portal) and on each conversation row, from unread in-app `kind: message` notifications. Opening a thread marks that project’s message notifications read.
+
+Public site **4.4.1** is unchanged.
+
+---
+
+## 22 Sep 2026 — Desk 2.7.5 / Portal 1.7.5 · public 4.4.1
+
+### Desk / Portal (`admin/` → **2.7.5**)
+
+- **Profile photos on Vercel Blob** — operator uploads store a Blob URL on `users.image_url` (clears legacy `image_data`). Auth via connected store (`BLOB_STORE_ID` + OIDC on Vercel; local `vercel env pull`). Display via `/profile/photo/[id]` (legacy DB bytes or private Blob).
+
+Public site **4.4.1** is unchanged.
+
+---
+
+## 22 Sep 2026 — Desk 2.7.4 / Portal 1.7.4 · public 4.4.1
+
+### Desk / Portal (`admin/` → **2.7.4**)
+
+- **Legal docs in Neon** — migration `0021_site_legal_documents` seeds Privacy + Terms. Desk `/legal` list + edit (account menu). Public `GET` / `OPTIONS` `/api/legal/[slug]` with CORS for the marketing site.
+- Privacy seed includes a **Cookies** section (public site: none; Desk/Portal: session cookies only).
+
+### Public site (**4.4.1**)
+
+- `/privacy` and `/terms` load published copy from Desk when available; static `src/content/*` remains the fallback. Cookies wording aligned with Desk/Portal session cookies.
+
+---
+
 ## 22 Sep 2026 — Desk 2.7.3 / Portal 1.7.3 · public 4.4.0
 
 ### Desk / Portal (`admin/` → **2.7.3**)

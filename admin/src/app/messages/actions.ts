@@ -8,6 +8,10 @@ import { requireSessionUser } from "@/lib/current-user";
 import { readTrimmed } from "@/lib/forms";
 import { isUuid } from "@/lib/ids";
 import { readMessageBodyFromForm } from "@/lib/message-body";
+import {
+  formHasAttachments,
+  persistMessageAttachments,
+} from "@/lib/message-attachments";
 import { notifyClientsOfPortalMessage } from "@/lib/notify";
 
 export type FormState = {
@@ -41,25 +45,40 @@ export async function openPortalConversationAction(
   }
 
   const { body } = readMessageBodyFromForm(formData);
-  if (body) {
-    await addPortalMessage({
+  const hasFiles = formHasAttachments(formData);
+  if (body || hasFiles) {
+    const messageId = await addPortalMessage({
       projectId,
       personId: null,
       authorKind: "operator",
-      body,
+      body: body || "(attachment)",
     });
+    const attached = await persistMessageAttachments({
+      formData,
+      clientId,
+      projectId,
+      messageId,
+    });
+    if (!attached.ok) {
+      return { error: attached.error };
+    }
     await recordAudit({
       action: "portal.message",
       summary: `Started portal conversation on “${project.title}”.`,
       entityType: "portal_message",
       projectId,
-      after: { body, authorKind: "operator" },
+      after: {
+        body,
+        authorKind: "operator",
+        messageId,
+        hasAttachments: hasFiles,
+      },
     });
     await notifyClientsOfPortalMessage({
       clientId,
       projectId,
       projectTitle: project.title,
-      body,
+      body: body || "(attachment)",
     });
     revalidatePath("/messages");
     revalidatePath(`/messages/${projectId}`);

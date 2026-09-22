@@ -4,14 +4,19 @@ import { loadFromDb } from "@/db";
 import {
   getClient,
   getProject,
+  listAttachmentsForMessageIds,
   listPortalConversations,
   listPortalMessages,
+  markDeskMessageNotificationsReadForProject,
+  unreadDeskMessageCountsByProject,
 } from "@/db/queries";
 import { DatabaseNotice } from "@/components/database-notice";
 import { DeskShell } from "@/components/desk-shell";
+import { withConversationUnread } from "@/components/messages/conversation-list";
 import { MessagesWorkspace } from "@/components/messages/messages-workspace";
 import { PortalMessageThread } from "@/components/portal-message-thread";
 import { ScrollThreadLatest } from "@/components/scroll-thread-latest";
+import { requireSessionUser } from "@/lib/current-user";
 import { isUuid } from "@/lib/ids";
 import {
   formatChatStamp,
@@ -38,13 +43,27 @@ export default async function DeskConversationPage({
     notFound();
   }
 
-  const [client, messages, conversations] = await Promise.all([
+  const user = await requireSessionUser();
+  await markDeskMessageNotificationsReadForProject(user.id, project.id);
+
+  const [client, messages, conversations, unreadByProject] = await Promise.all([
     getClient(project.clientId),
     listPortalMessages(project.id),
     loadFromDb(() => listPortalConversations()),
+    unreadDeskMessageCountsByProject(user.id),
   ]);
   if (!client) {
     notFound();
+  }
+
+  const attachmentRows = await listAttachmentsForMessageIds(
+    messages.map((message) => message.id),
+  );
+  const attachmentsByMessage = new Map<string, typeof attachmentRows>();
+  for (const row of attachmentRows) {
+    const list = attachmentsByMessage.get(row.messageId) ?? [];
+    list.push(row);
+    attachmentsByMessage.set(row.messageId, list);
   }
 
   const thread = messages.map((message) => ({
@@ -56,6 +75,7 @@ export default async function DeskConversationPage({
         : (message.authorName?.trim() || "Client"),
     body: message.body,
     createdAtLabel: formatChatStamp(message.createdAt),
+    attachments: attachmentsByMessage.get(message.id) ?? [],
   }));
 
   const list =
@@ -75,23 +95,25 @@ export default async function DeskConversationPage({
           },
         ];
 
-  // Ensure the open project appears even with zero messages yet.
   const hasActive = list.some((row) => row.projectId === project.id);
-  const conversationsForList = hasActive
-    ? list
-    : [
-        {
-          projectId: project.id,
-          projectTitle: project.title,
-          clientId: client.id,
-          clientName: client.name,
-          lastAt: new Date(),
-          lastBody: "Start the conversation",
-          lastAuthorKind: "operator" as const,
-          messageCount: 0,
-        },
-        ...list,
-      ];
+  const conversationsForList = withConversationUnread(
+    hasActive
+      ? list
+      : [
+          {
+            projectId: project.id,
+            projectTitle: project.title,
+            clientId: client.id,
+            clientName: client.name,
+            lastAt: new Date(),
+            lastBody: "Start the conversation",
+            lastAuthorKind: "operator" as const,
+            messageCount: 0,
+          },
+          ...list,
+        ],
+    unreadByProject,
+  );
 
   return (
     <DeskShell mainClassName="space-y-0 py-4 md:py-6">

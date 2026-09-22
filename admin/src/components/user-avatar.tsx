@@ -26,7 +26,7 @@ export function UserAvatar({
       )}
       style={fill ? undefined : { width: size, height: size }}
     >
-      {/* Uploaded photos are served from an authenticated route. */}
+      {/* Private Blob avatars are proxied; static /avatars/* stay public. */}
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
         src={imageSrc}
