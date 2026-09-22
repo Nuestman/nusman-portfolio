@@ -1,6 +1,6 @@
 {
   "name": "numan-usman-portfolio",
-  "version": "4.3.0",
+  "version": "4.4.0",
   "private": true,
   "type": "module",
   "description": "Personal site for Numan Usman — emergency nurse and web developer in Obuasi, Ghana.",
@@ -40,6 +40,8 @@
   },
   "scripts": {
     "dev": "vite",
+    "dev:desk": "npm run dev --prefix admin",
+    "dev:all": "concurrently -k -n site,desk -c yellow,cyan \"npm run dev\" \"npm run dev --prefix admin\"",
     "build": "tsc && vite build",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "lint:fix": "eslint . --ext ts,tsx --fix",
@@ -64,6 +66,7 @@
     "@vitejs/plugin-react": "^4.1.1",
     "autoprefixer": "^10.4.16",
     "baseline-browser-mapping": "^2.11.23",
+    "concurrently": "^10.0.5",
     "eslint": "^8.53.0",
     "eslint-plugin-react-hooks": "^4.6.0",
     "eslint-plugin-react-refresh": "^0.4.4",
