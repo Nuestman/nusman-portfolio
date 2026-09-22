@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { AppFooter } from "@/components/app-footer";
 import { PortalHeader } from "@/components/portal-header";
 import { countUnreadPortalNotifications } from "@/db/queries";
 import { requirePortalPerson } from "@/lib/current-person";
@@ -16,7 +17,7 @@ export async function PortalShell({
   const unreadCount = await countUnreadPortalNotifications(person.id);
 
   return (
-    <div className="grid min-h-full min-w-0 grid-cols-[minmax(0,1fr)]">
+    <div className="flex min-h-dvh min-w-0 flex-col">
       <a
         href="#portal-main"
         className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-md focus:bg-white focus:px-3 focus:py-2 focus:text-sm focus:text-dark-950"
@@ -28,12 +29,13 @@ export async function PortalShell({
         id="portal-main"
         className={cn(
           PAGE_FRAME_CLASS,
-          "grid grid-cols-[minmax(0,1fr)] space-y-8 py-10",
+          "grid min-w-0 flex-1 grid-cols-[minmax(0,1fr)] content-start space-y-8 py-10",
           mainClassName,
         )}
       >
         {children}
       </main>
+      <AppFooter surface="portal" />
     </div>
   );
 }

@@ -1,8 +1,8 @@
 # Desk status
 
-Checked 22 Sep 2026 against the code in `admin/`. Product version: **2.7.1** (`admin/package.json`). Product rules: [desk-2.0.md](./desk-2.0.md) (wins) and [desk.md](./desk.md). Portal: [portal.md](./portal.md). Archive: [archive/desk-1.1.md](./archive/desk-1.1.md). Visual: [style-guide.md](./style-guide.md). Deploy: [deploy.md](./deploy.md). Update this file when something ships or an open item is closed.
+Checked 22 Sep 2026 against the code in `admin/`. Product version: **2.7.2** (`admin/package.json`). Product rules: [desk-2.0.md](./desk-2.0.md) (wins) and [desk.md](./desk.md). Portal: [portal.md](./portal.md). Archive: [archive/desk-1.1.md](./archive/desk-1.1.md). Visual: [style-guide.md](./style-guide.md). Deploy: [deploy.md](./deploy.md). Update this file when something ships or an open item is closed.
 
-Desk **2.7.1** / Portal **1.7.1** are usable. Public site **4.3.0** posts `/start` into Desk as an **inactive** project; email confirm (or Desk confirm) activates it. Portal sign-in requires a **confirmed** person email.
+Desk **2.7.2** / Portal **1.7.2** are usable. Public site **4.3.0** posts `/start` into Desk as an **inactive** project; email confirm (or Desk confirm) activates it. Portal sign-in requires a **confirmed** person email.
 
 ---
 
@@ -98,7 +98,7 @@ Main nav: Today, Audit, Clients, Projects, **Schedule**, Messages, Products, Sty
 
 Account menu (last nav item): grey chip (`bg-gray-100 hover:bg-gray-200`), circular photo (default gold fill + white silhouette, **no gold ring at rest**). Badge includes the notifications bell and unread count. Menu opens with the **signed-in name**, then **Notifications** (unread on that row too), **Playbook**, Profile, Journal, Sign out. Inline SVG icons. Journal, Notifications, and Playbook are not in the main nav.
 
-Portal header mirrors Desk chrome; account chip opens the signed-in name, Notifications, Profile, and Sign out.
+Portal header mirrors Desk chrome; account chip opens the signed-in name, Notifications, Profile, and Sign out. Shared minimal `AppFooter` (surface + version, © N. Usman) sits under DeskShell and PortalShell only — not on the Portal landing page.
 
 Pages use `PAGE_FRAME_CLASS` (`max-w-[1400px]` width + gutters only — safe on flex headers such as Portal home). Desk/Portal `main` is a `minmax(0,1fr)` grid so list content cannot widen the canvas; table cards (`TableFrame`) scroll inside the card (`contain: layout paint`). Card titles are `font-heading text-2xl text-gold-500`. Card header actions (Add, Edit, Open) are `outline` buttons.
 
@@ -127,7 +127,7 @@ These are leftover product work, not bugs in the last UI pass.
 ### Portal / messages
 
 - No unread badges on new portal **messages** (notifications unread on the account bell is live).
-- Several readonly panels still look like forms (`InfoList`): Agreement, Discovery answers, Call notes & scope, Launch, Portal Your package, classic project, audit. Hiring party is redesigned. Redesign the rest later — not part of 2.7.1.
+- Several readonly panels still look like forms (`InfoList`): Agreement, Discovery answers, Call notes & scope, Launch, Portal Your package, classic project, audit. Hiring party is redesigned. Redesign the rest later — not part of 2.7.2.
 - Operator replies do not store which operator wrote them (`author_kind` only).
 - Chosen package with leftover coaching text in `summary` must be rewritten on Desk before Choose / before Portal looks complete.
 - **Routing cleanup (later):** collapse Desk/Portal overlapping `/projects*` trees so soft-nav does not need dual-mode. See [portal.md](./portal.md#later--routing-cleanup-best-practice).

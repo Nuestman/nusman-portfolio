@@ -156,7 +156,8 @@ Add domain `portal.nusman.dev` on the same Vercel project as Desk. Magic links u
 13. Public `/start` full-brief draft → email verify → Desk lead; “Not sure yet” stored on timeline/budget; marketing home URL for Portal chrome — done (Portal **1.5** / Desk **2.5.0** / public **4.2.0**)
 14. `/start` creates inactive Desk project on submit; email or Desk confirm activates; hiring party empty fields; inactive list highlight — done (Portal **1.6** / Desk **2.6.0** / public **4.3.0**)
 15. Person email confirmation before Portal; Desk + Portal person profiles; “What we’re building” on the brief; table/card overflow contained — done (Portal **1.7** / Desk **2.7.0**)
-16. Portal home header stays one row (`PAGE_FRAME_CLASS` width-only; narrow grid on `main`) — done (Portal **1.7.1** / Desk **2.7.1**)  
+16. Portal home header stays one row (`PAGE_FRAME_CLASS` width-only; narrow grid on `main`) — done (Portal **1.7.1** / Desk **2.7.1**)
+17. Minimal signed-in shell footer (surface + version, © N. Usman) — done (Portal **1.7.2** / Desk **2.7.2**)  
 
 ---
 

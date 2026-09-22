@@ -1,5 +1,15 @@
 # Changelog
 
+## 22 Sep 2026 — Desk 2.7.2 / Portal 1.7.2 · public 4.3.0
+
+### Desk / Portal (`admin/` → **2.7.2**)
+
+- **Shell footer** — shared minimal `AppFooter` under DeskShell and PortalShell (not Portal landing): surface label + `package.json` version, `© {year} N. Usman`. Shell uses `min-h-dvh` + `flex-1` main so the short footer sits on the viewport bottom with no empty band below it.
+
+Public site **4.3.0** is unchanged.
+
+---
+
 ## 22 Sep 2026 — Desk 2.7.1 / Portal 1.7.1 · public 4.3.0
 
 ### Desk / Portal (`admin/` → **2.7.1**)

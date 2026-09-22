@@ -84,7 +84,7 @@ Follow **[style-guide.md](./style-guide.md)**. Short version for Desk:
 - Gold `#B98C1B` and ink `#150F00`, Inter body, Odibee headings
 - Gold primary buttons, white `rounded-2xl` cards, `bg-gray-50` pages
 - In-line links gold + underline at rest (`linkClassName`). Nav is Odibee, no underline
-- Logo in chrome. Operator photo is the last nav item and opens Profile, Journal, and Sign out. No marketing caricatures, collab marquee, or gradients on chrome
+- Logo in chrome. Operator photo is the last nav item and opens Profile, Journal, and Sign out. No marketing caricatures, collab marquee, or gradients on chrome. Minimal footer under signed-in shells shows surface + app version
 - Screen titles use the public `section-heading` size (`text-5xl md:text-6xl lg:text-7xl`)
 - Card titles stay `font-heading text-2xl`. Do not use `section-heading` inside tables.
 
@@ -433,4 +433,4 @@ Do not add Desk links to `Header` / `Footer` / `sitemap.xml`.
 
 ## Immediate next step
 
-Desk **2.7.1** is the current cut (Portal home header row fixed; person email must be confirmed before Portal; Desk/Portal person profiles; “What we’re building” on the brief; inbound still creates inactive on `/start` submit; hiring party empty fields + wrapping emails; tables scroll in-card without a page side-strip; surfaces still follow [desk-2.0.md](./desk-2.0.md)). Invite a person from Desk (confirm email first), rewrite package summaries for clients, open intake when ready, keep an export after a real job starts. Later: Portal routing cleanup ([portal.md](./portal.md#later--routing-cleanup-best-practice)); form-shaped readonly panels; import product databases — only when you choose to, and never by pointing Desk at their `DATABASE_URL`.
+Desk **2.7.2** is the current cut (minimal shell footer with version; Portal home header row fixed; person email must be confirmed before Portal; Desk/Portal person profiles; “What we’re building” on the brief; inbound still creates inactive on `/start` submit; hiring party empty fields + wrapping emails; tables scroll in-card without a page side-strip; surfaces still follow [desk-2.0.md](./desk-2.0.md)). Invite a person from Desk (confirm email first), rewrite package summaries for clients, open intake when ready, keep an export after a real job starts. Later: Portal routing cleanup ([portal.md](./portal.md#later--routing-cleanup-best-practice)); form-shaped readonly panels; import product databases — only when you choose to, and never by pointing Desk at their `DATABASE_URL`.
