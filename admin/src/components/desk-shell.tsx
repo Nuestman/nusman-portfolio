@@ -36,7 +36,11 @@ export async function DeskShell({
       {beforeMain}
       <main
         id="desk-main"
-        className={cn(PAGE_FRAME_CLASS, "space-y-8 py-10", mainClassName)}
+        className={cn(
+          PAGE_FRAME_CLASS,
+          "grid grid-cols-[minmax(0,1fr)] space-y-8 py-10",
+          mainClassName,
+        )}
       >
         {children}
       </main>

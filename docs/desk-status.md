@@ -100,7 +100,7 @@ Account menu (last nav item): grey chip (`bg-gray-100 hover:bg-gray-200`), circu
 
 Portal header mirrors Desk chrome; account chip opens the signed-in name, Notifications, Profile, and Sign out.
 
-Pages use `PAGE_FRAME_CLASS` (`max-w-[1400px]`, `grid-cols-[minmax(0,1fr)]`). Table cards (`TableFrame`) scroll inside the card (`contain: layout paint`) so table min-width does not widen the document canvas. Card titles are `font-heading text-2xl text-gold-500`. Card header actions (Add, Edit, Open) are `outline` buttons.
+Pages use `PAGE_FRAME_CLASS` (`max-w-[1400px]`). Desk/Portal `main` is a `minmax(0,1fr)` grid so list content cannot widen the canvas; table cards (`TableFrame`) scroll inside the card (`contain: layout paint`). Card titles are `font-heading text-2xl text-gold-500`. Card header actions (Add, Edit, Open) are `outline` buttons.
 
 Header: hamburger `<500px`; stacked centred logo + wrapping nav `500–1023px` (logo in normal flow); one row `1024px+`.
 

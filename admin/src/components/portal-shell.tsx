@@ -26,7 +26,11 @@ export async function PortalShell({
       <PortalHeader personName={person.name} unreadCount={unreadCount} />
       <main
         id="portal-main"
-        className={cn(PAGE_FRAME_CLASS, "space-y-8 py-10", mainClassName)}
+        className={cn(
+          PAGE_FRAME_CLASS,
+          "grid grid-cols-[minmax(0,1fr)] space-y-8 py-10",
+          mainClassName,
+        )}
       >
         {children}
       </main>
