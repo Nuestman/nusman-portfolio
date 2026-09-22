@@ -1,5 +1,6 @@
 import packageJson from "../../package.json";
 import { PAGE_FRAME_CLASS } from "@/lib/layout";
+import { marketingPublicBaseUrl } from "@/lib/portal-host";
 import { cn } from "@/lib/utils";
 
 type AppFooterProps = {
@@ -10,6 +11,7 @@ type AppFooterProps = {
 export function AppFooter({ surface, className }: AppFooterProps) {
   const year = new Date().getFullYear();
   const label = surface === "desk" ? "Desk" : "Portal";
+  const marketing = marketingPublicBaseUrl();
 
   return (
     <footer
@@ -27,7 +29,23 @@ export function AppFooter({ surface, className }: AppFooterProps) {
         <p>
           {label} {packageJson.version}
         </p>
-        <p>&copy; {year} N. Usman</p>
+        <p className="flex flex-wrap items-center gap-x-3 gap-y-1">
+          <a
+            href={`${marketing}/privacy`}
+            className="hover:text-gray-700 hover:underline"
+          >
+            Privacy
+          </a>
+          <span aria-hidden="true">·</span>
+          <a
+            href={`${marketing}/terms`}
+            className="hover:text-gray-700 hover:underline"
+          >
+            Terms
+          </a>
+          <span aria-hidden="true">·</span>
+          <span>&copy; {year} N. Usman</span>
+        </p>
       </div>
     </footer>
   );

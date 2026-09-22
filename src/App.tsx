@@ -7,6 +7,8 @@ import HomePage from './pages/HomePage'
 const AboutPage = lazy(() => import('./pages/AboutPage'))
 const ResumePage = lazy(() => import('./pages/ResumePage'))
 const ContactPage = lazy(() => import('./pages/ContactPage'))
+const PrivacyPage = lazy(() => import('./pages/PrivacyPage'))
+const TermsPage = lazy(() => import('./pages/TermsPage'))
 const StartPage = lazy(() => import('./pages/StartPage'))
 const StartContinuePage = lazy(() => import('./pages/StartContinuePage'))
 const PortfolioPage = lazy(() => import('./pages/PortfolioPage'))
@@ -28,6 +30,8 @@ function App() {
               <Route path="resume" element={<ResumePage />} />
               <Route path="portfolio" element={<PortfolioPage />} />
               <Route path="contact" element={<ContactPage />} />
+              <Route path="privacy" element={<PrivacyPage />} />
+              <Route path="terms" element={<TermsPage />} />
               <Route path="start" element={<StartPage />} />
               <Route path="start/continue" element={<StartContinuePage />} />
               <Route path="*" element={<NotFoundPage />} />

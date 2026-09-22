@@ -1,5 +1,18 @@
 # Changelog
 
+## 22 Sep 2026 — Desk 2.7.3 / Portal 1.7.3 · public 4.4.0
+
+### Desk / Portal (`admin/` → **2.7.3**)
+
+- **Shell footer** — Privacy and Terms link to the public site (`marketingPublicBaseUrl()`).
+
+### Public site (**4.4.0**)
+
+- `/privacy` and `/terms` — adapted from MineAid HMS legal structure for the nusman practice (site, Portal, project work; Nuestman Tech Solutions / Act 843). Footer + sitemap links.
+- `npm run dev:all` — starts Vite site and Desk together (`concurrently`); `npm run dev:desk` for Desk only.
+
+---
+
 ## 22 Sep 2026 — Desk 2.7.2 / Portal 1.7.2 · public 4.3.0
 
 ### Desk / Portal (`admin/` → **2.7.2**)

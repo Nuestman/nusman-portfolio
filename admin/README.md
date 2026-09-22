@@ -1,6 +1,6 @@
 # Desk
 
-Private workbench for the nusman.dev practice, plus the client portal. Version **2.7.2**. Plan: [../docs/desk-2.0.md](../docs/desk-2.0.md). Portal: [../docs/portal.md](../docs/portal.md). Status: [../docs/desk-status.md](../docs/desk-status.md). Visual: [../docs/style-guide.md](../docs/style-guide.md).
+Private workbench for the nusman.dev practice, plus the client portal. Version **2.7.3**. Plan: [../docs/desk-2.0.md](../docs/desk-2.0.md). Portal: [../docs/portal.md](../docs/portal.md). Status: [../docs/desk-status.md](../docs/desk-status.md). Visual: [../docs/style-guide.md](../docs/style-guide.md).
 
 Requires Node **24.x** and npm `>=10`. Vercel follows `engines.node` in this file. Set the project’s Node.js Version to **24.x**. Domains: `desk.nusman.dev` and `portal.nusman.dev`.
 
@@ -8,6 +8,13 @@ Requires Node **24.x** and npm `>=10`. Vercel follows `engines.node` in this fil
 cd admin
 cp .env.example .env.local   # ADMIN_EMAIL, ADMIN_PASSWORD, AUTH_SECRET, DATABASE_URL
 npm run dev                  # http://localhost:3000 · Portal: http://portal.localhost:3000
+```
+
+From the repo root (after `npm install` in root and in `admin/`):
+
+```bash
+npm run dev:desk   # Desk/Portal only
+npm run dev:all    # public site (5173) + Desk/Portal (3000) together
 ```
 
 `AUTH_SECRET` must be at least 16 characters. Optional `ADMIN_NAME` defaults to Numan Usman on seed.

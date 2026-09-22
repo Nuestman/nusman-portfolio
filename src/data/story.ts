@@ -42,6 +42,6 @@ export const storyTabs: StoryTab[] = [
     icon: HeartPulse,
     image: '/images/story/story-purpose.png',
     imageAlt: 'Caricature of Usman demonstrating CPR on a training manikin',
-    body: "Emergency nursing taught me to stay steady when everything is urgent. Health informatics and web development let me scale that care beyond a single shift — clearer reporting, better workflows, and tools people can actually use. Whether I'm responding underground, teaching CPR, advocating for road safety, or shipping a website for a clinic or small business, the goal is the same: prompt, reliable help when it counts.",
+    body: "Emergency nursing taught me to stay steady when everything is urgent. Health informatics and web development let me scale that care beyond a single shift — clearer reporting, better workflows, and tools people can actually use. Whether I'm responding underground, teaching CPR, advocating for road safety, or shipping a webapp for a customer, clinic or small business, the goal is the same: prompt, reliable help when it counts.",
   },
 ]

@@ -22,6 +22,8 @@ Live site: [nusman.dev](https://nusman.dev)
 | `/about` | Background, education, and photo story tabs |
 | `/resume` | Full CV from resume data; PDF download |
 | `/contact` | Contact details and form |
+| `/privacy` | Privacy policy (NUsman Tech Solutions / Act 843) |
+| `/terms` | Terms of service (site, Portal, project work) |
 | `/start` | Start a project form → Desk inbound API (creates inactive lead; email confirm activates) |
 | any other path | 404 |
 
@@ -31,13 +33,17 @@ Live site: [nusman.dev](https://nusman.dev)
 
 ```bash
 npm install
-npm run dev      # http://localhost:5173
+npm run dev          # public site → http://localhost:5173
+npm run dev:desk     # Desk/Portal only → http://localhost:3000 (Portal: http://portal.localhost:3000)
+npm run dev:all      # site + Desk together (prefixed logs)
 npm run build
 npm run preview
 npm run lint
 npm run lint:fix
 npm test
 ```
+
+From `admin/` you can still run `npm run dev` alone. For `dev:all` / `dev:desk`, install admin deps once (`cd admin && npm install`) and keep `admin/.env.local` set.
 
 ## Contact form
 

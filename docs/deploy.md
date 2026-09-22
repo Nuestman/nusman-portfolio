@@ -22,7 +22,7 @@ Output directory: `dist`.
 
 Node.js: `package.json` sets `"engines": { "node": "24.x" }` so Vercel stays on 24 and does not jump to the next major. Set Project Settings → Node.js Version to **24.x** so it matches.
 
-SPA routes (`/about`, `/resume`, `/contact`, `/start`, `/portfolio`, 404) are rewritten to `index.html`. Hashed files under `/assets/` are cached for one year.
+SPA routes (`/about`, `/resume`, `/contact`, `/privacy`, `/terms`, `/start`, `/portfolio`, 404) are rewritten to `index.html`. Hashed files under `/assets/` are cached for one year.
 
 ## Environment
 
@@ -76,6 +76,6 @@ From `admin/`, `npm run db:migrate` applies schema through `0020_person_email_ve
 
 If you pointed the **existing** nusman.dev project at `admin/`, put it back: Root Directory empty, Framework Vite, Output Directory `dist`. Desk + Portal must be their own Vercel project.
 
-Local Desk: `cd admin && npm run dev` → http://localhost:3000.  
+Local Desk: `cd admin && npm run dev` → http://localhost:3000. From repo root: `npm run dev:desk` (Desk only) or `npm run dev:all` (Vite site on 5173 + Desk on 3000).  
 Local Portal: `FORCE_PORTAL=1` on another port, or `portal.localhost:3000`.  
 Plans: [desk.md](./desk.md), [portal.md](./portal.md). Status: [desk-status.md](./desk-status.md).

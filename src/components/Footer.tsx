@@ -7,6 +7,8 @@ import { portalAppUrl } from '../lib/portal-url'
 export const footerNavItems = [
   { href: '/about', label: 'About Me' },
   { href: '/contact', label: 'Contact' },
+  { href: '/privacy', label: 'Privacy' },
+  { href: '/terms', label: 'Terms' },
   { href: portalAppUrl(), label: 'Portal', external: true },
 ] as const
 
