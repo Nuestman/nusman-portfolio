@@ -206,6 +206,9 @@ export const people = pgTable(
     notes: text("notes"),
     portalEnabled: boolean("portal_enabled").notNull().default(false),
     imageUrl: text("image_url"),
+    portalOnboardingCompletedAt: timestamp("portal_onboarding_completed_at", {
+      withTimezone: true,
+    }),
     emailVerifiedAt: timestamp("email_verified_at", { withTimezone: true }),
     emailVerifyTokenHash: text("email_verify_token_hash"),
     emailVerifyExpiresAt: timestamp("email_verify_expires_at", {

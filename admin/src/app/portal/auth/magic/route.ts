@@ -59,7 +59,16 @@ export async function GET(request: NextRequest) {
     actorEmail: person.email,
   });
 
-  const response = portalRedirect(from);
+  let destination = from;
+  if (!person.portalOnboardingCompletedAt) {
+    if (from !== "/projects" && from !== "/welcome") {
+      destination = `/welcome?next=${encodeURIComponent(from)}`;
+    } else {
+      destination = "/welcome";
+    }
+  }
+
+  const response = portalRedirect(destination);
   response.cookies.set(PORTAL_SESSION_COOKIE, jwt, portalSessionCookieOptions());
   response.cookies.delete("desk_session");
   return response;

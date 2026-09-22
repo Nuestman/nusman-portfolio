@@ -1,8 +1,8 @@
 # Desk status
 
-Checked 22 Sep 2026 against the code in `admin/`. Product version: **2.8.0** (`admin/package.json`). Product rules: [desk-2.0.md](./desk-2.0.md) (wins) and [desk.md](./desk.md). Portal: [portal.md](./portal.md). Archive: [archive/desk-1.1.md](./archive/desk-1.1.md). Visual: [style-guide.md](./style-guide.md). Deploy: [deploy.md](./deploy.md). Update this file when something ships or an open item is closed.
+Checked 22 Sep 2026 against the code in `admin/`. Product version: **2.8.1** (`admin/package.json`). Product rules: [desk-2.0.md](./desk-2.0.md) (wins) and [desk.md](./desk.md). Portal: [portal.md](./portal.md). Archive: [archive/desk-1.1.md](./archive/desk-1.1.md). Visual: [style-guide.md](./style-guide.md). Deploy: [deploy.md](./deploy.md). Update this file when something ships or an open item is closed.
 
-Desk **2.8.0** / Portal **1.8.0** are usable. Public site **4.4.1** posts `/start` into Desk as an **inactive** project; email confirm (or Desk confirm) activates it. Portal sign-in requires a **confirmed** person email. Public `/privacy` and `/terms` load from Desk `GET /api/legal/[slug]` with a static fallback. Profile photos and message attachments use a **private** Vercel Blob store (proxied downloads). Messages nav + conversation list show unread message badges.
+Desk **2.8.1** / Portal **1.8.1** are usable. Public site **4.4.1** posts `/start` into Desk as an **inactive** project; email confirm (or Desk confirm) activates it. Portal sign-in requires a **confirmed** person email. First Portal login runs a short `/welcome` tour until completed. Public `/privacy` and `/terms` load from Desk `GET /api/legal/[slug]` with a static fallback. Profile photos and message attachments use a **private** Vercel Blob store (proxied downloads). Messages nav + conversation list show unread message badges.
 
 ---
 
@@ -42,7 +42,8 @@ Hiring jobs with gate records, **process milestones**, table-row edit/remove, pl
 
 | Route | Status |
 |---|---|
-| `/`, `/login`, `/auth/magic`, `/auth/verify-email` | Live. Magic links finish on Portal origin. Unconfirmed emails cannot sign in; login sends a confirm link instead |
+| `/`, `/login`, `/auth/magic`, `/auth/verify-email` | Live. Magic links finish on Portal origin. Unconfirmed emails cannot sign in; login sends a confirm link instead. First login (no `portal_onboarding_completed_at`) lands on `/welcome` |
+| `/welcome` | Live. Four-step Portal tour (greets with latest project title); Skip or Get started marks onboarding complete |
 | `/profile` | Live. You card + photo upload (private Blob, remove-before-save); Details, Organisation, Projects (client-facing stage labels; Start a project) |
 | `/projects`, `/projects/new`, `/projects/[id]` | Live. List, start project, Progress (gold path), package, updates |
 | `/projects/[id]/brief` | Live. Locked client brief (project name header, package, deadline, problem, what we’re building, success, who it is for, needed by, budget, call/meet, notes, scope; empty fields “Not set.”; Incomplete info badge; Fill details while intake is open) |
@@ -83,6 +84,7 @@ Migrations on Neon **nusmandotdev** (`sparkling-art-67399165`) only:
 | `0020_person_email_verified` | `people.email_verified_at` + confirm token; Portal requires confirmed email |
 | `0021_site_legal_documents` | Privacy + Terms JSON docs; Desk `/legal`; public `GET /api/legal/[slug]` |
 | `0022_people_image_message_attachments` | `people.image_url`; `portal_message_attachments` for private Blob files |
+| `0023_people_portal_onboarding` | `people.portal_onboarding_completed_at` — first-login `/welcome` tour |
 
 Apply from `admin/` with `npm run db:migrate`. Do not point `DATABASE_URL` at Mineaid, Uventory, church, or any other Neon project.
 
