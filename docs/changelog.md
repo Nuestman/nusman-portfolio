@@ -1,5 +1,15 @@
 # Changelog
 
+## 22 Sep 2026 — Desk 2.8.1 / Portal 1.8.1 · public 4.4.1
+
+### Desk / Portal (`admin/` → **2.8.1**)
+
+- **Portal onboarding** — first sign-in after Portal is activated sends clients to `/welcome` (four short steps: Welcome, Projects, Messages, You). Welcome greets by person + latest project title. Skip or Get started sets `people.portal_onboarding_completed_at` (migration `0023`). Magic login and `PortalShell` gate until complete.
+
+Public site **4.4.1** is unchanged.
+
+---
+
 ## 22 Sep 2026 — Desk 2.8.0 / Portal 1.8.0 · public 4.4.1
 
 ### Desk / Portal (`admin/` → **2.8.0**)

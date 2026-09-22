@@ -2164,6 +2164,17 @@ export async function updatePersonImageUrl(
     .where(eq(people.id, id));
 }
 
+export async function markPortalOnboardingComplete(personId: string) {
+  const db = getDb();
+  await db
+    .update(people)
+    .set({
+      portalOnboardingCompletedAt: new Date(),
+      updatedAt: new Date(),
+    })
+    .where(eq(people.id, personId));
+}
+
 export async function listActiveUsers() {
   const db = getDb();
   return db

@@ -162,6 +162,13 @@
       "when": 1790150000000,
       "tag": "0022_people_image_message_attachments",
       "breakpoints": true
+    },
+    {
+      "idx": 23,
+      "version": "7",
+      "when": 1790160000000,
+      "tag": "0023_people_portal_onboarding",
+      "breakpoints": true
     }
   ]
 }

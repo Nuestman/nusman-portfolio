@@ -58,6 +58,7 @@ Magic link rows: hashed token, person_id, expires_at, used_at. One-time use. Ema
 | `/login` | Email → request magic link (unconfirmed emails get a confirm link instead) |
 | `/auth/magic` | Consume token |
 | `/auth/verify-email` | Confirm a person email, then sign in |
+| `/welcome` | First-login tour (greets with project title; until `portal_onboarding_completed_at` is set) |
 | `/profile` | Person profile (stacked You card + organisation and projects; ask Usman to update) |
 | `/projects` | Hiring projects for this client |
 | `/projects/new` | Start a project (brief → Desk at Qualify) |
@@ -76,7 +77,8 @@ Magic link rows: hashed token, person_id, expires_at, used_at. One-time use. Ema
 - Migration `0008_portal`: `portal_magic_links`, `portal_sessions`, `portal_messages`; `people.portal_enabled`, `projects.portal_intake_open`, `project_notes.client_visible`
 - Migration `0019_project_want_built`: `projects.want_built` (“What we’re building”) on Desk and Portal briefs
 - Migration `0020_person_email_verified`: `people.email_verified_at` plus confirm-token hash/expiry. Portal use requires confirmed email **and** `portal_enabled`. Inbound confirm still activates the project and now also marks matching people verified.
-- Later Desk migrations also affect Portal surfaces: `0009_project_events` (schedule), `0010`/`0011` (milestones + gate remap), `0012_notifications` (in-app inbox), `0013`/`0014` (heard-about sources incl. social media) — see [desk-status.md](./desk-status.md)
+- Migration `0023_people_portal_onboarding`: `people.portal_onboarding_completed_at` for the `/welcome` tour.
+- Later Desk migrations also affect Portal surfaces: `0009_project_events` (schedule), `0010`/`0011` (milestones + gate remap), `0012_notifications` (in-app inbox), `0013`/`0014` (heard-about sources incl. social media), `0021`/`0022` (legal + Blob) — see [desk-status.md](./desk-status.md)
 
 ---
 
@@ -115,7 +117,7 @@ npm run dev
 1. Desk: sign in as operator.
 2. Person profile → confirm the email (**Confirm email** or **Resend confirmation**) → Portal access → enable → **Create magic link** → **Copy link**.
 3. Link looks like `http://portal.localhost:3000/auth/magic?token=…`
-4. Open it on the Portal host.
+4. Open it on the Portal host. First time lands on **`/welcome`**; Skip or finish the tour, then `/projects`.
 
 `.env.local` (admin):
 
@@ -158,7 +160,8 @@ Add domain `portal.nusman.dev` on the same Vercel project as Desk. Magic links u
 15. Person email confirmation before Portal; Desk + Portal person profiles; “What we’re building” on the brief; table/card overflow contained — done (Portal **1.7** / Desk **2.7.0**)
 16. Portal home header stays one row (`PAGE_FRAME_CLASS` width-only; narrow grid on `main`) — done (Portal **1.7.1** / Desk **2.7.1**)
 17. Minimal signed-in shell footer (surface + version, © N. Usman) — done (Portal **1.7.2** / Desk **2.7.2**)
-18. Public `/privacy` + `/terms`; Desk-editable Neon copy; private Blob avatars + message attachments; unread message badges on nav + threads — done (Portal **1.8.0** / Desk **2.8.0** / public **4.4.1**)  
+18. Public `/privacy` + `/terms`; Desk-editable Neon copy; private Blob avatars + message attachments; unread message badges on nav + threads — done (Portal **1.8.0** / Desk **2.8.0** / public **4.4.1**)
+19. First-login `/welcome` tour — done (Portal **1.8.1** / Desk **2.8.1**)  
 
 ---
 

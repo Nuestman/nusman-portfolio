@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { redirect } from "next/navigation";
 import { AppFooter } from "@/components/app-footer";
 import { PortalHeader } from "@/components/portal-header";
 import {
@@ -18,6 +19,10 @@ export async function PortalShell({
   mainClassName?: string;
 }) {
   const { person } = await requirePortalPerson();
+  if (!person.portalOnboardingCompletedAt) {
+    redirect("/welcome");
+  }
+
   const [unreadCount, unreadMessageCount] = await Promise.all([
     countUnreadPortalNotifications(person.id),
     countUnreadPortalMessageNotifications(person.id),
