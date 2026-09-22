@@ -1,6 +1,7 @@
 "use client";
 
 import { useActionState } from "react";
+import { FilePickField } from "@/components/file-pick-field";
 import { Button } from "@/components/ui/button";
 import { FormError } from "@/components/form-error";
 import { fieldClassName, labelClassName } from "@/lib/forms";
@@ -92,22 +93,21 @@ export function ProfileForm({
           />
         </div>
       </div>
-      <div>
-        <label htmlFor="photo" className={labelClassName}>
-          Photo
-        </label>
-        <input
-          id="photo"
-          name="photo"
-          type="file"
-          accept="image/png,image/jpeg,image/webp"
-          className={fieldClassName}
-        />
-        <p className="mt-2 text-sm text-gray-600">
-          PNG, JPEG, or WebP. Under 400 KB. Leave empty to keep the current
-          photo.
-        </p>
-      </div>
+      <FilePickField
+        id="photo"
+        name="photo"
+        disabled={pending}
+        accept="image/png,image/jpeg,image/webp"
+        label="Photo"
+        labelClassName={labelClassName}
+        inputClassName={fieldClassName}
+        hint={
+          <p className="mt-2 text-sm text-gray-600">
+            PNG, JPEG, or WebP. Under 400 KB. Stored on Vercel Blob. Leave empty
+            to keep the current photo.
+          </p>
+        }
+      />
       <FormError>{state.error}</FormError>
       <Button type="submit" disabled={pending}>
         {pending ? "Saving…" : "Save profile"}

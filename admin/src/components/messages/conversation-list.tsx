@@ -1,4 +1,8 @@
 import Link from "next/link";
+import {
+  CountBubble,
+  countBubbleInlineClassName,
+} from "@/components/count-bubble";
 import { messageBodyPlainText } from "@/lib/message-body";
 import {
   formatChatTime,
@@ -16,7 +20,19 @@ export type ConversationListItem = {
   lastBody: string;
   lastAuthorKind: "client" | "operator";
   messageCount: number;
+  /** Unread in-app message notifications for this thread. */
+  unreadCount?: number;
 };
+
+export function withConversationUnread(
+  conversations: ConversationListItem[],
+  unreadByProject: Map<string, number>,
+): ConversationListItem[] {
+  return conversations.map((row) => ({
+    ...row,
+    unreadCount: unreadByProject.get(row.projectId) ?? 0,
+  }));
+}
 
 export function ConversationList({
   conversations,
@@ -59,6 +75,7 @@ export function ConversationList({
             : row.lastAuthorKind === "operator"
               ? `You: ${snippet(plainLast, 56)}`
               : snippet(plainLast, 64);
+        const unread = row.unreadCount ?? 0;
         return (
           <li key={row.projectId}>
             <Link
@@ -67,6 +84,11 @@ export function ConversationList({
                 "flex cursor-pointer gap-3 px-4 py-3 transition-colors hover:bg-gray-50",
                 active && "bg-gray-100 hover:bg-gray-100",
               )}
+              aria-label={
+                unread > 0
+                  ? `${title}, ${unread} unread message${unread === 1 ? "" : "s"}`
+                  : undefined
+              }
             >
               <span
                 className={cn(
@@ -79,17 +101,35 @@ export function ConversationList({
               </span>
               <span className="min-w-0 flex-1">
                 <span className="flex items-baseline justify-between gap-2">
-                  <span className="truncate font-medium text-dark-950">
+                  <span
+                    className={cn(
+                      "truncate text-dark-950",
+                      unread > 0 ? "font-semibold" : "font-medium",
+                    )}
+                  >
                     {title}
                   </span>
-                  <span className="shrink-0 text-xs text-gray-500">
-                    {formatChatTime(row.lastAt)}
+                  <span className="flex shrink-0 items-center gap-1.5">
+                    {unread > 0 ? (
+                      <CountBubble
+                        count={unread}
+                        className={countBubbleInlineClassName}
+                      />
+                    ) : null}
+                    <span className="text-xs text-gray-500">
+                      {formatChatTime(row.lastAt)}
+                    </span>
                   </span>
                 </span>
                 <span className="mt-0.5 block truncate text-sm text-gray-600">
                   {subtitle}
                 </span>
-                <span className="mt-0.5 block truncate text-sm text-gray-500">
+                <span
+                  className={cn(
+                    "mt-0.5 block truncate text-sm",
+                    unread > 0 ? "font-medium text-dark-950" : "text-gray-500",
+                  )}
+                >
                   {preview}
                 </span>
               </span>

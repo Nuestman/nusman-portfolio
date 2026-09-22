@@ -105,7 +105,7 @@ Operators of Desk. More than one is allowed. The seeded owner is Usman; other op
 
 - email (unique), name
 - title, phone (optional)
-- image_url (static file) or image_data + image_mime (uploaded)
+- image_url (static `/avatars/…` or Vercel Blob URL) or legacy image_data + image_mime
 - password_hash (scrypt). Until set, the owner can still use `ADMIN_PASSWORD`
 - totp_secret, totp_enabled, totp_recovery_hashes (optional authenticator)
 - role: `owner` | `operator`
@@ -263,6 +263,7 @@ Every list table has an Actions column (Edit + Remove). Playbook and Style table
 | `/api/inbound-lead/draft` | Public `/start` — create inactive Desk lead + send verify email |
 | `/api/inbound-lead/verify` | Confirm link — activate existing project + receipt |
 | `/api/inbound-lead/resend` | Rotate verify token for an open draft |
+| `/api/legal/[slug]` | Public GET — Privacy / Terms JSON (CORS) |
 | `/login` | Sign in |
 | `/` | Today: active projects, current gate, journal, templates |
 | `/log` | Journal: personal work that is not a client job |
@@ -285,7 +286,7 @@ Every list table has an Actions column (Edit + Remove). Playbook and Style table
 | `/style` | Live brand specimens — every section in style-guide.md |
 | `/export` | Download JSON, YAML, CSV zip, Markdown, or HTML (operators, jobs, journal, gates, audit; no secrets or devices) |
 | `/profile` | Signed-in operator: photo, details, password, authenticator, other operators, devices |
-| `/profile/photo/[id]` | Serves an uploaded photo (session required). Static photos use `/avatars/` |
+| `/profile/photo/[id]` | Legacy DB uploads (session required). New photos are Blob URLs on `image_url` |
 
 Copy blocks from the playbook (first reply, eight questions, after-call follow-up) live as **templates you can copy**. Answers, discovery notes, agreement clauses, change requests, demos, and launch checks live on the project. The project page shows those records first; an Edit (or Add) control opens the form. List rows still edit on their own routes.
 
@@ -305,7 +306,7 @@ Header layout:
 - `500px`–`1023px`: stacked centred logo + wrapping nav (logo in normal flow, never absolutely positioned)
 - `1024px+`: one row, logo left, nav right; links wrap if they cannot fit
 
-The public `/avatars/` folder is not behind the login proxy. Uploaded photos go through `/profile/photo/[id]` and need a session.
+The public `/avatars/` folder is not behind the login proxy. New Profile uploads are public Vercel Blob URLs. Legacy DB photos go through `/profile/photo/[id]` and need a session.
 
 ---
 
@@ -316,7 +317,7 @@ The public `/avatars/` folder is not behind the login proxy. Uploaded photos go 
 - Passwords are scrypt hashes on the user row, minimum 8 characters. Env `ADMIN_PASSWORD` bootstraps the owner only while `password_hash` is empty. After the first successful env login writes the hash, that env password no longer signs in. Reset a forgotten owner password by clearing `password_hash` in Neon (or adding another owner) — not by reusing the env value.
 - Cookie `desk_session` is a JWT (HS256, 14 days) carrying email, user id (`uid`), and session id (`sid`). Each sign-in writes a `sessions` row. Logout, password change, and “sign out other devices” drop rows. The proxy and all pages/actions require a live `sessions` row. A JWT without `sid`, or whose row was deleted or expired, is rejected and the cookie is cleared. You must sign in again.
 - Two-factor: optional TOTP authenticator on Profile. After password, login asks for a 6-digit code (or a one-time recovery code). Secrets and recovery hashes stay in `users`; they are not exported.
-- Photos: PNG, JPEG, or WebP under 400 KB. Static file on `image_url` (seeded owner: `/avatars/numan.png`) or uploaded bytes as `image_data` + `image_mime` (Vercel’s filesystem is ephemeral). Server actions allow a 1 MB body so a photo plus fields can post.
+- Photos: PNG, JPEG, or WebP under 400 KB. New uploads → Vercel Blob (`image_url`). Seeded static `/avatars/numan.png` still fine. Legacy `image_data` + `image_mime` via `/profile/photo/[id]`. Server actions allow a 1 MB body so a photo plus fields can post.
 - Exports omit `password_hash` and `image_data`. Device rows (`sessions`) are not exported.
 - Database only in server code (Server Actions or Route Handlers).
 - Vercel env: `DATABASE_URL`, `DATABASE_URL_UNPOOLED` if needed, `ADMIN_EMAIL`, `ADMIN_PASSWORD`, `AUTH_SECRET` (at least 16 characters), optional `ADMIN_NAME`.
@@ -433,4 +434,4 @@ Do not add Desk links to `Header` / `Footer` / `sitemap.xml`.
 
 ## Immediate next step
 
-Desk **2.7.3** is the current cut (shell footer links Privacy/Terms on the public site; minimal shell footer with version; Portal home header row fixed; person email must be confirmed before Portal; Desk/Portal person profiles; “What we’re building” on the brief; inbound still creates inactive on `/start` submit; hiring party empty fields + wrapping emails; tables scroll in-card without a page side-strip; surfaces still follow [desk-2.0.md](./desk-2.0.md)). Invite a person from Desk (confirm email first), rewrite package summaries for clients, open intake when ready, keep an export after a real job starts. Later: Portal routing cleanup ([portal.md](./portal.md#later--routing-cleanup-best-practice)); form-shaped readonly panels; import product databases — only when you choose to, and never by pointing Desk at their `DATABASE_URL`. Desk-editable legal docs (Neon) are planned after this cut.
+Desk **2.8.0** is the current cut (private Vercel Blob for operator/Portal photos + message attachments with auth proxies; unread Messages badges; Desk-editable Privacy/Terms in Neon; public site fetches `GET /api/legal/[slug]` with static fallback; shell footer links Privacy/Terms; person email must be confirmed before Portal; Desk/Portal person profiles; “What we’re building” on the brief; inbound still creates inactive on `/start` submit; hiring party empty fields + wrapping emails; tables scroll in-card without a page side-strip; surfaces still follow [desk-2.0.md](./desk-2.0.md)). Invite a person from Desk (confirm email first), rewrite package summaries for clients, open intake when ready, keep an export after a real job starts. Later: Portal routing cleanup ([portal.md](./portal.md#later--routing-cleanup-best-practice)); form-shaped readonly panels; import product databases — only when you choose to, and never by pointing Desk at their `DATABASE_URL`.

@@ -2,17 +2,18 @@ import { redirect } from "next/navigation";
 import { getSessionRow, getUserById } from "@/db/queries";
 import { DEFAULT_AVATAR_SRC } from "@/lib/avatars";
 import { clearSession, getSessionPayload } from "@/lib/auth";
+import { isVercelBlobUrl } from "@/lib/blob-storage";
 
 export function userAvatarSrc(user: {
   id: string;
   imageUrl: string | null;
   imageData?: string | null;
 }) {
-  if (user.imageData) {
+  if (isVercelBlobUrl(user.imageUrl) || user.imageData) {
     return `/profile/photo/${user.id}`;
   }
-  if (user.imageUrl) {
-    return user.imageUrl;
+  if (user.imageUrl?.trim()) {
+    return user.imageUrl.trim();
   }
   return DEFAULT_AVATAR_SRC;
 }

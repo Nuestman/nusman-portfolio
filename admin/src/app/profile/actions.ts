@@ -17,6 +17,7 @@ import {
 } from "@/db/queries";
 import { deleteWasConfirmed, recordAudit } from "@/lib/audit";
 import { getSessionPayload } from "@/lib/auth";
+import { uploadOperatorAvatar } from "@/lib/blob-storage";
 import { requireSessionUser } from "@/lib/current-user";
 import { readOptional, readTrimmed, looksLikeEmail } from "@/lib/forms";
 import { isUuid } from "@/lib/ids";
@@ -43,24 +44,6 @@ export type TotpState = {
   recoveryCodes: string[] | null;
 };
 
-const PHOTO_TYPES = new Set(["image/png", "image/jpeg", "image/webp"]);
-const PHOTO_MAX_BYTES = 400 * 1024;
-
-async function readPhoto(formData: FormData) {
-  const file = formData.get("photo");
-  if (!(file instanceof File) || file.size === 0) {
-    return { ok: true as const, value: null };
-  }
-  if (!PHOTO_TYPES.has(file.type)) {
-    return { ok: false as const, error: "Use a PNG, JPEG, or WebP photo." };
-  }
-  if (file.size > PHOTO_MAX_BYTES) {
-    return { ok: false as const, error: "Photo must be under 400 KB." };
-  }
-  const data = Buffer.from(await file.arrayBuffer()).toString("base64");
-  return { ok: true as const, value: { imageData: data, imageMime: file.type } };
-}
-
 export async function updateProfileAction(
   _previous: FormState,
   formData: FormData,
@@ -83,7 +66,7 @@ export async function updateProfileAction(
     }
   }
 
-  const photo = await readPhoto(formData);
+  const photo = await uploadOperatorAvatar(user.id, formData, user.imageUrl);
   if (!photo.ok) {
     return { error: photo.error };
   }
@@ -94,7 +77,11 @@ export async function updateProfileAction(
     title: readOptional(formData, "title"),
     phone: readOptional(formData, "phone"),
     ...(photo.value
-      ? { ...photo.value, imageUrl: `/profile/photo/${user.id}` }
+      ? {
+          imageUrl: photo.value.imageUrl,
+          imageData: null,
+          imageMime: null,
+        }
       : {}),
   };
 

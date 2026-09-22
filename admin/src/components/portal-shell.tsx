@@ -1,9 +1,13 @@
 import type { ReactNode } from "react";
 import { AppFooter } from "@/components/app-footer";
 import { PortalHeader } from "@/components/portal-header";
-import { countUnreadPortalNotifications } from "@/db/queries";
+import {
+  countUnreadPortalMessageNotifications,
+  countUnreadPortalNotifications,
+} from "@/db/queries";
 import { requirePortalPerson } from "@/lib/current-person";
 import { PAGE_FRAME_CLASS } from "@/lib/layout";
+import { personAvatarSrcOrNull } from "@/lib/person-avatar";
 import { cn } from "@/lib/utils";
 
 export async function PortalShell({
@@ -14,7 +18,10 @@ export async function PortalShell({
   mainClassName?: string;
 }) {
   const { person } = await requirePortalPerson();
-  const unreadCount = await countUnreadPortalNotifications(person.id);
+  const [unreadCount, unreadMessageCount] = await Promise.all([
+    countUnreadPortalNotifications(person.id),
+    countUnreadPortalMessageNotifications(person.id),
+  ]);
 
   return (
     <div className="flex min-h-dvh min-w-0 flex-col">
@@ -24,7 +31,12 @@ export async function PortalShell({
       >
         Skip to content
       </a>
-      <PortalHeader personName={person.name} unreadCount={unreadCount} />
+      <PortalHeader
+        personName={person.name}
+        personImageSrc={personAvatarSrcOrNull(person)}
+        unreadCount={unreadCount}
+        unreadMessageCount={unreadMessageCount}
+      />
       <main
         id="portal-main"
         className={cn(

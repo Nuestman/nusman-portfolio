@@ -11,13 +11,20 @@ import { requirePortalPerson } from "@/lib/current-person";
 import { gateGuide } from "@/lib/gates";
 import { personRoleLabel, projectStatusLabel } from "@/lib/labels";
 import { linkClassName } from "@/lib/links";
+import { personAvatarSrcOrNull } from "@/lib/person-avatar";
 import { inactiveRowProps, tableClassName, TableFrame } from "@/lib/tables";
 import { displayText } from "@/lib/text";
+import { QueryNotice } from "@/components/query-notice";
+import { PortalPhotoForm } from "./photo-form";
 
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "Profile",
+};
+
+type PortalProfilePageProps = {
+  searchParams: Promise<{ notice?: string | string[] }>;
 };
 
 function Detail({
@@ -50,11 +57,17 @@ function Detail({
   );
 }
 
-export default async function PortalProfilePage() {
+export default async function PortalProfilePage({
+  searchParams,
+}: PortalProfilePageProps) {
   const { person, client } = await requirePortalPerson();
   const projects = await listPortalProjectsForClient(client.id);
   const orgEmail = client.email?.trim() ?? "";
   const orgPhone = client.phone?.trim() ?? "";
+  const query = await searchParams;
+  const noticeRaw = Array.isArray(query.notice) ? query.notice[0] : query.notice;
+  const notice =
+    noticeRaw === "photo" ? "Photo updated." : null;
 
   return (
     <PortalShell>
@@ -67,6 +80,7 @@ export default async function PortalProfilePage() {
               How you appear on this portal. Ask Usman if something needs
               updating.
             </p>
+            {notice ? <QueryNotice message={notice} /> : null}
           </>
         }
         rail={
@@ -74,10 +88,10 @@ export default async function PortalProfilePage() {
             <CardHeader>
               <CardTitle>You</CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="space-y-6">
               <ProfileYouView
                 name={person.name}
-                src={null}
+                src={personAvatarSrcOrNull(person)}
                 layout="stack"
                 role={personRoleLabel(person.role)}
                 email={person.email}
@@ -85,6 +99,7 @@ export default async function PortalProfilePage() {
                 client={client.name}
                 organisation={client.organisation}
               />
+              <PortalPhotoForm />
             </CardContent>
           </Card>
         }

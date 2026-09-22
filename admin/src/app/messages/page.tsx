@@ -1,16 +1,25 @@
 import { loadFromDb } from "@/db";
-import { listPortalConversations } from "@/db/queries";
+import {
+  listPortalConversations,
+  unreadDeskMessageCountsByProject,
+} from "@/db/queries";
 import { DatabaseNotice } from "@/components/database-notice";
 import { DeskShell } from "@/components/desk-shell";
+import { withConversationUnread } from "@/components/messages/conversation-list";
 import {
   MessagesEmptyPane,
   MessagesWorkspace,
 } from "@/components/messages/messages-workspace";
+import { requireSessionUser } from "@/lib/current-user";
 
 export const dynamic = "force-dynamic";
 
 export default async function MessagesInboxPage() {
-  const loaded = await loadFromDb(() => listPortalConversations());
+  const user = await requireSessionUser();
+  const [loaded, unreadByProject] = await Promise.all([
+    loadFromDb(() => listPortalConversations()),
+    unreadDeskMessageCountsByProject(user.id),
+  ]);
 
   return (
     <DeskShell mainClassName="space-y-0 py-4 md:py-6">
@@ -18,7 +27,10 @@ export default async function MessagesInboxPage() {
         <DatabaseNotice kind={loaded.kind} noun="messages" />
       ) : (
         <MessagesWorkspace
-          conversations={loaded.data}
+          conversations={withConversationUnread(
+            loaded.data,
+            unreadByProject,
+          )}
           showListOnMobile
           composeHref="/messages/new"
         >

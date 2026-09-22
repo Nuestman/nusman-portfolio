@@ -205,6 +205,7 @@ export const people = pgTable(
     isDecisionMaker: boolean("is_decision_maker").notNull().default(false),
     notes: text("notes"),
     portalEnabled: boolean("portal_enabled").notNull().default(false),
+    imageUrl: text("image_url"),
     emailVerifiedAt: timestamp("email_verified_at", { withTimezone: true }),
     emailVerifyTokenHash: text("email_verify_token_hash"),
     emailVerifyExpiresAt: timestamp("email_verify_expires_at", {
@@ -503,6 +504,34 @@ export const portalMessages = pgTable(
   (table) => [index("portal_messages_project_id_idx").on(table.projectId)],
 );
 
+export const portalMessageAttachments = pgTable(
+  "portal_message_attachments",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    messageId: uuid("message_id")
+      .notNull()
+      .references(() => portalMessages.id, { onDelete: "cascade" }),
+    projectId: uuid("project_id")
+      .notNull()
+      .references(() => projects.id, { onDelete: "cascade" }),
+    clientId: uuid("client_id")
+      .notNull()
+      .references(() => clients.id, { onDelete: "cascade" }),
+    blobUrl: text("blob_url").notNull(),
+    blobPathname: text("blob_pathname").notNull(),
+    originalFilename: text("original_filename").notNull(),
+    contentType: text("content_type").notNull(),
+    byteSize: integer("byte_size").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+  },
+  (table) => [
+    index("portal_message_attachments_message_id_idx").on(table.messageId),
+    index("portal_message_attachments_project_id_idx").on(table.projectId),
+  ],
+);
+
 export const projectEvents = pgTable(
   "project_events",
   {
@@ -597,6 +626,27 @@ export const notifications = pgTable(
     index("notifications_read_at_idx").on(table.readAt),
   ],
 );
+
+export type SiteLegalSection = {
+  id: string;
+  title: string;
+  paragraphs: string[];
+};
+
+/** Public Privacy / Terms — edited in Desk, served over GET /api/legal/[slug]. */
+export const siteLegalDocuments = pgTable("site_legal_documents", {
+  slug: text("slug").primaryKey(),
+  title: text("title").notNull(),
+  lastUpdated: text("last_updated").notNull(),
+  intro: text("intro").notNull(),
+  sections: jsonb("sections").$type<SiteLegalSection[]>().notNull(),
+  updatedByUserId: uuid("updated_by_user_id").references(() => users.id, {
+    onDelete: "set null",
+  }),
+  updatedAt: timestamp("updated_at", { withTimezone: true })
+    .defaultNow()
+    .notNull(),
+});
 
 /** Public /start onboarding — Desk project is created inactive; verify activates. */
 export const inboundLeadDrafts = pgTable(

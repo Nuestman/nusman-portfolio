@@ -3,20 +3,26 @@ import {
   listClients,
   listPortalConversations,
   listProjects,
+  unreadDeskMessageCountsByProject,
 } from "@/db/queries";
 import { DatabaseNotice } from "@/components/database-notice";
 import { DeskShell } from "@/components/desk-shell";
+import { withConversationUnread } from "@/components/messages/conversation-list";
 import { MessagesWorkspace } from "@/components/messages/messages-workspace";
 import { NewConversationForm } from "@/app/messages/new-conversation-form";
+import { requireSessionUser } from "@/lib/current-user";
 
 export const dynamic = "force-dynamic";
 
 export default async function NewConversationPage() {
-  const [conversations, clientsLoaded, projectsLoaded] = await Promise.all([
-    loadFromDb(() => listPortalConversations()),
-    loadFromDb(() => listClients()),
-    loadFromDb(() => listProjects({ workKind: "client" })),
-  ]);
+  const user = await requireSessionUser();
+  const [conversations, clientsLoaded, projectsLoaded, unreadByProject] =
+    await Promise.all([
+      loadFromDb(() => listPortalConversations()),
+      loadFromDb(() => listClients()),
+      loadFromDb(() => listProjects({ workKind: "client" })),
+      unreadDeskMessageCountsByProject(user.id),
+    ]);
 
   if (
     clientsLoaded.kind === "missing" ||
@@ -37,7 +43,9 @@ export default async function NewConversationPage() {
   }
 
   const conversationList =
-    conversations.kind === "ok" ? conversations.data : [];
+    conversations.kind === "ok"
+      ? withConversationUnread(conversations.data, unreadByProject)
+      : [];
 
   return (
     <DeskShell mainClassName="space-y-0 py-4 md:py-6">

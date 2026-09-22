@@ -1,6 +1,6 @@
 {
   "name": "nusman-desk",
-  "version": "2.7.3",
+  "version": "2.8.0",
   "private": true,
   "description": "Desk and Portal — operator workbench and client portal for the nusman.dev practice.",
   "author": {
@@ -58,6 +58,7 @@
   "dependencies": {
     "@neondatabase/serverless": "^1.1.0",
     "@tinymce/tinymce-react": "^6.3.0",
+    "@vercel/blob": "^2.8.0",
     "date-fns": "^4.4.0",
     "drizzle-orm": "^0.45.2",
     "jose": "^6.2.12",

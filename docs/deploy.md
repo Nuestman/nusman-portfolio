@@ -29,7 +29,7 @@ SPA routes (`/about`, `/resume`, `/contact`, `/privacy`, `/terms`, `/start`, `/p
 | Variable | Required | Purpose |
 | --- | --- | --- |
 | `VITE_FORMSPREE_ID` | No | Formspree form id. Without it, the form opens a mailto draft. |
-| `VITE_DESK_INBOUND_URL` | No | Desk inbound API for `/start`. Defaults to Desk `/api/inbound-lead`. |
+| `VITE_DESK_INBOUND_URL` | No | Desk base for `/start` inbound and `/privacy`/`/terms` legal fetch. Defaults to Desk `/api/inbound-lead` (legal uses same host `/api/legal`). |
 | `VITE_PORTAL_URL` | No | Portal link in nav/footer. Local default `portal.localhost:3000`. |
 
 Copy `.env.example` to `.env` for local values. Do not commit `.env`.
@@ -63,16 +63,19 @@ Vercel only lists Root Directory folders that already exist on the GitHub branch
 | `DESK_FROM_EMAIL` | No | From-address for Desk/lead alerts (falls back to `PORTAL_FROM_EMAIL`). |
 | `PRACTICE_CONTACT_EMAIL` | No | Contact line in client emails (defaults to `ADMIN_EMAIL`). |
 | `DESK_APP_URL` | No | Desk base URL in alert links. |
-| `INBOUND_ALLOWED_ORIGINS` | No | Comma-separated Origins for `POST /api/inbound-lead`. |
+| `INBOUND_ALLOWED_ORIGINS` | No | Comma-separated Origins for `POST /api/inbound-lead` and `GET /api/legal/[slug]`. |
+| `BLOB_STORE_ID` | For Profile photos | From connecting a Vercel Blob store to this project (OIDC auth). |
+| `BLOB_WEBHOOK_PUBLIC_KEY` | Auto | Injected with the store connection; unused for server-side avatar `put()`. |
 | `FORCE_PORTAL` | Local only | `1` treats this process as the Portal host. Do not set in Desk `.env.local`. |
 
 8. Domains on this project: `desk.nusman.dev` (operators) and `portal.nusman.dev` (clients). Same Root Directory `admin`.
 9. Optional Portal mail: `RESEND_API_KEY`, verified `PORTAL_FROM_EMAIL` (domain sender, not unverified personal mail). Powers magic links plus message / schedule / milestone / stage / inbound / portal-access alerts (on-brand HTML + CID logo). Without them, Desk still creates a copy-paste magic link.
 10. Optional local Portal: open `portal.localhost:3000` (same `npm run dev`). Avoid `FORCE_PORTAL=1` in Desk `.env.local`.
+11. **Vercel Blob** (private store: profile photos + message attachments): connect the store to the Desk/Portal Vercel project (Production, Preview, and Development for local). Use a **private** store; SDK calls use `access: 'private'`. Vercel injects `BLOB_STORE_ID` + OIDC; `BLOB_READ_WRITE_TOKEN` may be present but is marked sensitive and cannot be copied from the dashboard — that is fine. Local: `cd admin && vercel link && vercel env pull .env.local` (Development must be on the store connection).
 
-From `admin/`, `npm run db:migrate` applies schema through `0020_person_email_verified.sql`. Neon automatic snapshots are not enabled on this project plan, so download a copy from Desk `/export` after a real job starts (JSON, YAML, CSV zip with `journal.csv`, Markdown, or HTML). After a new migration, deploy the Desk/Portal app so production matches the new columns.
+From `admin/`, `npm run db:migrate` applies schema through `0022_people_image_message_attachments.sql`. Neon automatic snapshots are not enabled on this project plan, so download a copy from Desk `/export` after a real job starts (JSON, YAML, CSV zip with `journal.csv`, Markdown, or HTML). After a new migration, deploy the Desk/Portal app so production matches the new columns.
 
-`npm install` / `npm run build` copies TinyMCE into `admin/public/tinymce` (gitignored). `/avatars/` and `/tinymce/` are public static. Uploaded photos are stored in the database and served at `/profile/photo/[id]` behind a Desk session. Do not commit `admin/.env.local`.
+`npm install` / `npm run build` copies TinyMCE into `admin/public/tinymce` (gitignored). `/avatars/` and `/tinymce/` are public static. Profile photos (operators + Portal people) and message attachments go to a **private** Vercel Blob store (`put` / `get` with `access: 'private'`). Browsers never load private Blob URLs directly — operators use `/profile/photo/[id]`, people use `/api/files/person-avatar/[id]`, attachments use `/api/files/attachment/[id]`. Do not commit `admin/.env.local`.
 
 If you pointed the **existing** nusman.dev project at `admin/`, put it back: Root Directory empty, Framework Vite, Output Directory `dist`. Desk + Portal must be their own Vercel project.
 

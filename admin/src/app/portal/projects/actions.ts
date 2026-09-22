@@ -28,6 +28,10 @@ import {
 } from "@/lib/labels";
 import { readMessageBodyFromForm } from "@/lib/message-body";
 import {
+  formHasAttachments,
+  persistMessageAttachments,
+} from "@/lib/message-attachments";
+import {
   notifyDeskOfPortalMessage,
   notifyDeskOfSchedule,
 } from "@/lib/notify";
@@ -349,29 +353,39 @@ export async function postPortalMessageAction(
   }
 
   const { body } = readMessageBodyFromForm(formData);
-  if (!body) {
-    return { error: "Write a message first." };
+  const hasFiles = formHasAttachments(formData);
+  if (!body && !hasFiles) {
+    return { error: "Write a message or attach a file." };
   }
 
-  await addPortalMessage({
+  const messageId = await addPortalMessage({
     projectId,
     personId: person.id,
     authorKind: "client",
-    body,
+    body: body || "(attachment)",
   });
+  const attached = await persistMessageAttachments({
+    formData,
+    clientId: client.id,
+    projectId,
+    messageId,
+  });
+  if (!attached.ok) {
+    return { error: attached.error };
+  }
   await recordAuditSafe({
     action: "portal.message",
     summary: `${person.name} sent a portal message on “${project.title}”.`,
     entityType: "portal_message",
     projectId,
     actorEmail: person.email,
-    after: { body },
+    after: { body, messageId, hasAttachments: hasFiles },
   });
   await notifyDeskOfPortalMessage({
     projectId,
     projectTitle: project.title,
     authorName: person.name,
-    body,
+    body: body || "(attachment)",
   });
   revalidatePortalProject(projectId);
   redirect(`/messages/${projectId}`);

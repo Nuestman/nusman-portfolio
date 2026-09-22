@@ -1,36 +1,53 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { LegalDoc } from '../components/LegalDoc'
 import { LEGAL_CONTACT } from '../content/privacy'
-import { TERMS_LAST_UPDATED, TERMS_SECTIONS } from '../content/terms'
+import { TERMS_DOC } from '../content/terms'
+import type { LegalDocument } from '../content/privacy'
 import { usePageMeta } from '../hooks/usePageMeta'
+import { fetchLegalDocument } from '../lib/legal-api'
 
 const TermsPage: React.FC = () => {
+  const [doc, setDoc] = useState<LegalDocument>(TERMS_DOC)
+
   usePageMeta({
     title: 'Terms of Service · Numan Usman',
     description:
-      'Terms for nusman.dev, the client Portal, and project engagements with Numan Usman / NUsman Tech Solutions.',
+      'Terms for nusman.dev, the client Portal, and project engagements with Numan Usman / Nuestman Tech Solutions.',
     path: '/terms',
   })
 
+  useEffect(() => {
+    let cancelled = false
+    void fetchLegalDocument('terms', TERMS_DOC).then((next) => {
+      if (!cancelled) {
+        setDoc(next)
+      }
+    })
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
   return (
     <LegalDoc
-      title="Terms of Service"
-      lastUpdated={TERMS_LAST_UPDATED}
-      sections={TERMS_SECTIONS}
+      title={doc.title}
+      lastUpdated={doc.lastUpdated}
+      sections={doc.sections}
       intro={
-        <p>
-          These Terms govern your use of {LEGAL_CONTACT.siteName} and the
-          client Portal, and sit alongside any written project agreement. Read
-          them with our{' '}
-          <Link
-            to="/privacy"
-            className="text-gold-600 underline hover:text-gold-700"
-          >
-            Privacy Policy
-          </Link>
-          .
-        </p>
+        <>
+          <p>{doc.intro}</p>
+          <p>
+            Read them with our{' '}
+            <Link
+              to="/privacy"
+              className="text-gold-600 underline hover:text-gold-700"
+            >
+              Privacy Policy
+            </Link>
+            .
+          </p>
+        </>
       }
       footerNote={
         <p>

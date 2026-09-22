@@ -1,13 +1,18 @@
-import { LEGAL_CONTACT, type LegalSection } from './privacy'
+import { LEGAL_CONTACT, type LegalDocument, type LegalSection } from './privacy'
+
+export const TERMS_TITLE = 'Terms of Service'
 
 export const TERMS_LAST_UPDATED = 'September 2026'
+
+export const TERMS_INTRO =
+  'These Terms govern your use of nusman.dev and the client Portal, and sit alongside any written project agreement.'
 
 export const TERMS_SECTIONS: LegalSection[] = [
   {
     id: 'who',
     title: '1. Who these Terms apply to',
     paragraphs: [
-      'These Terms apply to visitors of nusman.dev and to clients (and their authorised users) who use the client Portal or engage Numan Usman / NUsman Tech Solutions for project work.',
+      'These Terms apply to visitors of nusman.dev and to clients (and their authorised users) who use the client Portal or engage Numan Usman / Nuestman Tech Solutions for project work.',
       'If you use the Portal or request work on behalf of an organisation, you confirm you have authority to bind that organisation to these Terms for that use.',
     ],
   },
@@ -110,3 +115,10 @@ export const TERMS_SECTIONS: LegalSection[] = [
     ],
   },
 ]
+
+export const TERMS_DOC: LegalDocument = {
+  title: TERMS_TITLE,
+  lastUpdated: TERMS_LAST_UPDATED,
+  intro: TERMS_INTRO,
+  sections: TERMS_SECTIONS,
+}

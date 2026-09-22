@@ -148,6 +148,20 @@
       "when": 1790130000000,
       "tag": "0020_person_email_verified",
       "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "7",
+      "when": 1790140000000,
+      "tag": "0021_site_legal_documents",
+      "breakpoints": true
+    },
+    {
+      "idx": 22,
+      "version": "7",
+      "when": 1790150000000,
+      "tag": "0022_people_image_message_attachments",
+      "breakpoints": true
     }
   ]
 }

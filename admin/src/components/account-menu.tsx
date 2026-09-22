@@ -3,17 +3,25 @@
 import { useEffect, useId, useRef, useState } from "react";
 import Link from "next/link";
 import { logout } from "@/app/login/actions";
+import { CountBubble } from "@/components/count-bubble";
 import { UserAvatar } from "@/components/user-avatar";
 import { linkClassName } from "@/lib/links";
 import { cn } from "@/lib/utils";
 
 export type AccountMenuVariant = "panel" | "menu";
 
-type AccountIconKind = "profile" | "journal" | "notifications" | "playbook" | "signOut";
+type AccountIconKind =
+  | "profile"
+  | "journal"
+  | "notifications"
+  | "playbook"
+  | "legal"
+  | "signOut";
 
 const ACCOUNT_LINKS = [
   { href: "/notifications", label: "Notifications", icon: "notifications" },
   { href: "/playbook", label: "Playbook", icon: "playbook" },
+  { href: "/legal", label: "Legal", icon: "legal" },
   { href: "/profile", label: "Profile", icon: "profile" },
   { href: "/log", label: "Journal", icon: "journal" },
 ] as const;
@@ -70,6 +78,13 @@ function AccountIcon({
         <svg {...shared}>
           <path d="M4 5a2 2 0 0 1 2-2h9l5 5v11a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V5z" />
           <path d="M14 3v5h5M8 13h8M8 17h5" />
+        </svg>
+      );
+    case "legal":
+      return (
+        <svg {...shared}>
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+          <path d="M14 2v6h6M8 13h8M8 17h5" />
         </svg>
       );
     case "signOut":
@@ -191,27 +206,6 @@ function iconSize(variant: AccountMenuVariant): number {
       return exhaustive;
     }
   }
-}
-
-function unreadLabel(count: number): string {
-  if (count > 99) {
-    return "99+";
-  }
-  return String(count);
-}
-
-function CountBubble({ count }: { count: number }) {
-  if (count < 1) {
-    return null;
-  }
-  return (
-    <span
-      aria-hidden="true"
-      className="absolute -right-1.5 -top-1.5 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-gold-500 px-1 text-[10px] font-semibold leading-none text-white"
-    >
-      {unreadLabel(count)}
-    </span>
-  );
 }
 
 export function AccountMenu({
