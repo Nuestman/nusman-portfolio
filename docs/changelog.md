@@ -1,5 +1,15 @@
 # Changelog
 
+## 22 Sep 2026 — Desk 2.7.1 / Portal 1.7.1 · public 4.3.0
+
+### Desk / Portal (`admin/` → **2.7.1**)
+
+- **Portal home header** — `PAGE_FRAME_CLASS` is width/gutter only again; the narrow `minmax(0,1fr)` grid lives on Desk/Portal `main` instead, so the Portal home logo + account chip stay on one row. Portal home header markup cleaned up to match.
+
+Public site **4.3.0** is unchanged.
+
+---
+
 ## 21 Sep 2026 — Desk 2.7.0 / Portal 1.7 · public 4.3.0
 
 ### Desk / Portal (`admin/` → **2.7.0**)
@@ -9,7 +19,7 @@
 - **What we’re building** — migration `0019_project_want_built`. Brief / Qualify / Portal brief show the field (copied from inbound drafts / old notes where present).
 - **Locked brief** — more client-facing fields (who it is for, needed by, budget, call/meet, notes); empty values use the unset mark + **Incomplete info** badge; Fill details while intake is open.
 - **Account menu** — signed-in name at the top of the panel; chip `aria-label` uses the name.
-- **Narrow layout** — Desk/Portal `main` is a `minmax(0,1fr)` grid; table cards (`TableFrame`) isolate min-content with `contain: layout paint` so tables scroll inside the card without widening the document canvas (empty strip beside `body` in Firefox). Hiring party emails wrap inside the card. `PAGE_FRAME_CLASS` stays width/gutter only so flex headers (Portal home) still sit in a row.
+- **Narrow layout** — Desk/Portal `main` is a `minmax(0,1fr)` grid; table cards (`TableFrame`) isolate min-content with `contain: layout paint` so tables scroll inside the card without widening the document canvas (empty strip beside `body` in Firefox). Hiring party emails wrap inside the card.
 
 Public site **4.3.0** is unchanged.
 

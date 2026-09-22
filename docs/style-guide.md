@@ -132,7 +132,7 @@ Name accent on marketing only: `gradient-text` (`from-gold-500 to-gold-600`). De
 
 - Page padding: `container mx-auto px-4`.
 - Marketing sections: `py-20` or `py-24`.
-- Desk / Portal chrome and pages: `PAGE_FRAME_CLASS` — `px-4 sm:px-6 lg:px-8`, `max-w-[1400px]`.
+- Desk / Portal chrome and pages: `PAGE_FRAME_CLASS` — `px-4 sm:px-6 lg:px-8`, `max-w-[1400px]` (width/gutter only; narrow `minmax(0,1fr)` grid lives on Desk/Portal `main`).
 - Most screens: PageSpread (intro ~22–26rem, optional rail under intro, main fills the rest).
 - Portal brief / questions: centered `max-w-3xl` (`PAGE_NARROW_CLASS`). Brief is a locked document; questions are a separate form.
 - Page ground: `bg-gray-50` or `gradient-bg` (`from-white via-gray-50 to-gold-50`). Desk: flat `bg-gray-50` is enough.
