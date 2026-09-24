@@ -114,7 +114,7 @@ export default async function ProductsPage() {
                           {projectStatusLabel(product.status)}
                         </td>
                         <TableActionsCell>
-                          <EditLink href={`/projects/${product.id}?edit=brief`} />
+                          <EditLink href={`/projects/${product.id}/edit`} />
                           <form action={deleteProjectAction}>
                             <input type="hidden" name="id" value={product.id} />
                             <input type="hidden" name="next" value="/products" />

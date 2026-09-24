@@ -200,6 +200,11 @@ export default async function ClientDetailPage({
                                   Unconfirmed
                                 </span>
                               ) : null}
+                              {person.portalRequestedAt && !person.portalEnabled ? (
+                                <span className="text-xs font-medium text-amber-800">
+                                  Portal request
+                                </span>
+                              ) : null}
                             </span>
                           </td>
                           <td className="px-4 py-3 text-gray-700">
@@ -307,7 +312,7 @@ export default async function ClientDetailPage({
                         {projectStatusLabel(item.status)}
                       </td>
                       <TableActionsCell>
-                        <EditLink href={`/projects/${item.id}?edit=brief`} />
+                        <EditLink href={`/projects/${item.id}/edit`} />
                         <form action={deleteProjectAction}>
                           <input type="hidden" name="id" value={item.id} />
                           <input

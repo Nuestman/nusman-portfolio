@@ -188,7 +188,7 @@ export default async function ProjectsPage({ searchParams }: ProjectsPageProps) 
                       {projectStatusLabel(project.status)}
                     </td>
                     <TableActionsCell>
-                      <EditLink href={`/projects/${project.id}?edit=brief`} />
+                      <EditLink href={`/projects/${project.id}/edit`} />
                       <form action={deleteProjectAction}>
                         <input type="hidden" name="id" value={project.id} />
                         <input type="hidden" name="next" value="/projects" />

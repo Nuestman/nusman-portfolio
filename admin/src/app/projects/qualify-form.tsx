@@ -39,6 +39,8 @@ function initialTimelineChoice(neededBy: string): string {
 export function QualifyForm({
   projectId,
   qualify,
+  nextPath,
+  submitLabel = "Save qualify",
 }: {
   projectId: string;
   qualify: {
@@ -51,6 +53,8 @@ export function QualifyForm({
     callAt: string;
     notes: string;
   };
+  nextPath?: string;
+  submitLabel?: string;
 }) {
   const [state, action, pending] = useActionState(
     saveQualifyAction,
@@ -75,6 +79,7 @@ export function QualifyForm({
   return (
     <form action={action} className="space-y-5">
       <input type="hidden" name="projectId" value={projectId} />
+      {nextPath ? <input type="hidden" name="next" value={nextPath} /> : null}
       {fieldsLocked ? (
         <>
           <input type="hidden" name="whoFor" value={qualify.whoFor} />
@@ -245,7 +250,7 @@ export function QualifyForm({
 
       <FormError>{state.error}</FormError>
       <Button type="submit" disabled={pending}>
-        {pending ? "Saving…" : "Save qualify"}
+        {pending ? "Saving…" : submitLabel}
       </Button>
     </form>
   );

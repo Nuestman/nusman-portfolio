@@ -1,5 +1,25 @@
 # Changelog
 
+## 24 Sep 2026 — Desk 2.8.6 / Portal 1.8.6 · public 4.4.1
+
+### Desk / Portal (`admin/` → **2.8.6**)
+
+- **Organisation polish** — person request requires email (normalized lowercase); hiring-party email saved lowercase; Desk person profile/edit show amber banners for pending Portal requests; Portal access controls call out requests; ghost Questions (`/intake`) aliases removed again.
+
+Public site **4.4.1** is unchanged.
+
+---
+
+## 24 Sep 2026 — Desk 2.8.5 / Portal 1.8.5 · public 4.4.1
+
+### Desk / Portal (`admin/` → **2.8.5**)
+
+- **Portal Organisation** — `/organisation` to edit hiring party (name, org, email, phone) immediately; list people; **Request person** creates a pending contact (`portal_requested_at`, migration `0024`). Desk gets an in-app notification; confirm email + enable Portal clears the request. Profile stays personal; nav includes Organisation.
+
+Public site **4.4.1** is unchanged.
+
+---
+
 ## 24 Sep 2026 — Desk 2.8.4 / Portal 1.8.4 · public 4.4.1
 
 ### Desk / Portal (`admin/` → **2.8.4**)
@@ -8,7 +28,7 @@
 - **Portal brief** — dropped Call / meet; real meetings use Schedule. Desk Qualify still has Call / window internally. `portal_intake_open` gates brief edit only.
 - **Start a project → schedule** — after Portal create, land on project Schedule with Request a call open (kind Call, title “Discovery call”); Skip goes to the project.
 - **Welcome** — greets person + organisation (hiring party), not a single project title.
-- **Desk Edit** — projects/products list Edit opens the Brief form (`?edit=brief`); Brief card shows title and **Edit brief**.
+- **Desk project edit** — `/projects/[id]/edit` holds Brief + Qualify (+ Portal controls). List Edit opens that page (not the Brief card).
 
 Public site **4.4.1** is unchanged.
 

@@ -24,7 +24,6 @@ import { ProjectTimeline } from "@/components/project-timeline";
 import { ScrollChain } from "@/components/scroll-chain";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { QueryNotice } from "@/components/query-notice";
-import { ClearSearchParam } from "@/components/clear-search-param";
 import {
   inboundEmailNotice,
   PendingEmailBanner,
@@ -60,7 +59,7 @@ export const dynamic = "force-dynamic";
 
 type ProjectDetailPageProps = {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ notice?: string | string[]; edit?: string | string[] }>;
+  searchParams: Promise<{ notice?: string | string[] }>;
 };
 
 export async function generateMetadata({
@@ -178,8 +177,6 @@ export default async function ProjectDetailPage({
 
   const noticeRaw = Array.isArray(query.notice) ? query.notice[0] : query.notice;
   const notice = projectNotice(noticeRaw);
-  const editRaw = Array.isArray(query.edit) ? query.edit[0] : query.edit;
-  const editBrief = editRaw === "brief";
   const hasSelectedOption = options.some((option) => option.selected);
   const qualify = gateWork?.qualify ?? null;
   const intake = gateWork?.intake ?? [];
@@ -283,20 +280,25 @@ export default async function ProjectDetailPage({
             </>
           )}
         </p>
-        {!isProduct ? (
-          <p className="mt-3 text-xs text-gray-500">
+        <p className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-xs text-gray-500">
+          <Link
+            href={`/projects/${project.id}/edit`}
+            className="underline decoration-gray-300 underline-offset-2 hover:text-gray-700"
+          >
+            Edit {isProduct ? "product" : "project"}
+          </Link>
+          {!isProduct ? (
             <Link
               href={`/projects/${project.id}/classic`}
               className="underline decoration-gray-300 underline-offset-2 hover:text-gray-700"
             >
               Classic layout
             </Link>
-          </p>
-        ) : null}
+          ) : null}
+        </p>
       </div>
 
       <QueryNotice message={notice} />
-      {editBrief ? <ClearSearchParam name="edit" /> : null}
 
       {inboundDraft && project.status === "inactive" ? (
         <PendingEmailBanner
@@ -346,11 +348,7 @@ export default async function ProjectDetailPage({
           ) : null}
 
           {isProduct ? (
-            <JobBriefCard
-              isProduct
-              project={project}
-              defaultEditing={editBrief}
-            />
+            <JobBriefCard isProduct project={project} />
           ) : processGate === "qualify" || disqualified ? (
             <>
               {stagePanels(["qualify"])}
@@ -358,15 +356,10 @@ export default async function ProjectDetailPage({
                 isProduct={false}
                 project={project}
                 locked={disqualified}
-                defaultEditing={editBrief}
               />
             </>
           ) : (
-            <JobBriefCard
-              isProduct={false}
-              project={project}
-              defaultEditing={editBrief}
-            />
+            <JobBriefCard isProduct={false} project={project} />
           )}
 
           {isProduct ? (

@@ -81,6 +81,12 @@ export default async function EditPersonPage({
         }
       >
         <QueryNotice message={emailNotice} />
+        {person.portalRequestedAt && !person.portalEnabled ? (
+          <p className="rounded-lg bg-amber-100 px-4 py-3 text-sm text-amber-950">
+            Portal access requested. Confirm email if needed, then enable Portal
+            below.
+          </p>
+        ) : null}
         <Card>
           <CardHeader>
             <CardTitle>Person</CardTitle>
@@ -114,6 +120,9 @@ export default async function EditPersonPage({
                 email: person.email,
                 portalEnabled: person.portalEnabled,
                 emailVerified: isPersonEmailVerified(person),
+                portalRequested: Boolean(
+                  person.portalRequestedAt && !person.portalEnabled,
+                ),
               }}
               next={`${profileHref}/edit`}
             />

@@ -171,6 +171,12 @@ export default async function PersonProfilePage({
         }
       >
         <QueryNotice message={emailNotice} />
+        {person.portalRequestedAt && !person.portalEnabled ? (
+          <p className="rounded-lg bg-amber-100 px-4 py-3 text-sm text-amber-950">
+            Portal access requested. Confirm email if needed, then enable Portal
+            below.
+          </p>
+        ) : null}
         <Card>
           <CardHeader>
             <CardTitle>Details</CardTitle>
@@ -181,6 +187,14 @@ export default async function PersonProfilePage({
               value={person.isDecisionMaker ? "Yes" : null}
             />
             <Detail label="Portal" value={displayYesNo(person.portalEnabled)} />
+            <Detail
+              label="Portal request"
+              value={
+                person.portalRequestedAt && !person.portalEnabled
+                  ? "Waiting — confirm email, then enable Portal"
+                  : null
+              }
+            />
             <Detail
               label="Email confirmed"
               value={
@@ -269,7 +283,7 @@ export default async function PersonProfilePage({
                           {projectStatusLabel(item.status)}
                         </td>
                         <TableActionsCell>
-                          <EditLink href={`/projects/${item.id}?edit=brief`} />
+                          <EditLink href={`/projects/${item.id}/edit`} />
                           <form action={deleteProjectAction}>
                             <input type="hidden" name="id" value={item.id} />
                             <input
@@ -323,6 +337,9 @@ export default async function PersonProfilePage({
                 email: person.email,
                 portalEnabled: person.portalEnabled,
                 emailVerified,
+                portalRequested: Boolean(
+                  person.portalRequestedAt && !person.portalEnabled,
+                ),
               }}
               next={profilePath}
             />
