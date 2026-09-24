@@ -31,7 +31,7 @@ export const GATE_GUIDES: GateGuide[] = [
     id: "discover",
     label: "2. Discover",
     publicStep: "Discovery",
-    youDo: "Capture the eight themes after the call (or via portal form), estimate, and lock commitment.",
+    youDo: "Capture the eight themes after the call, estimate, and lock commitment.",
     theyDo: "Show how work is done today; agree problem and success in writing.",
     exitWhen: "Problem and Success are written; enough to plan and price.",
   },

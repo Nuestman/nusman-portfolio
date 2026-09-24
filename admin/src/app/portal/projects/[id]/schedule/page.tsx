@@ -9,6 +9,7 @@ import {
 } from "@/db/queries";
 import { PortalShell } from "@/components/portal-shell";
 import { PageSpread } from "@/components/page-spread";
+import { QueryNotice } from "@/components/query-notice";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { EditableCard } from "@/components/editable-card";
 import { getPortalSessionPerson, requirePortalPerson } from "@/lib/current-person";
@@ -21,6 +22,7 @@ export const dynamic = "force-dynamic";
 
 type PortalSchedulePageProps = {
   params: Promise<{ id: string }>;
+  searchParams: Promise<{ notice?: string | string[] }>;
 };
 
 export async function generateMetadata({
@@ -46,6 +48,7 @@ export async function generateMetadata({
 
 export default async function PortalSchedulePage({
   params,
+  searchParams,
 }: PortalSchedulePageProps) {
   const { id } = await params;
   if (!isUuid(id)) {
@@ -58,11 +61,16 @@ export default async function PortalSchedulePage({
     notFound();
   }
 
-  const [events, projects, people] = await Promise.all([
+  const [events, projects, people, query] = await Promise.all([
     listProjectEvents(project.id),
     listPortalProjectsForClient(client.id),
     listPeople(client.id),
+    searchParams,
   ]);
+
+  const noticeRaw = Array.isArray(query.notice) ? query.notice[0] : query.notice;
+  const afterCreate = noticeRaw === "started";
+  const schedulePath = `/projects/${project.id}/schedule`;
 
   return (
     <PortalShell>
@@ -77,56 +85,86 @@ export default async function PortalSchedulePage({
             </Link>
             <h1 className="mt-3 section-heading">Schedule</h1>
             <p className="mt-2 text-gray-700">
-              Confirm times Usman proposes, or request a meeting.
+              {afterCreate
+                ? "Project created. Request a call when you’re free — or skip and open the project anytime."
+                : "Confirm times Usman proposes, or request a meeting."}
             </p>
-            <p className="mt-2 text-sm">
-              <Link href="/schedule" className={linkClassName("nav")}>
-                All schedule
-              </Link>
-            </p>
+            {afterCreate ? (
+              <p className="mt-2 text-sm">
+                <Link
+                  href={`/projects/${project.id}`}
+                  className={linkClassName("nav")}
+                >
+                  Skip for now
+                </Link>
+                {" · "}
+                <Link href="/schedule" className={linkClassName("nav")}>
+                  All schedule
+                </Link>
+              </p>
+            ) : (
+              <p className="mt-2 text-sm">
+                <Link href="/schedule" className={linkClassName("nav")}>
+                  All schedule
+                </Link>
+              </p>
+            )}
           </>
         }
       >
+        {afterCreate ? (
+          <QueryNotice message="Project created. Next: request a call." />
+        ) : null}
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Upcoming</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <PortalScheduleList
-            events={events.map((event) => ({
-              ...event,
-              projectId: project.id,
-            }))}
-          />
-        </CardContent>
-      </Card>
+        <Card>
+          <CardHeader>
+            <CardTitle>Upcoming</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <PortalScheduleList
+              events={events.map((event) => ({
+                ...event,
+                projectId: project.id,
+              }))}
+            />
+          </CardContent>
+        </Card>
 
-      <EditableCard
-        title="Request a meeting"
-        hint="Defaults to you; pick another person on the account if needed."
-        editLabel="Request"
-        form={
-          <PortalRequestMeetingForm
-            projects={projects.map((row) => ({
-              id: row.id,
-              title: row.title,
-            }))}
-            people={people.map((row) => ({
-              id: row.id,
-              name: row.name,
-              role: row.role,
-            }))}
-            defaultPersonId={person.id}
-            defaultProjectId={project.id}
-          />
-        }
-        view={
-          <p className="text-sm text-gray-600">
-            Need a call, demo, or meeting? Tap Request.
-          </p>
-        }
-      />
+        <EditableCard
+          title={afterCreate ? "Request a call" : "Request a meeting"}
+          hint={
+            afterCreate
+              ? "Defaults to a discovery call. Pick a preferred time if you have one."
+              : "Defaults to you; pick another person on the account if needed."
+          }
+          editLabel="Request"
+          defaultEditing={afterCreate}
+          form={
+            <PortalRequestMeetingForm
+              projects={projects.map((row) => ({
+                id: row.id,
+                title: row.title,
+              }))}
+              people={people.map((row) => ({
+                id: row.id,
+                name: row.name,
+                role: row.role,
+              }))}
+              defaultPersonId={person.id}
+              defaultProjectId={project.id}
+              defaultKind={afterCreate ? "call" : "meeting"}
+              defaultTitle={afterCreate ? "Discovery call" : ""}
+              lockProject
+              submitLabel={afterCreate ? "Request call" : "Request meeting"}
+              returnPath={schedulePath}
+            />
+          }
+          view={
+            <p className="text-sm text-gray-600">
+              Need a call, demo, or meeting? Tap Request.
+            </p>
+          }
+        />
       </PageSpread>
     </PortalShell>
   );

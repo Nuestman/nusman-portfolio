@@ -100,7 +100,6 @@ export default async function PortalBriefPage({
           whoFor={qualify?.whoFor ?? null}
           neededBy={qualify?.neededBy ?? null}
           budgetNote={qualify?.budgetNote ?? null}
-          callAt={qualify?.callAt ?? null}
           notes={qualify?.notes ?? null}
         />
       </div>

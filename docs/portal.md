@@ -10,7 +10,7 @@ Operator workbench: [desk.md](./desk.md). Prior Desk plan (no portal): [archive/
 
 ## Why this exists
 
-Clients need a place to see progress, answer intake questions, and leave messages without seeing Desk (audit, journal, export, other clients).
+Clients need a place to see progress, read the brief, and leave messages without seeing Desk (audit, journal, export, other clients).
 
 Desk stays Usman’s workbench. Portal is invite-only for `people` on a client.
 
@@ -58,13 +58,12 @@ Magic link rows: hashed token, person_id, expires_at, used_at. One-time use. Ema
 | `/login` | Email → request magic link (unconfirmed emails get a confirm link instead) |
 | `/auth/magic` | Consume token |
 | `/auth/verify-email` | Confirm a person email, then sign in |
-| `/welcome` | First-login tour (greets with project title; until `portal_onboarding_completed_at` is set) |
+| `/welcome` | First-login tour (greets with organisation; until `portal_onboarding_completed_at` is set) |
 | `/profile` | Person profile (stacked You card + organisation and projects; ask Usman to update) |
 | `/projects` | Hiring projects for this client |
-| `/projects/new` | Start a project (brief → Desk at Qualify) |
+| `/projects/new` | Start a project (brief → schedule next step to request a call → Desk at Qualify) |
 | `/projects/[id]` | Progress (gold path), your package (client-facing fields only), client-visible notes |
-| `/projects/[id]/brief` | Locked project brief (package, deadline, problem, what we’re building, success, who it is for, needed by, budget, call/meet, notes, in/out scope) |
-| `/projects/[id]/intake` | Discovery questions form — only while intake is open |
+| `/projects/[id]/brief` | Locked project brief (package, deadline, problem, what we’re building, success, who it is for, needed by, budget, notes, in/out scope) |
 | `/projects/[id]/schedule` | Project-scoped schedule (confirm / decline / cancel) |
 | `/messages`, `/messages/[projectId]` | Messages hub + thread (plain or rich text) |
 | `/notifications` | In-app inbox (mark read / delete; account menu) |
@@ -88,7 +87,7 @@ Magic link rows: hashed token, person_id, expires_at, used_at. One-time use. Ema
 
 **Cause:** Public URLs (`/projects`, `/projects/[id]`, …) exist in **two** App Router trees (`app/projects/…` and `app/portal/projects/…`). Proxy rewrite to `/portal/…` works on document loads; soft navigations resolve the **desk** module from the browser URL and collide with the rewrite.
 
-**Current workaround (keep until cleanup):** For `/login` and `/projects*`, proxy uses `NextResponse.next()` (no rewrite). Desk pages branch with `shouldServePortalUi()` (`admin/src/lib/serve-portal.ts`) and render Portal UI. Thin aliases exist for intake, schedule, and **brief** under `app/projects/[id]/…`. Proxy also short-circuits already-rewritten `/portal/…` paths so rewrite re-entry cannot loop. Desk-only paths use careful prefixes (`/log` and `/log/…` only — never `startsWith("/log")`, which matched `/login` and caused `ERR_TOO_MANY_REDIRECTS` on Portal login).
+**Current workaround (keep until cleanup):** For `/login` and `/projects*`, proxy uses `NextResponse.next()` (no rewrite). Desk pages branch with `shouldServePortalUi()` (`admin/src/lib/serve-portal.ts`) and render Portal UI. Thin aliases exist for schedule and **brief** under `app/projects/[id]/…`. Proxy also short-circuits already-rewritten `/portal/…` paths so rewrite re-entry cannot loop. Desk-only paths use careful prefixes (`/log` and `/log/…` only — never `startsWith("/log")`, which matched `/login` and caused `ERR_TOO_MANY_REDIRECTS` on Portal login).
 
 **Preferred later fix (pick one):**
 

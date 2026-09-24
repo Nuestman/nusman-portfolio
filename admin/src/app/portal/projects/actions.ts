@@ -8,13 +8,11 @@ import {
   createDeskNotificationsForActiveUsers,
   createProject,
   createProjectEvent,
-  ensureIntakeAnswers,
   getPerson,
   getPortalProjectForPerson,
   getProjectEvent,
   getQualify,
   patchProject,
-  saveIntakeAnswers,
   setProjectEventStatus,
   upsertQualify,
 } from "@/db/queries";
@@ -42,7 +40,6 @@ import {
 } from "@/lib/notify-email";
 import { safeInternalPath } from "@/lib/paths";
 import { parseDatetimeLocal, formatEventWhen } from "@/lib/text";
-import { INTAKE_QUESTIONS } from "@/lib/templates";
 
 export type PortalFormState = {
   error: string | null;
@@ -58,14 +55,12 @@ function portalEventReturnPath(formData: FormData): string {
 
 function revalidatePortalProject(projectId: string) {
   revalidatePath(`/portal/projects/${projectId}`);
-  revalidatePath(`/portal/projects/${projectId}/intake`);
   revalidatePath(`/portal/projects/${projectId}/brief`);
   revalidatePath(`/portal/projects/${projectId}/messages`);
   revalidatePath(`/portal/projects/${projectId}/schedule`);
   revalidatePath(`/portal/schedule`);
   revalidatePath(`/portal/projects`);
   revalidatePath(`/projects/${projectId}`);
-  revalidatePath(`/projects/${projectId}/intake`);
   revalidatePath(`/projects/${projectId}/brief`);
   revalidatePath(`/projects/${projectId}/messages`);
   revalidatePath(`/projects/${projectId}/schedule`);
@@ -206,43 +201,7 @@ export async function startPortalProjectAction(
   });
 
   revalidatePortalProject(projectId);
-  redirect(`/projects/${projectId}`);
-}
-
-export async function savePortalIntakeAction(
-  _previous: PortalFormState,
-  formData: FormData,
-): Promise<PortalFormState> {
-  const { person, client } = await requirePortalPerson();
-  const projectId = readTrimmed(formData, "projectId");
-  if (!isUuid(projectId)) {
-    return { error: "Project is missing." };
-  }
-
-  const project = await getPortalProjectForPerson(projectId, client.id);
-  if (!project) {
-    return { error: "That project is gone." };
-  }
-  if (!project.portalIntakeOpen) {
-    return { error: "Discovery is closed. Ask Usman if you need to change answers." };
-  }
-
-  await ensureIntakeAnswers(projectId);
-  const next = INTAKE_QUESTIONS.map((item) => ({
-    theme: item.theme,
-    ask: item.ask,
-    answer: readTrimmed(formData, `answer_${item.theme}`) || null,
-  }));
-  await saveIntakeAnswers(projectId, next);
-  await recordAuditSafe({
-    action: "portal.intake-save",
-    summary: `${person.name} saved portal discovery answers on “${project.title}”.`,
-    entityType: "discovery",
-    projectId,
-    actorEmail: person.email,
-  });
-  revalidatePortalProject(projectId);
-  redirect(`/projects/${projectId}/intake?notice=saved`);
+  redirect(`/projects/${projectId}/schedule?notice=started`);
 }
 
 export async function savePortalBriefAction(
@@ -272,7 +231,6 @@ export async function savePortalBriefAction(
   const whoFor = readOptional(formData, "whoFor");
   const neededBy = readOptional(formData, "neededBy");
   const budgetNote = readOptional(formData, "budgetNote");
-  const callAt = readOptional(formData, "callAt");
   const notes = readOptional(formData, "notes");
 
   if (
@@ -282,7 +240,6 @@ export async function savePortalBriefAction(
     (whoFor && whoFor.length > 500) ||
     (neededBy && neededBy.length > 200) ||
     (budgetNote && budgetNote.length > 200) ||
-    (callAt && callAt.length > 200) ||
     (notes && notes.length > 4000)
   ) {
     return { error: "One of the answers is too long." };
@@ -301,7 +258,7 @@ export async function savePortalBriefAction(
     painToday: problem ?? previousQualify?.painToday ?? null,
     neededBy,
     budgetNote,
-    callAt,
+    callAt: previousQualify?.callAt ?? null,
     notes,
   };
   await patchProject(projectId, nextValues);
@@ -321,7 +278,6 @@ export async function savePortalBriefAction(
       whoFor: previousQualify?.whoFor ?? null,
       neededBy: previousQualify?.neededBy ?? null,
       budgetNote: previousQualify?.budgetNote ?? null,
-      callAt: previousQualify?.callAt ?? null,
       notes: previousQualify?.notes ?? null,
     },
     after: {
@@ -329,7 +285,6 @@ export async function savePortalBriefAction(
       whoFor,
       neededBy,
       budgetNote,
-      callAt,
       notes,
     },
   });
@@ -615,5 +570,5 @@ export async function requestPortalEventAction(
     ].filter((line): line is string => Boolean(line)),
   });
   revalidatePortalProject(projectId);
-  redirect("/schedule");
+  redirect(portalEventReturnPath(formData));
 }

@@ -4,12 +4,15 @@ import { useActionState } from "react";
 import { Button } from "@/components/ui/button";
 import { FormError } from "@/components/form-error";
 import { fieldClassName, labelClassName } from "@/lib/forms";
-import { PROJECT_EVENT_KINDS } from "@/db/schema";
+import {
+  PROJECT_EVENT_KINDS,
+  type ProjectEventKind,
+  type PersonRole,
+} from "@/db/schema";
 import {
   projectEventKindLabel,
   personRoleLabel,
 } from "@/lib/labels";
-import type { PersonRole } from "@/db/schema";
 import {
   requestPortalEventAction,
   type PortalFormState,
@@ -29,11 +32,23 @@ export function PortalRequestMeetingForm({
   people,
   defaultPersonId,
   defaultProjectId,
+  defaultKind = "meeting",
+  defaultTitle = "",
+  lockProject = false,
+  submitLabel = "Request meeting",
+  returnPath,
 }: {
   projects: PortalScheduleProject[];
   people: PortalSchedulePerson[];
   defaultPersonId: string;
   defaultProjectId?: string;
+  defaultKind?: ProjectEventKind;
+  defaultTitle?: string;
+  /** Hide the project picker when the page is already scoped to one job. */
+  lockProject?: boolean;
+  submitLabel?: string;
+  /** After submit, return here instead of the hub (safe internal path). */
+  returnPath?: string;
 }) {
   const [state, action, pending] = useActionState(
     requestPortalEventAction,
@@ -49,9 +64,24 @@ export function PortalRequestMeetingForm({
     );
   }
 
+  const lockedProjectId =
+    defaultProjectId &&
+    projects.some((project) => project.id === defaultProjectId)
+      ? defaultProjectId
+      : projects[0]!.id;
+
+  const personDefault = people.some((person) => person.id === defaultPersonId)
+    ? defaultPersonId
+    : (people[0]?.id ?? "");
+
   return (
     <form action={action} className="space-y-4">
-      <div className="grid gap-4 sm:grid-cols-2">
+      {returnPath ? (
+        <input type="hidden" name="next" value={returnPath} />
+      ) : null}
+      {lockProject ? (
+        <input type="hidden" name="projectId" value={lockedProjectId} />
+      ) : (
         <div>
           <label htmlFor="request-project" className={labelClassName}>
             Project
@@ -60,7 +90,7 @@ export function PortalRequestMeetingForm({
             id="request-project"
             name="projectId"
             required
-            defaultValue={defaultProjectId ?? projects[0]!.id}
+            defaultValue={lockedProjectId}
             className={fieldClassName}
           >
             {projects.map((project) => (
@@ -70,34 +100,31 @@ export function PortalRequestMeetingForm({
             ))}
           </select>
         </div>
-        <div>
-          <label htmlFor="request-person" className={labelClassName}>
-            Who is this for
-          </label>
-          <select
-            id="request-person"
-            name="personId"
-            required
-            defaultValue={
-              people.some((person) => person.id === defaultPersonId)
-                ? defaultPersonId
-                : (people[0]?.id ?? "")
-            }
-            className={fieldClassName}
-            disabled={people.length === 0}
-          >
-            {people.length === 0 ? (
-              <option value="">No people on this account</option>
-            ) : (
-              people.map((person) => (
-                <option key={person.id} value={person.id}>
-                  {person.name} · {personRoleLabel(person.role)}
-                  {person.id === defaultPersonId ? " (you)" : ""}
-                </option>
-              ))
-            )}
-          </select>
-        </div>
+      )}
+
+      <div>
+        <label htmlFor="request-person" className={labelClassName}>
+          Who is this for
+        </label>
+        <select
+          id="request-person"
+          name="personId"
+          required
+          defaultValue={personDefault}
+          className={fieldClassName}
+          disabled={people.length === 0}
+        >
+          {people.length === 0 ? (
+            <option value="">No people on this account</option>
+          ) : (
+            people.map((person) => (
+              <option key={person.id} value={person.id}>
+                {person.name} · {personRoleLabel(person.role)}
+                {person.id === defaultPersonId ? " (you)" : ""}
+              </option>
+            ))
+          )}
+        </select>
       </div>
 
       <div>
@@ -108,7 +135,7 @@ export function PortalRequestMeetingForm({
           id="request-kind"
           name="kind"
           required
-          defaultValue="meeting"
+          defaultValue={defaultKind}
           className={fieldClassName}
         >
           {PROJECT_EVENT_KINDS.map((kind) => (
@@ -127,6 +154,7 @@ export function PortalRequestMeetingForm({
           id="request-title"
           name="title"
           required
+          defaultValue={defaultTitle}
           className={fieldClassName}
           placeholder="Discovery call"
         />
@@ -159,7 +187,7 @@ export function PortalRequestMeetingForm({
 
       <FormError>{state.error}</FormError>
       <Button type="submit" disabled={pending || people.length === 0}>
-        {pending ? "Sending…" : "Request meeting"}
+        {pending ? "Sending…" : submitLabel}
       </Button>
     </form>
   );

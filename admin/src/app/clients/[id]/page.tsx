@@ -307,7 +307,7 @@ export default async function ClientDetailPage({
                         {projectStatusLabel(item.status)}
                       </td>
                       <TableActionsCell>
-                        <EditLink href={`/projects/${item.id}`} />
+                        <EditLink href={`/projects/${item.id}?edit=brief`} />
                         <form action={deleteProjectAction}>
                           <input type="hidden" name="id" value={item.id} />
                           <input

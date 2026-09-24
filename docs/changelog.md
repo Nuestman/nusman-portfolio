@@ -1,10 +1,34 @@
 # Changelog
 
+## 24 Sep 2026 — Desk 2.8.4 / Portal 1.8.4 · public 4.4.1
+
+### Desk / Portal (`admin/` → **2.8.4**)
+
+- **Portal lean** — removed Questions (`/projects/[id]/intake`). Clients keep brief, messages, schedule, profile, and start project. Desk owns the eight discovery themes under Discover.
+- **Portal brief** — dropped Call / meet; real meetings use Schedule. Desk Qualify still has Call / window internally. `portal_intake_open` gates brief edit only.
+- **Start a project → schedule** — after Portal create, land on project Schedule with Request a call open (kind Call, title “Discovery call”); Skip goes to the project.
+- **Welcome** — greets person + organisation (hiring party), not a single project title.
+- **Desk Edit** — projects/products list Edit opens the Brief form (`?edit=brief`); Brief card shows title and **Edit brief**.
+
+Public site **4.4.1** is unchanged.
+
+---
+
+## 24 Sep 2026 — Desk 2.8.2 / Portal 1.8.2 · public 4.4.1
+
+### Desk / Portal (`admin/` → **2.8.2**)
+
+- **Discovery questions on Desk only** — the eight intake themes are edited on Desk (`Sales` / intake form). Superseded for Portal by **2.8.4** (Questions page removed). `portal_intake_open` gates brief editing only.
+
+Public site **4.4.1** is unchanged.
+
+---
+
 ## 22 Sep 2026 — Desk 2.8.1 / Portal 1.8.1 · public 4.4.1
 
 ### Desk / Portal (`admin/` → **2.8.1**)
 
-- **Portal onboarding** — first sign-in after Portal is activated sends clients to `/welcome` (four short steps: Welcome, Projects, Messages, You). Welcome greets by person + latest project title. Skip or Get started sets `people.portal_onboarding_completed_at` (migration `0023`). Magic login and `PortalShell` gate until complete.
+- **Portal onboarding** — first sign-in after Portal is activated sends clients to `/welcome` (four short steps: Welcome, Projects, Messages, You). Welcome greets by person + organisation (hiring party). Skip or Get started sets `people.portal_onboarding_completed_at` (migration `0023`). Magic login and `PortalShell` gate until complete.
 
 Public site **4.4.1** is unchanged.
 

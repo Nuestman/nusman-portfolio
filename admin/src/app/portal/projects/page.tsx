@@ -25,7 +25,7 @@ export default async function PortalProjectsPage() {
         <div>
           <h1 className="section-heading">Hello, {person.name}</h1>
           <p className="mt-2 text-gray-700">
-            Projects for {client.name}. Open one to see progress, discovery, and
+            Projects for {client.name}. Open one to see progress, the brief, and
             messages.
           </p>
         </div>

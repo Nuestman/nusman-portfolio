@@ -96,7 +96,7 @@ export async function sendPortalAccessGrantedEmail(input: {
         ].join("\n")
       : `Open ${loginUrl} and enter this email to get a sign-in link.`,
     "",
-    "From the portal you can follow progress, share discovery answers, manage schedule, and message Usman.",
+    "From the portal you can follow progress, manage schedule, and message Usman.",
     "",
     "—",
     practiceContactBlock(),
@@ -104,7 +104,7 @@ export async function sendPortalAccessGrantedEmail(input: {
 
   const bodyLines = [
     `Portal access is ready for ${input.clientName}.`,
-    "From the portal you can follow progress, share discovery answers, manage schedule, and message Usman.",
+    "From the portal you can follow progress, manage schedule, and message Usman.",
   ];
   if (!input.magicUrl) {
     bodyLines.push(`Open ${loginUrl} and enter this email to get a sign-in link.`);

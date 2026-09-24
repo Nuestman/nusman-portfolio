@@ -11,6 +11,7 @@ export const dynamic = "force-dynamic";
 
 type Props = {
   params: Promise<{ id: string }>;
+  searchParams: Promise<{ notice?: string | string[] }>;
 };
 
 export async function generateMetadata({

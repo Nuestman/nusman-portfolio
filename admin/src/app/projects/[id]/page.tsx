@@ -24,6 +24,7 @@ import { ProjectTimeline } from "@/components/project-timeline";
 import { ScrollChain } from "@/components/scroll-chain";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { QueryNotice } from "@/components/query-notice";
+import { ClearSearchParam } from "@/components/clear-search-param";
 import {
   inboundEmailNotice,
   PendingEmailBanner,
@@ -59,7 +60,7 @@ export const dynamic = "force-dynamic";
 
 type ProjectDetailPageProps = {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ notice?: string | string[] }>;
+  searchParams: Promise<{ notice?: string | string[]; edit?: string | string[] }>;
 };
 
 export async function generateMetadata({
@@ -177,6 +178,8 @@ export default async function ProjectDetailPage({
 
   const noticeRaw = Array.isArray(query.notice) ? query.notice[0] : query.notice;
   const notice = projectNotice(noticeRaw);
+  const editRaw = Array.isArray(query.edit) ? query.edit[0] : query.edit;
+  const editBrief = editRaw === "brief";
   const hasSelectedOption = options.some((option) => option.selected);
   const qualify = gateWork?.qualify ?? null;
   const intake = gateWork?.intake ?? [];
@@ -293,6 +296,7 @@ export default async function ProjectDetailPage({
       </div>
 
       <QueryNotice message={notice} />
+      {editBrief ? <ClearSearchParam name="edit" /> : null}
 
       {inboundDraft && project.status === "inactive" ? (
         <PendingEmailBanner
@@ -342,7 +346,11 @@ export default async function ProjectDetailPage({
           ) : null}
 
           {isProduct ? (
-            <JobBriefCard isProduct project={project} />
+            <JobBriefCard
+              isProduct
+              project={project}
+              defaultEditing={editBrief}
+            />
           ) : processGate === "qualify" || disqualified ? (
             <>
               {stagePanels(["qualify"])}
@@ -350,10 +358,15 @@ export default async function ProjectDetailPage({
                 isProduct={false}
                 project={project}
                 locked={disqualified}
+                defaultEditing={editBrief}
               />
             </>
           ) : (
-            <JobBriefCard isProduct={false} project={project} />
+            <JobBriefCard
+              isProduct={false}
+              project={project}
+              defaultEditing={editBrief}
+            />
           )}
 
           {isProduct ? (

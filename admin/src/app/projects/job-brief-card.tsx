@@ -10,6 +10,7 @@ export function JobBriefCard({
   isProduct,
   project,
   locked = false,
+  defaultEditing = false,
 }: {
   isProduct: boolean;
   project: {
@@ -23,6 +24,7 @@ export function JobBriefCard({
     status: ProjectStatus;
   };
   locked?: boolean;
+  defaultEditing?: boolean;
 }) {
   const incomplete = [
     project.problemSentence,
@@ -40,11 +42,20 @@ export function JobBriefCard({
           ? "Brief is frozen while this job is disqualified."
           : isProduct
             ? undefined
-            : "Locked problem, what we're building, and success for this job. Needed before you leave Discover."
+            : "Title, problem, what we're building, success, deadline, and status. Needed before you leave Discover."
       }
+      editLabel={isProduct ? "Edit" : "Edit brief"}
       showEdit={!locked}
+      defaultEditing={defaultEditing && !locked}
       view={
         <div className="space-y-6">
+          <div>
+            <p className="text-xs font-medium uppercase tracking-wide text-gray-500">
+              Title
+            </p>
+            <p className="mt-1 text-sm text-dark-950">{project.title}</p>
+          </div>
+
           <div>
             <p className="text-xs font-medium uppercase tracking-wide text-gray-500">
               Problem
@@ -87,14 +98,6 @@ export function JobBriefCard({
                 {projectStatusLabel(project.status)}
               </dd>
             </div>
-            {isProduct ? (
-              <div className="sm:col-span-2">
-                <dt className="text-xs font-medium uppercase tracking-wide text-gray-500">
-                  Title
-                </dt>
-                <dd className="mt-1 text-sm text-gray-800">{project.title}</dd>
-              </div>
-            ) : null}
           </dl>
         </div>
       }

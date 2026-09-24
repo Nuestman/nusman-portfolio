@@ -1,8 +1,8 @@
 # Desk status
 
-Checked 22 Sep 2026 against the code in `admin/`. Product version: **2.8.1** (`admin/package.json`). Product rules: [desk-2.0.md](./desk-2.0.md) (wins) and [desk.md](./desk.md). Portal: [portal.md](./portal.md). Archive: [archive/desk-1.1.md](./archive/desk-1.1.md). Visual: [style-guide.md](./style-guide.md). Deploy: [deploy.md](./deploy.md). Update this file when something ships or an open item is closed.
+Checked 24 Sep 2026 against the code in `admin/`. Product version: **2.8.4** (`admin/package.json`). Product rules: [desk-2.0.md](./desk-2.0.md) (wins) and [desk.md](./desk.md). Portal: [portal.md](./portal.md). Archive: [archive/desk-1.1.md](./archive/desk-1.1.md). Visual: [style-guide.md](./style-guide.md). Deploy: [deploy.md](./deploy.md). Update this file when something ships or an open item is closed.
 
-Desk **2.8.1** / Portal **1.8.1** are usable. Public site **4.4.1** posts `/start` into Desk as an **inactive** project; email confirm (or Desk confirm) activates it. Portal sign-in requires a **confirmed** person email. First Portal login runs a short `/welcome` tour until completed. Public `/privacy` and `/terms` load from Desk `GET /api/legal/[slug]` with a static fallback. Profile photos and message attachments use a **private** Vercel Blob store (proxied downloads). Messages nav + conversation list show unread message badges.
+Desk **2.8.4** / Portal **1.8.4** are usable. Public site **4.4.1** posts `/start` into Desk as an **inactive** project; email confirm (or Desk confirm) activates it. Portal sign-in requires a **confirmed** person email. First Portal login runs a short `/welcome` tour (organisation greeting) until completed. Portal surfaces: progress, brief, messages, schedule, profile, start project → request call (no Questions page). Desk list Edit opens the Brief form. Public `/privacy` and `/terms` load from Desk `GET /api/legal/[slug]` with a static fallback. Profile photos and message attachments use a **private** Vercel Blob store (proxied downloads). Messages nav + conversation list show unread message badges.
 
 ---
 
@@ -43,17 +43,16 @@ Hiring jobs with gate records, **process milestones**, table-row edit/remove, pl
 | Route | Status |
 |---|---|
 | `/`, `/login`, `/auth/magic`, `/auth/verify-email` | Live. Magic links finish on Portal origin. Unconfirmed emails cannot sign in; login sends a confirm link instead. First login (no `portal_onboarding_completed_at`) lands on `/welcome` |
-| `/welcome` | Live. Four-step Portal tour (greets with latest project title); Skip or Get started marks onboarding complete |
+| `/welcome` | Live. Four-step Portal tour (greets with organisation / hiring party); Skip or Get started marks onboarding complete |
 | `/profile` | Live. You card + photo upload (private Blob, remove-before-save); Details, Organisation, Projects (client-facing stage labels; Start a project) |
-| `/projects`, `/projects/new`, `/projects/[id]` | Live. List, start project, Progress (gold path), package, updates |
-| `/projects/[id]/brief` | Live. Locked client brief (project name header, package, deadline, problem, what we’re building, success, who it is for, needed by, budget, call/meet, notes, scope; empty fields “Not set.”; Incomplete info badge; Fill details while intake is open) |
-| `/projects/[id]/intake` | Live. Questions form only while intake is open; otherwise points at the brief |
+| `/projects`, `/projects/new`, `/projects/[id]` | Live. List, start project (then schedule next step to request a call), Progress (gold path), package, updates |
+| `/projects/[id]/brief` | Live. Locked client brief (project name header, package, deadline, problem, what we’re building, success, who it is for, needed by, budget, notes, scope; empty fields “Not set.”; Incomplete info badge; Fill details while brief edit is open) |
 | `/projects/[id]/schedule` | Live. Project cards with confirm / decline / cancel |
 | `/messages`, `/messages/[projectId]` | Live. Hub + thread; composer with optional attachments; unread badges on nav + list |
 | `/notifications` | Live. Feed + table — mark read / delete only (account menu) |
 | `/schedule` | Live. Wide hub: Cards / Calendar; confirm/decline/cancel; request |
 
-`/projects*` uses dual-mode pages (no proxy rewrite) so soft-nav does not 404 — aliases include intake, schedule, and **brief**. Cleanup note in [portal.md](./portal.md#later--routing-cleanup-best-practice).
+`/projects*` uses dual-mode pages (no proxy rewrite) so soft-nav does not 404 — aliases include schedule and **brief**. Cleanup note in [portal.md](./portal.md#later--routing-cleanup-best-practice).
 
 ### Schema
 

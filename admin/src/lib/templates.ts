@@ -100,7 +100,7 @@ export function deskCopyTemplates(
     {
       id: "intake",
       title: "Eight questions",
-      hint: "Discover. Send after they confirm it is real (or use the portal form).",
+      hint: "Discover. Send after they confirm it is real; record answers on Desk.",
       text: INTAKE_MESSAGE,
     },
     {
