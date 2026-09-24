@@ -442,6 +442,23 @@ export async function updateClient(
     .where(eq(clients.id, id));
 }
 
+/** Portal-safe hiring-party contact fields (keeps source / notes untouched). */
+export async function updateClientContact(
+  id: string,
+  values: {
+    name: string;
+    email: string | null;
+    phone: string | null;
+    organisation: string | null;
+  },
+) {
+  const db = getDb();
+  await db
+    .update(clients)
+    .set({ ...values, updatedAt: new Date() })
+    .where(eq(clients.id, id));
+}
+
 export async function countProjectsForClient(clientId: string) {
   const db = getDb();
   const [row] = await db
@@ -511,9 +528,17 @@ export async function createPerson(values: {
   role: PersonRole;
   isDecisionMaker: boolean;
   notes: string | null;
-}) {
+  portalRequestedAt?: Date | null;
+}): Promise<string> {
   const db = getDb();
-  await db.insert(people).values(values);
+  const [row] = await db
+    .insert(people)
+    .values(values)
+    .returning({ id: people.id });
+  if (!row) {
+    throw new Error("Could not create person");
+  }
+  return row.id;
 }
 
 export async function updatePerson(
@@ -1690,7 +1715,11 @@ export async function setPersonPortalEnabled(id: string, portalEnabled: boolean)
   const db = getDb();
   await db
     .update(people)
-    .set({ portalEnabled, updatedAt: new Date() })
+    .set({
+      portalEnabled,
+      ...(portalEnabled ? { portalRequestedAt: null } : {}),
+      updatedAt: new Date(),
+    })
     .where(eq(people.id, id));
 }
 

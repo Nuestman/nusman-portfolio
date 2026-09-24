@@ -107,6 +107,7 @@ function revalidateProject(projectId: string, clientId: string) {
   revalidatePath("/products");
   revalidatePath("/schedule");
   revalidatePath(`/projects/${projectId}`);
+  revalidatePath(`/projects/${projectId}/edit`);
   revalidatePath(`/projects/${projectId}/schedule`);
   revalidatePath(`/clients/${clientId}`);
   revalidatePath(`/portal/projects/${projectId}`);
@@ -262,7 +263,8 @@ export async function updateProjectAction(
   });
 
   revalidateProject(id, project.clientId);
-  redirect(`/projects/${id}`);
+  const next = readOptional(formData, "next");
+  redirect(next ? safeInternalPath(next) : `/projects/${id}`);
 }
 
 export async function deleteProjectAction(formData: FormData) {
@@ -735,7 +737,8 @@ export async function saveQualifyAction(
     });
   }
   revalidateProject(projectId, project.clientId);
-  redirect(`/projects/${projectId}`);
+  const next = readOptional(formData, "next");
+  redirect(next ? safeInternalPath(next) : `/projects/${projectId}`);
 }
 
 export async function saveIntakeAction(

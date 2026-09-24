@@ -16,6 +16,8 @@ export function ProjectDetailsForm({
   problemHint,
   hideBudget = false,
   hideWantBuilt = false,
+  submitLabel = "Save brief",
+  nextPath,
 }: {
   project: {
     id: string;
@@ -32,6 +34,8 @@ export function ProjectDetailsForm({
   hideBudget?: boolean;
   /** Own-product records do not use the hiring brief field. */
   hideWantBuilt?: boolean;
+  submitLabel?: string;
+  nextPath?: string;
 }) {
   const [state, action, pending] = useActionState(
     updateProjectAction,
@@ -41,6 +45,7 @@ export function ProjectDetailsForm({
   return (
     <form action={action} className="space-y-5">
       <input type="hidden" name="id" value={project.id} />
+      {nextPath ? <input type="hidden" name="next" value={nextPath} /> : null}
       {hideBudget ? (
         <input type="hidden" name="budgetNote" value={project.budgetNote} />
       ) : null}
@@ -155,7 +160,7 @@ export function ProjectDetailsForm({
 
       <FormError>{state.error}</FormError>
       <Button type="submit" disabled={pending}>
-        {pending ? "Saving…" : "Save brief"}
+        {pending ? "Saving…" : submitLabel}
       </Button>
     </form>
   );

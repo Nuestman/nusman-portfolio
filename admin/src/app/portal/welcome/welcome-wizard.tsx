@@ -35,7 +35,7 @@ const STEPS: WelcomeStep[] = [
   {
     id: "you",
     title: "You",
-    body: "Profile holds your details and photo. Notifications and the Schedule hub keep you in the loop without digging through email.",
+    body: "Profile holds your details and photo. Organisation is where you edit the hiring party and request people. Notifications and Schedule keep you in the loop.",
     cue: "You",
   },
 ];

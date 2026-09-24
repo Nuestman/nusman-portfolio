@@ -28,6 +28,7 @@ export function PortalPersonControls({
     email: string | null;
     portalEnabled: boolean;
     emailVerified: boolean;
+    portalRequested?: boolean;
   };
   next: string;
 }) {
@@ -40,9 +41,18 @@ export function PortalPersonControls({
     initialState,
   );
   const needsVerify = Boolean(person.email) && !person.emailVerified;
+  const awaitingRequest =
+    Boolean(person.portalRequested) && !person.portalEnabled;
 
   return (
     <div className="space-y-6">
+      {awaitingRequest ? (
+        <p className="rounded-lg bg-amber-100 px-4 py-3 text-sm text-amber-950">
+          Requested from Portal. Confirm their email
+          {needsVerify ? " below" : ""}, then enable Portal access.
+        </p>
+      ) : null}
+
       {needsVerify && person.email ? (
         <EmailVerifyPrompt
           personId={person.id}
@@ -71,7 +81,9 @@ export function PortalPersonControls({
             ? "Add an email on this person before enabling portal."
             : needsVerify
               ? "Confirm the email above before turning portal on."
-              : `Magic links go to ${person.email}.`}
+              : awaitingRequest
+                ? `Ready to enable — magic links will go to ${person.email}.`
+                : `Magic links go to ${person.email}.`}
         </p>
         <FormError>{enableState.error}</FormError>
         {enableState.emailed ? (

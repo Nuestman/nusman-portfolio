@@ -209,6 +209,9 @@ export const people = pgTable(
     portalOnboardingCompletedAt: timestamp("portal_onboarding_completed_at", {
       withTimezone: true,
     }),
+    portalRequestedAt: timestamp("portal_requested_at", {
+      withTimezone: true,
+    }),
     emailVerifiedAt: timestamp("email_verified_at", { withTimezone: true }),
     emailVerifyTokenHash: text("email_verify_token_hash"),
     emailVerifyExpiresAt: timestamp("email_verify_expires_at", {

@@ -140,7 +140,7 @@ export default async function HomePage() {
                       <td className="px-4 py-3 text-gray-700">{guide.label}</td>
                       <td className="px-4 py-3 text-gray-600">{guide.youDo}</td>
                       <TableActionsCell>
-                        <EditLink href={`/projects/${project.id}?edit=brief`} />
+                        <EditLink href={`/projects/${project.id}/edit`} />
                         <form action={deleteProjectAction}>
                           <input type="hidden" name="id" value={project.id} />
                           <input type="hidden" name="next" value="/" />

@@ -59,7 +59,8 @@ Magic link rows: hashed token, person_id, expires_at, used_at. One-time use. Ema
 | `/auth/magic` | Consume token |
 | `/auth/verify-email` | Confirm a person email, then sign in |
 | `/welcome` | First-login tour (greets with organisation; until `portal_onboarding_completed_at` is set) |
-| `/profile` | Person profile (stacked You card + organisation and projects; ask Usman to update) |
+| `/profile` | Person profile (You + photo; organisation lives at `/organisation`) |
+| `/organisation` | Hiring party edit + people + request person (email required; Desk confirms email + enables Portal) |
 | `/projects` | Hiring projects for this client |
 | `/projects/new` | Start a project (brief → schedule next step to request a call → Desk at Qualify) |
 | `/projects/[id]` | Progress (gold path), your package (client-facing fields only), client-visible notes |
@@ -77,6 +78,7 @@ Magic link rows: hashed token, person_id, expires_at, used_at. One-time use. Ema
 - Migration `0019_project_want_built`: `projects.want_built` (“What we’re building”) on Desk and Portal briefs
 - Migration `0020_person_email_verified`: `people.email_verified_at` plus confirm-token hash/expiry. Portal use requires confirmed email **and** `portal_enabled`. Inbound confirm still activates the project and now also marks matching people verified.
 - Migration `0023_people_portal_onboarding`: `people.portal_onboarding_completed_at` for the `/welcome` tour.
+- Migration `0024_people_portal_requested`: `people.portal_requested_at` when a Portal user requests a new person.
 - Later Desk migrations also affect Portal surfaces: `0009_project_events` (schedule), `0010`/`0011` (milestones + gate remap), `0012_notifications` (in-app inbox), `0013`/`0014` (heard-about sources incl. social media), `0021`/`0022` (legal + Blob) — see [desk-status.md](./desk-status.md)
 
 ---
@@ -160,7 +162,9 @@ Add domain `portal.nusman.dev` on the same Vercel project as Desk. Magic links u
 16. Portal home header stays one row (`PAGE_FRAME_CLASS` width-only; narrow grid on `main`) — done (Portal **1.7.1** / Desk **2.7.1**)
 17. Minimal signed-in shell footer (surface + version, © N. Usman) — done (Portal **1.7.2** / Desk **2.7.2**)
 18. Public `/privacy` + `/terms`; Desk-editable Neon copy; private Blob avatars + message attachments; unread message badges on nav + threads — done (Portal **1.8.0** / Desk **2.8.0** / public **4.4.1**)
-19. First-login `/welcome` tour — done (Portal **1.8.1** / Desk **2.8.1**)  
+19. First-login `/welcome` tour — done (Portal **1.8.1** / Desk **2.8.1**)
+20. Portal Organisation (`/organisation` edit + request person); lean Portal (no Questions); start → schedule call — done (Portal **1.8.5** / Desk **2.8.5**)
+21. Organisation polish (required email; Desk request banners; intake aliases gone) — done (Portal **1.8.6** / Desk **2.8.6**)
 
 ---
 
