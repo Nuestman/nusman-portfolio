@@ -131,7 +131,6 @@ function PortalBriefForm({
   whoFor,
   neededBy,
   budgetNote,
-  callAt,
   notes,
   onCancel,
 }: {
@@ -143,7 +142,6 @@ function PortalBriefForm({
   whoFor: string;
   neededBy: string;
   budgetNote: string;
-  callAt: string;
   notes: string;
   onCancel: () => void;
 }) {
@@ -243,7 +241,7 @@ function PortalBriefForm({
         onManual={setTimelineManual}
       />
 
-      <div className="grid gap-4 sm:grid-cols-3">
+      <div className="grid gap-4 sm:grid-cols-2">
         <TimelineSelect
           id="portal-brief-neededBy"
           label="Needed by"
@@ -269,18 +267,6 @@ function PortalBriefForm({
               </option>
             ))}
           </select>
-        </div>
-        <div>
-          <label htmlFor="portal-brief-callAt" className={labelClassName}>
-            Call / meet
-          </label>
-          <input
-            id="portal-brief-callAt"
-            name="callAt"
-            defaultValue={callAt}
-            className={fieldClassName}
-            placeholder="When to talk"
-          />
         </div>
       </div>
 
@@ -325,7 +311,6 @@ export function PortalProjectBrief({
   whoFor,
   neededBy,
   budgetNote,
-  callAt,
   notes,
 }: {
   projectId: string;
@@ -341,7 +326,6 @@ export function PortalProjectBrief({
   whoFor: string | null;
   neededBy: string | null;
   budgetNote: string | null;
-  callAt: string | null;
   notes: string | null;
 }) {
   const [editing, setEditing] = useState(false);
@@ -395,7 +379,6 @@ export function PortalProjectBrief({
             whoFor={whoFor ?? ""}
             neededBy={neededBy ?? ""}
             budgetNote={budgetNote ?? ""}
-            callAt={callAt ?? ""}
             notes={notes ?? ""}
             onCancel={() => setEditing(false)}
           />
@@ -433,7 +416,7 @@ export function PortalProjectBrief({
               size="meta"
             />
 
-            <div className="grid gap-5 sm:grid-cols-3">
+            <div className="grid gap-5 sm:grid-cols-2">
               <BriefSection
                 label="Needed by"
                 value={neededBy}
@@ -442,11 +425,6 @@ export function PortalProjectBrief({
               <BriefSection
                 label="Budget"
                 value={budgetNote}
-                size="meta"
-              />
-              <BriefSection
-                label="Call / meet"
-                value={callAt}
                 size="meta"
               />
             </div>

@@ -1,7 +1,6 @@
 import Image from "next/image";
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
-import { listPortalProjectsForClient } from "@/db/queries";
 import { PortalHeroBackdrop } from "@/components/portal-hero-backdrop";
 import { requirePortalPerson } from "@/lib/current-person";
 import { PAGE_FRAME_CLASS } from "@/lib/layout";
@@ -30,8 +29,8 @@ export default async function PortalWelcomePage({
     redirect(nextPath);
   }
 
-  const projects = await listPortalProjectsForClient(client.id);
-  const projectTitle = projects[0]?.title ?? null;
+  const accountLabel =
+    client.organisation?.trim() || client.name.trim() || "your organisation";
   const marketingSite = marketingPublicBaseUrl();
 
   return (
@@ -64,7 +63,7 @@ export default async function PortalWelcomePage({
       >
         <WelcomeWizard
           personName={person.name}
-          projectTitle={projectTitle}
+          accountLabel={accountLabel}
           nextPath={nextPath}
         />
       </main>

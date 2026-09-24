@@ -51,7 +51,6 @@ function revalidateProjectPaths(projectId: string, clientId: string) {
   revalidatePath(`/messages`);
   revalidatePath(`/messages/${projectId}`);
   revalidatePath(`/portal/projects/${projectId}`);
-  revalidatePath(`/portal/projects/${projectId}/intake`);
   revalidatePath(`/portal/projects/${projectId}/brief`);
   revalidatePath(`/portal/projects/${projectId}/messages`);
 }
@@ -355,10 +354,10 @@ export async function setPortalIntakeOpenAction(formData: FormData) {
   const open = formData.get("portalIntakeOpen") === "on";
   await setProjectPortalIntakeOpen(projectId, open);
   await recordAudit({
-    action: open ? "portal.discovery-open" : "portal.discovery-close",
+    action: open ? "portal.brief-open" : "portal.brief-close",
     summary: open
-      ? `Opened portal discovery form on “${project.title}”.`
-      : `Closed portal discovery form on “${project.title}”.`,
+      ? `Opened portal brief editing on “${project.title}”.`
+      : `Locked portal brief on “${project.title}”.`,
     entityType: "project",
     entityId: projectId,
     projectId,

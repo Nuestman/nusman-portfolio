@@ -90,14 +90,6 @@ export default async function PortalProjectPage({
           >
             Brief
           </Link>
-          {project.portalIntakeOpen ? (
-            <Link
-              href={`/projects/${project.id}/intake`}
-              className={linkClassName("nav")}
-            >
-              Questions
-            </Link>
-          ) : null}
           <Link
             href={`/messages/${project.id}`}
             className={linkClassName("nav")}

@@ -10,6 +10,7 @@ export function EditableCard({
   badge,
   editLabel = "Edit",
   showEdit = true,
+  defaultEditing = false,
   always,
   view,
   form,
@@ -19,11 +20,13 @@ export function EditableCard({
   badge?: ReactNode;
   editLabel?: string;
   showEdit?: boolean;
+  /** Open the form on first paint (e.g. post-create next step). */
+  defaultEditing?: boolean;
   always?: ReactNode;
   view?: ReactNode;
   form?: ReactNode;
 }) {
-  const [editing, setEditing] = useState(false);
+  const [editing, setEditing] = useState(defaultEditing);
   const canEdit = showEdit && Boolean(form);
 
   return (

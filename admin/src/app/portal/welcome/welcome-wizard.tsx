@@ -16,14 +16,14 @@ type WelcomeStep = {
 const STEPS: WelcomeStep[] = [
   {
     id: "welcome",
-    title: "Welcome to the Portal",
-    body: "This is your quiet workspace with Usman — progress, discovery, and messages.",
+    title: "Welcome to the Portal. We are grateful to have you on board.",
+    body: "This is your quiet workspace with Usman — progress, brief, and messages.",
     cue: "Portal",
   },
   {
     id: "projects",
     title: "Projects & progress",
-    body: "Open a project to see where the job stands, read the brief, and answer discovery questions when Usman opens them.",
+    body: "Open a project to see where the job stands and read the brief.",
     cue: "Projects",
   },
   {
@@ -43,19 +43,18 @@ const STEPS: WelcomeStep[] = [
 function WelcomeBody({
   step,
   personName,
-  projectTitle,
+  accountLabel,
 }: {
   step: WelcomeStep;
   personName: string;
-  projectTitle: string | null;
+  accountLabel: string;
 }) {
   switch (step.id) {
     case "welcome": {
-      const projectLabel = projectTitle?.trim() || "your project";
       return (
         <>
-          Hello, {personName}. This portal is for {projectLabel} — a quiet place
-          to follow progress and talk with Usman.
+          Hello, {personName}. This portal is for {accountLabel} — a quiet place
+          to follow your projects and talk with Usman.
         </>
       );
     }
@@ -83,11 +82,11 @@ function PendingLabel({
 
 export function WelcomeWizard({
   personName,
-  projectTitle,
+  accountLabel,
   nextPath,
 }: {
   personName: string;
-  projectTitle: string | null;
+  accountLabel: string;
   nextPath: string;
 }) {
   const [stepIndex, setStepIndex] = useState(0);
@@ -143,7 +142,7 @@ export function WelcomeWizard({
           <WelcomeBody
             step={step}
             personName={personName}
-            projectTitle={projectTitle}
+            accountLabel={accountLabel}
           />
         </p>
       </div>

@@ -32,7 +32,7 @@ The playbook was supposed to *guide* work. Forms on the project were supposed to
 | CRM | **`/clients` + `/clients/[id]`** (and person edit). Who pays, people, contact, portal invite. Not playbook. Not gate encyclopedias. |
 | Playbook | **`/playbook` only** — how Usman works: stages, checklists, copy templates, option *coaching*. No live job answers stored here. |
 | Desk project | **`/projects/[id]`** — facts for **this** job: identity, **current gate** work, timeline. Past gates collapsed or linked, not all open at once. |
-| Portal project | Thin client home: progress, package, updates, intake (when open), messages, **schedule**. |
+| Portal project | Thin client home: progress, package, updates, messages, **schedule**. |
 | Data entry | New facts enter via **forms** on Desk (and allowed Portal forms). Saving updates records and, where useful, timeline notes. |
 | Coaching vs client copy | Playbook / option starters = operator only. Client-facing summary and Portal copy stay separate (already started in 1.3). |
 | Hosts | Unchanged: `desk.nusman.dev` + `portal.nusman.dev`, same `admin/` app, host routing. |
@@ -94,7 +94,7 @@ Optional UX: “Open current project” / deep-link to that gate on a job — **
 2. **Current-gate panel** — only the records/forms for `current_gate` (Qualify / Intake / Discover / Propose / Agree / Build / Launch as relevant). Edit/Add reveals forms; view shows saved values  
 3. **Timeline** — `project_notes` (+ automatic short notes on gate move, package choose, event confirm, etc.)  
 4. **Schedule** — upcoming/past events for this project (Desk can create/edit; see schema)  
-5. **Portal strip** — intake open toggle; link to conversation; event counts if useful  
+5. **Portal strip** — brief-edit toggle; link to conversation; event counts if useful  
 6. **Danger zone** — delete  
 
 Past gates: collapsed accordion or “Earlier stages” — readable, not a second full playbook.
@@ -111,7 +111,6 @@ Copy templates: short “Copy from playbook” on the **current** gate only, or 
 | `/projects` | Their hiring projects |
 | `/projects/[id]` | Progress, package, updates |
 | `/projects/[id]/brief` | Locked client brief |
-| `/projects/[id]/intake` | Intake when open |
 | `/projects/[id]/messages` | Thread (Desk also has `/messages`) |
 | `/schedule` | Appointments across their projects |
 | `/projects/[id]/schedule` | Same, scoped to one job |
@@ -198,7 +197,7 @@ Index: `(project_id, starts_at)`.
 2. Open a **project**; gate starts at Qualify.  
 3. Operator uses **Playbook** for what to do/send; fills **current-gate forms** on the project.  
 4. Timeline accumulates decisions.  
-5. Invite person to **Portal**; client sees progress, answers intake, messages, confirms demos/calls.  
+5. Invite person to **Portal**; client sees progress, messages, confirms demos/calls.  
 6. Gate moves when leave-blocks are satisfied (unchanged rules unless this plan revises them later).  
 
 ---

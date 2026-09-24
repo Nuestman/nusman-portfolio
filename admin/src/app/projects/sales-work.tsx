@@ -64,7 +64,7 @@ export function SalesWork({
         <>
           <EditableCard
             title="Discovery answers"
-            hint="The eight themes — fill after the call, or open the portal form for the client."
+            hint="The eight themes — fill on Desk after the call."
             view={
               intakeRows.length === 0 ? (
                 <p className="text-sm text-gray-600">No discovery themes yet.</p>

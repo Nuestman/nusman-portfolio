@@ -26,10 +26,10 @@ export function PortalProjectControls({
             defaultChecked={portalIntakeOpen}
             className="h-4 w-4 rounded border-gray-200 text-gold-500 focus:ring-gold-500"
           />
-          Clients can fill discovery answers
+          Clients can edit the project brief
         </label>
         <Button type="submit" variant="secondary" size="sm">
-          Save discovery form access
+          Save brief access
         </Button>
       </form>
 
