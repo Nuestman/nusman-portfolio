@@ -129,7 +129,6 @@ function PortalBriefForm({
   success,
   deadline,
   whoFor,
-  neededBy,
   budgetNote,
   notes,
   onCancel,
@@ -140,7 +139,6 @@ function PortalBriefForm({
   success: string;
   deadline: string;
   whoFor: string;
-  neededBy: string;
   budgetNote: string;
   notes: string;
   onCancel: () => void;
@@ -155,27 +153,16 @@ function PortalBriefForm({
   const [timelineManual, setTimelineManual] = useState(() =>
     isPresetTimeline(deadline) || !deadline ? "" : deadline,
   );
-  const [neededByChoice, setNeededByChoice] = useState(() =>
-    initialTimelineChoice(neededBy),
-  );
-  const [neededByManual, setNeededByManual] = useState(() =>
-    isPresetTimeline(neededBy) || !neededBy ? "" : neededBy,
-  );
   const budgetOptions = selectWithCurrent(BUDGET_OPTIONS, budgetNote);
   const timelineValue =
     timelineChoice === TIMELINE_MANUAL_VALUE
       ? timelineManual.trim()
       : timelineChoice;
-  const neededByValue =
-    neededByChoice === TIMELINE_MANUAL_VALUE
-      ? neededByManual.trim()
-      : neededByChoice;
 
   return (
     <form action={action} className="space-y-6">
       <input type="hidden" name="projectId" value={projectId} />
       <input type="hidden" name="deadline" value={timelineValue} />
-      <input type="hidden" name="neededBy" value={neededByValue} />
 
       <div>
         <label htmlFor="portal-brief-problem" className={labelClassName}>
@@ -232,23 +219,14 @@ function PortalBriefForm({
         />
       </div>
 
-      <TimelineSelect
-        id="portal-brief-deadline"
-        label="Deadline"
-        choice={timelineChoice}
-        manual={timelineManual}
-        onChoice={setTimelineChoice}
-        onManual={setTimelineManual}
-      />
-
       <div className="grid gap-4 sm:grid-cols-2">
         <TimelineSelect
-          id="portal-brief-neededBy"
+          id="portal-brief-deadline"
           label="Needed by"
-          choice={neededByChoice}
-          manual={neededByManual}
-          onChoice={setNeededByChoice}
-          onManual={setNeededByManual}
+          choice={timelineChoice}
+          manual={timelineManual}
+          onChoice={setTimelineChoice}
+          onManual={setTimelineManual}
         />
         <div>
           <label htmlFor="portal-brief-budgetNote" className={labelClassName}>
@@ -309,7 +287,6 @@ export function PortalProjectBrief({
   deadline,
   packageName,
   whoFor,
-  neededBy,
   budgetNote,
   notes,
 }: {
@@ -324,7 +301,6 @@ export function PortalProjectBrief({
   deadline: string | null;
   packageName: string | null;
   whoFor: string | null;
-  neededBy: string | null;
   budgetNote: string | null;
   notes: string | null;
 }) {
@@ -335,7 +311,6 @@ export function PortalProjectBrief({
     success,
     deadline,
     whoFor,
-    neededBy,
     budgetNote,
   ].some(isBlank);
 
@@ -377,7 +352,6 @@ export function PortalProjectBrief({
             success={success ?? ""}
             deadline={deadline ?? ""}
             whoFor={whoFor ?? ""}
-            neededBy={neededBy ?? ""}
             budgetNote={budgetNote ?? ""}
             notes={notes ?? ""}
             onCancel={() => setEditing(false)}
@@ -391,7 +365,7 @@ export function PortalProjectBrief({
                 size="meta"
               />
               <BriefSection
-                label="Deadline"
+                label="Needed by"
                 value={deadline}
                 size="meta"
               />
@@ -415,23 +389,17 @@ export function PortalProjectBrief({
               value={whoFor}
               size="meta"
             />
+            <BriefSection
+              label="Budget"
+              value={budgetNote}
+              size="meta"
+            />
+
+            {notes?.trim() ? (
+              <BriefSection label="Notes" value={notes} />
+            ) : null}
 
             <div className="grid gap-5 sm:grid-cols-2">
-              <BriefSection
-                label="Needed by"
-                value={neededBy}
-                size="meta"
-              />
-              <BriefSection
-                label="Budget"
-                value={budgetNote}
-                size="meta"
-              />
-            </div>
-
-            <BriefSection label="Notes" value={notes} />
-
-            <div className="grid gap-5 rounded-2xl border border-gold-100 bg-gold-50/60 p-5 sm:grid-cols-2">
               <BriefSection label="In scope" value={inScope} />
               <BriefSection label="Out of scope" value={outOfScope} />
             </div>

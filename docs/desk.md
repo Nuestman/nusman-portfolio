@@ -147,10 +147,14 @@ Humans attached to a client (buyer vs daily user vs other).
 - work_kind: `client` | `product` (hiring work vs own product)
 - title
 - problem_sentence (the one sentence both sides can repeat)
+- want_built (“What we’re building”)
 - success_looks_like
+- who_for
+- qualify_outcome: `undecided` | `real` | `favour` | `no` (hiring screen)
 - current_gate: the seven ids above
 - status: `inactive` | `active` | `paused` | `won` | `lost` | `done`
-- budget_note, deadline_note (text in v1, not a billing system)
+- budget_note, deadline_note, call_at, qualify_notes
+- portal_intake_open
 - timestamps
 
 **project_notes**  
@@ -168,11 +172,6 @@ Dated notes on a project (calls, WhatsApp decisions, scope changes).
 - selected: boolean
 
 Chosen package fields (except raw coaching starters) show on Portal as **Your package**.
-**project_qualify** (Qualify, 1:1 hiring job)
-
-- project_id (unique)
-- outcome: `undecided` | `real` | `favour` | `no`
-- who_for, pain_today, needed_by, call_at, notes (text)
 
 **project_intake_answers** (Intake)
 
@@ -434,4 +433,4 @@ Do not add Desk links to `Header` / `Footer` / `sitemap.xml`.
 
 ## Immediate next step
 
-Desk **2.8.6** is the current cut (Portal Organisation polish: required email on person request + Desk request banners; lean Portal — brief, messages, schedule, profile, organisation, start → call request; discovery on Desk; `/welcome` greets organisation; Desk `/projects/[id]/edit`; private Vercel Blob; unread Messages badges; legal CMS; person email confirm before Portal; surfaces follow [desk-2.0.md](./desk-2.0.md)). Invite a person from Desk (confirm email first), rewrite package summaries for clients, unlock the brief when the client should edit it, keep an export after a real job starts. Later: untangle Desk qualify/brief/discovery overlaps; Portal routing cleanup ([portal.md](./portal.md#later--routing-cleanup-best-practice)); form-shaped readonly panels; import product databases — only when you choose to, and never by pointing Desk at their `DATABASE_URL`.
+Desk **2.8.7** is the current cut (qualify folded into `projects` — one Brief; Portal Organisation; lean Portal — brief, messages, schedule, profile, organisation, start → call request; discovery on Desk; `/welcome` greets organisation; Desk `/projects/[id]/edit`; private Vercel Blob; unread Messages badges; legal CMS; person email confirm before Portal; surfaces follow [desk-2.0.md](./desk-2.0.md)). Invite a person from Desk (confirm email first), rewrite package summaries for clients, unlock the brief when the client should edit it, keep an export after a real job starts. Later: Portal routing cleanup ([portal.md](./portal.md#later--routing-cleanup-best-practice)); form-shaped readonly panels; import product databases — only when you choose to, and never by pointing Desk at their `DATABASE_URL`.

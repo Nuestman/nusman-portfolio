@@ -239,10 +239,16 @@ export const projects = pgTable(
     problemSentence: text("problem_sentence"),
     wantBuilt: text("want_built"),
     successLooksLike: text("success_looks_like"),
+    whoFor: text("who_for"),
+    qualifyOutcome: qualifyOutcomeEnum("qualify_outcome")
+      .notNull()
+      .default("undecided"),
     currentGate: projectGateEnum("current_gate").notNull().default("qualify"),
     status: projectStatusEnum("status").notNull().default("active"),
     budgetNote: text("budget_note"),
     deadlineNote: text("deadline_note"),
+    callAt: text("call_at"),
+    qualifyNotes: text("qualify_notes"),
     portalIntakeOpen: boolean("portal_intake_open").notNull().default(false),
     ...timestamps,
   },
@@ -296,20 +302,6 @@ export const projectOptions = pgTable(
   },
   (table) => [index("project_options_project_id_idx").on(table.projectId)],
 );
-
-export const projectQualify = pgTable("project_qualify", {
-  projectId: uuid("project_id")
-    .primaryKey()
-    .references(() => projects.id, { onDelete: "cascade" }),
-  outcome: qualifyOutcomeEnum("outcome").notNull().default("undecided"),
-  whoFor: text("who_for"),
-  painToday: text("pain_today"),
-  neededBy: text("needed_by"),
-  budgetNote: text("budget_note"),
-  callAt: text("call_at"),
-  notes: text("notes"),
-  ...timestamps,
-});
 
 export const projectMilestones = pgTable(
   "project_milestones",

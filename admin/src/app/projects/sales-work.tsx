@@ -1,10 +1,9 @@
 import { EditableCard } from "@/components/editable-card";
 import { InfoList } from "@/components/info-list";
 import { displayText } from "@/lib/text";
-import type { ProcessGate, QualifyOutcome } from "@/db/schema";
+import type { ProcessGate } from "@/db/schema";
 import { IntakeForm } from "./intake-form";
 import { DiscoveryForm } from "./discovery-form";
-import { QualifyCard } from "./qualify-card";
 
 type IntakeRow = {
   theme: string;
@@ -14,23 +13,11 @@ type IntakeRow = {
 
 export function SalesWork({
   projectId,
-  qualify,
-  wantBuilt,
   intake,
   discovery,
   include,
 }: {
   projectId: string;
-  qualify: {
-    outcome: QualifyOutcome;
-    whoFor: string | null;
-    painToday: string | null;
-    neededBy: string | null;
-    budgetNote: string | null;
-    callAt: string | null;
-    notes: string | null;
-  } | null;
-  wantBuilt: string | null;
   intake: IntakeRow[];
   discovery: {
     callAt: string | null;
@@ -52,14 +39,6 @@ export function SalesWork({
 
   return (
     <>
-      {show("qualify") ? (
-        <QualifyCard
-          projectId={projectId}
-          qualify={qualify}
-          wantBuilt={wantBuilt}
-        />
-      ) : null}
-
       {show("discover") ? (
         <>
           <EditableCard

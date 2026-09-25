@@ -1,10 +1,32 @@
 import { EditableCard } from "@/components/editable-card";
 import { IncompleteInfoBadge } from "@/components/incomplete-info-badge";
 import { MarkedValue } from "@/components/set-mark";
+import { cn } from "@/lib/utils";
 import { isBlank } from "@/lib/text";
-import { projectStatusLabel, WANT_BUILT_LABEL } from "@/lib/labels";
-import type { ProjectStatus } from "@/db/schema";
+import {
+  projectStatusLabel,
+  qualifyOutcomeLabel,
+  WANT_BUILT_LABEL,
+} from "@/lib/labels";
+import type { ProjectStatus, QualifyOutcome } from "@/db/schema";
 import { ProjectDetailsForm } from "./project-details-form";
+
+function outcomeTone(outcome: QualifyOutcome): string {
+  switch (outcome) {
+    case "real":
+      return "border-gold-500 bg-gold-500 text-white";
+    case "favour":
+      return "border-gray-300 bg-gray-100 text-gray-800";
+    case "no":
+      return "border-red-200 bg-red-50 text-red-800";
+    case "undecided":
+      return "border-amber-300 bg-amber-50 text-amber-950";
+    default: {
+      const _exhaustive: never = outcome;
+      return _exhaustive;
+    }
+  }
+}
 
 export function JobBriefCard({
   isProduct,
@@ -19,13 +41,20 @@ export function JobBriefCard({
     problemSentence: string | null;
     wantBuilt: string | null;
     successLooksLike: string | null;
+    whoFor: string | null;
+    qualifyOutcome: QualifyOutcome;
     budgetNote: string | null;
     deadlineNote: string | null;
+    callAt: string | null;
+    qualifyNotes: string | null;
     status: ProjectStatus;
   };
   locked?: boolean;
   defaultEditing?: boolean;
 }) {
+  const showQualify = !isProduct;
+  const outcome = project.qualifyOutcome;
+  const notes = project.qualifyNotes?.trim() ?? "";
   const incomplete = [
     project.problemSentence,
     project.successLooksLike,
@@ -38,17 +67,41 @@ export function JobBriefCard({
       title={isProduct ? "Product details" : "Brief"}
       badge={incomplete ? <IncompleteInfoBadge /> : undefined}
       hint={
-        locked
-          ? "Brief is frozen while this job is disqualified."
-          : isProduct
-            ? undefined
-            : "Title, problem, what we're building, success, deadline, and status. Needed before you leave Discover."
+        isProduct
+          ? undefined
+          : "Qualify outcome, problem, what we're building, who, timeline, budget, and status — one place."
       }
       editLabel={isProduct ? "Edit" : "Edit brief"}
       showEdit={!locked}
       defaultEditing={defaultEditing && !locked}
       view={
         <div className="space-y-6">
+          {showQualify ? (
+            <div className="flex flex-wrap items-center gap-3">
+              <span
+                className={cn(
+                  "inline-flex rounded-full border px-3 py-1 text-sm font-medium",
+                  outcomeTone(outcome),
+                )}
+              >
+                {qualifyOutcomeLabel(outcome)}
+              </span>
+              {outcome !== "real" && outcome !== "no" ? (
+                <p className="text-sm text-gray-600">
+                  Leave Qualify only when this is a real project.
+                </p>
+              ) : null}
+              {outcome === "real" ? (
+                <p className="text-sm text-gray-600">Ready for discovery.</p>
+              ) : null}
+              {outcome === "no" ? (
+                <p className="text-sm text-red-800">
+                  Not a project — pipeline closes (status Lost).
+                </p>
+              ) : null}
+            </div>
+          ) : null}
+
           <div>
             <p className="text-xs font-medium uppercase tracking-wide text-gray-500">
               Title
@@ -79,10 +132,25 @@ export function JobBriefCard({
             <MarkedValue value={project.successLooksLike} />
           </div>
 
-          <dl className="grid gap-4 border-t border-gray-100 pt-4 sm:grid-cols-2">
+          {showQualify ? (
+            <div>
+              <p className="text-xs font-medium uppercase tracking-wide text-gray-500">
+                Who it is for
+              </p>
+              <MarkedValue value={project.whoFor} size="meta" />
+            </div>
+          ) : null}
+
+          <dl
+            className={
+              showQualify
+                ? "grid gap-4 border-t border-gray-100 pt-4 sm:grid-cols-2 lg:grid-cols-4"
+                : "grid gap-4 border-t border-gray-100 pt-4 sm:grid-cols-2"
+            }
+          >
             <div>
               <dt className="text-xs font-medium uppercase tracking-wide text-gray-500">
-                Deadline
+                {showQualify ? "Needed by" : "Deadline"}
               </dt>
               <MarkedValue
                 value={project.deadlineNote}
@@ -90,6 +158,30 @@ export function JobBriefCard({
                 className="mt-1"
               />
             </div>
+            {showQualify || project.budgetNote ? (
+              <div>
+                <dt className="text-xs font-medium uppercase tracking-wide text-gray-500">
+                  Budget
+                </dt>
+                <MarkedValue
+                  value={project.budgetNote}
+                  size="meta"
+                  className="mt-1"
+                />
+              </div>
+            ) : null}
+            {showQualify ? (
+              <div>
+                <dt className="text-xs font-medium uppercase tracking-wide text-gray-500">
+                  Call / window
+                </dt>
+                <MarkedValue
+                  value={project.callAt}
+                  size="meta"
+                  className="mt-1"
+                />
+              </div>
+            ) : null}
             <div>
               <dt className="text-xs font-medium uppercase tracking-wide text-gray-500">
                 Status
@@ -99,6 +191,17 @@ export function JobBriefCard({
               </dd>
             </div>
           </dl>
+
+          {showQualify && notes ? (
+            <div className="rounded-xl bg-gray-50 px-4 py-3">
+              <p className="text-xs font-medium uppercase tracking-wide text-gray-500">
+                Notes
+              </p>
+              <p className="mt-2 whitespace-pre-wrap text-sm text-gray-700">
+                {notes}
+              </p>
+            </div>
+          ) : null}
         </div>
       }
       form={
@@ -110,14 +213,18 @@ export function JobBriefCard({
               problemSentence: project.problemSentence ?? "",
               wantBuilt: project.wantBuilt ?? "",
               successLooksLike: project.successLooksLike ?? "",
+              whoFor: project.whoFor ?? "",
+              qualifyOutcome: project.qualifyOutcome,
               budgetNote: project.budgetNote ?? "",
               deadlineNote: project.deadlineNote ?? "",
+              callAt: project.callAt ?? "",
+              qualifyNotes: project.qualifyNotes ?? "",
               status: project.status,
             }}
             problemHint={
               isProduct ? undefined : "Needed before you leave Discover."
             }
-            hideBudget={!isProduct}
+            showQualify={showQualify}
             hideWantBuilt={isProduct}
           />
         )

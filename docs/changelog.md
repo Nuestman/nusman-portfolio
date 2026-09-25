@@ -1,5 +1,15 @@
 # Changelog
 
+## 25 Sep 2026 — Desk 2.8.7 / Portal 1.8.7 · public 4.4.1
+
+### Desk / Portal (`admin/` → **2.8.7**)
+
+- **Qualify → projects** — folded `project_qualify` into `projects` (`qualify_outcome`, `who_for`, `call_at`, `qualify_notes`; migration `0025`). Dropped duplicate pain/needed_by dual-writes. One Brief card (view) + form; Portal brief / start / inbound use the same columns. Export no longer has a separate qualify CSV.
+
+Public site **4.4.1** is unchanged.
+
+---
+
 ## 24 Sep 2026 — Desk 2.8.6 / Portal 1.8.6 · public 4.4.1
 
 ### Desk / Portal (`admin/` → **2.8.6**)

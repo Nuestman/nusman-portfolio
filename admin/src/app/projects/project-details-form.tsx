@@ -1,20 +1,54 @@
 "use client";
 
-import { useActionState } from "react";
-import { PROJECT_STATUSES } from "@/db/schema";
-import type { ProjectStatus } from "@/db/schema";
+import { useActionState, useState } from "react";
+import {
+  PROJECT_STATUSES,
+  QUALIFY_OUTCOMES,
+  type ProjectStatus,
+  type QualifyOutcome,
+} from "@/db/schema";
 import { Button } from "@/components/ui/button";
 import { updateProjectAction, type FormState } from "@/app/projects/actions";
 import { FormError } from "@/components/form-error";
 import { fieldClassName, labelClassName } from "@/lib/forms";
-import { projectStatusLabel, WANT_BUILT_LABEL } from "@/lib/labels";
+import {
+  BUDGET_OPTIONS,
+  isPresetTimeline,
+  TIMELINE_MANUAL_VALUE,
+  TIMELINE_OPTIONS,
+} from "@/lib/form-options";
+import {
+  projectStatusLabel,
+  qualifyOutcomeLabel,
+  WANT_BUILT_LABEL,
+} from "@/lib/labels";
 
 const initialState: FormState = { error: null };
+
+function selectWithCurrent(
+  options: readonly string[],
+  current: string,
+): string[] {
+  if (!current || (options as readonly string[]).includes(current)) {
+    return [...options];
+  }
+  return [current, ...options];
+}
+
+function initialTimelineChoice(value: string): string {
+  if (!value) {
+    return "";
+  }
+  if (isPresetTimeline(value)) {
+    return value;
+  }
+  return TIMELINE_MANUAL_VALUE;
+}
 
 export function ProjectDetailsForm({
   project,
   problemHint,
-  hideBudget = false,
+  showQualify = false,
   hideWantBuilt = false,
   submitLabel = "Save brief",
   nextPath,
@@ -25,13 +59,17 @@ export function ProjectDetailsForm({
     problemSentence: string;
     wantBuilt: string;
     successLooksLike: string;
+    whoFor: string;
+    qualifyOutcome: QualifyOutcome;
     budgetNote: string;
     deadlineNote: string;
+    callAt: string;
+    qualifyNotes: string;
     status: ProjectStatus;
   };
   problemHint?: string;
-  /** Budget lives on Qualify; hide the duplicate Job details field. */
-  hideBudget?: boolean;
+  /** Hiring jobs: outcome, who, budget select, call, notes. */
+  showQualify?: boolean;
   /** Own-product records do not use the hiring brief field. */
   hideWantBuilt?: boolean;
   submitLabel?: string;
@@ -41,16 +79,97 @@ export function ProjectDetailsForm({
     updateProjectAction,
     initialState,
   );
+  const fieldsLocked = showQualify && project.qualifyOutcome === "no";
+  const [timelineChoice, setTimelineChoice] = useState(() =>
+    initialTimelineChoice(project.deadlineNote),
+  );
+  const [timelineManual, setTimelineManual] = useState(() =>
+    isPresetTimeline(project.deadlineNote) || !project.deadlineNote
+      ? ""
+      : project.deadlineNote,
+  );
+  const budgetOptions = selectWithCurrent(BUDGET_OPTIONS, project.budgetNote);
+  const timelineValue =
+    timelineChoice === TIMELINE_MANUAL_VALUE
+      ? timelineManual.trim()
+      : timelineChoice;
 
   return (
     <form action={action} className="space-y-5">
       <input type="hidden" name="id" value={project.id} />
       {nextPath ? <input type="hidden" name="next" value={nextPath} /> : null}
-      {hideBudget ? (
-        <input type="hidden" name="budgetNote" value={project.budgetNote} />
+      {!showQualify ? (
+        <>
+          <input
+            type="hidden"
+            name="qualifyOutcome"
+            value={project.qualifyOutcome}
+          />
+          <input type="hidden" name="whoFor" value={project.whoFor} />
+          <input type="hidden" name="callAt" value={project.callAt} />
+          <input type="hidden" name="qualifyNotes" value={project.qualifyNotes} />
+        </>
       ) : null}
       {hideWantBuilt ? (
         <input type="hidden" name="wantBuilt" value={project.wantBuilt} />
+      ) : null}
+      {showQualify && !fieldsLocked ? (
+        <input type="hidden" name="deadlineNote" value={timelineValue} />
+      ) : null}
+      {showQualify && fieldsLocked ? (
+        <>
+          <input type="hidden" name="title" value={project.title} />
+          <input type="hidden" name="status" value={project.status} />
+          <input
+            type="hidden"
+            name="problemSentence"
+            value={project.problemSentence}
+          />
+          <input type="hidden" name="wantBuilt" value={project.wantBuilt} />
+          <input
+            type="hidden"
+            name="successLooksLike"
+            value={project.successLooksLike}
+          />
+          <input type="hidden" name="whoFor" value={project.whoFor} />
+          <input type="hidden" name="budgetNote" value={project.budgetNote} />
+          <input
+            type="hidden"
+            name="deadlineNote"
+            value={project.deadlineNote}
+          />
+          <input type="hidden" name="callAt" value={project.callAt} />
+          <input
+            type="hidden"
+            name="qualifyNotes"
+            value={project.qualifyNotes}
+          />
+        </>
+      ) : null}
+
+      {showQualify ? (
+        <div>
+          <label htmlFor="project-qualifyOutcome" className={labelClassName}>
+            Qualify outcome
+          </label>
+          <select
+            id="project-qualifyOutcome"
+            name="qualifyOutcome"
+            defaultValue={project.qualifyOutcome}
+            className={fieldClassName}
+          >
+            {QUALIFY_OUTCOMES.map((outcome) => (
+              <option key={outcome} value={outcome}>
+                {qualifyOutcomeLabel(outcome)}
+              </option>
+            ))}
+          </select>
+          <p className="mt-2 text-sm text-gray-500">
+            {fieldsLocked
+              ? "Change outcome away from Not a project to reopen the pipeline."
+              : "Real project required before Discover."}
+          </p>
+        </div>
       ) : null}
 
       <div>
@@ -63,12 +182,13 @@ export function ProjectDetailsForm({
           required
           defaultValue={project.title}
           className={fieldClassName}
+          disabled={fieldsLocked}
         />
       </div>
 
       <div>
         <label htmlFor="project-problemSentence" className={labelClassName}>
-          Problem sentence
+          Problem
         </label>
         <textarea
           id="project-problemSentence"
@@ -76,7 +196,8 @@ export function ProjectDetailsForm({
           rows={3}
           defaultValue={project.problemSentence}
           className={fieldClassName}
-          placeholder="Write the one-line lock, or save discovery answers first."
+          placeholder="What is broken or slow — one sentence both sides can repeat"
+          disabled={fieldsLocked}
         />
         {problemHint ? (
           <p className="mt-2 text-sm text-gray-500">{problemHint}</p>
@@ -95,6 +216,7 @@ export function ProjectDetailsForm({
             defaultValue={project.wantBuilt}
             className={fieldClassName}
             placeholder="The thing both sides agree to make — after the problem is clear"
+            disabled={fieldsLocked}
           />
         </div>
       )}
@@ -110,36 +232,133 @@ export function ProjectDetailsForm({
           defaultValue={project.successLooksLike}
           className={fieldClassName}
           placeholder="How will you both know this worked?"
+          disabled={fieldsLocked}
         />
       </div>
 
-      <div className="grid gap-5 sm:grid-cols-2">
-        {!hideBudget ? (
-          <div>
-            <label htmlFor="project-budgetNote" className={labelClassName}>
-              Budget note
-            </label>
-            <input
-              id="project-budgetNote"
-              name="budgetNote"
-              defaultValue={project.budgetNote}
-              className={fieldClassName}
-            />
-          </div>
-        ) : null}
-        <div className={hideBudget ? "sm:col-span-1" : undefined}>
-          <label htmlFor="project-deadlineNote" className={labelClassName}>
-            Deadline note
+      {showQualify ? (
+        <div>
+          <label htmlFor="project-whoFor" className={labelClassName}>
+            Who it is for
           </label>
           <input
-            id="project-deadlineNote"
-            name="deadlineNote"
-            defaultValue={project.deadlineNote}
+            id="project-whoFor"
+            name="whoFor"
+            defaultValue={project.whoFor}
             className={fieldClassName}
-            placeholder="Target date or window"
+            placeholder="Who uses it, who pays, who decides?"
+            disabled={fieldsLocked}
           />
         </div>
-        <div>
+      ) : null}
+
+      <div
+        className={
+          showQualify
+            ? "grid gap-5 sm:grid-cols-3"
+            : "grid gap-5 sm:grid-cols-2"
+        }
+      >
+        {showQualify ? (
+          <>
+            <div>
+              <label htmlFor="project-deadlineNote" className={labelClassName}>
+                Needed by
+              </label>
+              <select
+                id="project-deadlineNote"
+                value={timelineChoice}
+                className={fieldClassName}
+                disabled={fieldsLocked}
+                onChange={(event) => {
+                  setTimelineChoice(event.target.value);
+                  if (event.target.value !== TIMELINE_MANUAL_VALUE) {
+                    setTimelineManual("");
+                  }
+                }}
+              >
+                <option value="">Not set</option>
+                {TIMELINE_OPTIONS.map((option) => (
+                  <option key={option} value={option}>
+                    {option}
+                  </option>
+                ))}
+                <option value={TIMELINE_MANUAL_VALUE}>Enter manually</option>
+              </select>
+              {timelineChoice === TIMELINE_MANUAL_VALUE && !fieldsLocked ? (
+                <input
+                  id="project-deadlineNote-manual"
+                  type="text"
+                  value={timelineManual}
+                  onChange={(event) => setTimelineManual(event.target.value)}
+                  required
+                  maxLength={200}
+                  className={`${fieldClassName} mt-2`}
+                  placeholder="e.g. before Easter, mid-July"
+                />
+              ) : null}
+            </div>
+            <div>
+              <label htmlFor="project-budgetNote" className={labelClassName}>
+                Budget
+              </label>
+              <select
+                id="project-budgetNote"
+                name="budgetNote"
+                defaultValue={project.budgetNote}
+                className={fieldClassName}
+                disabled={fieldsLocked}
+              >
+                <option value="">Not set</option>
+                {budgetOptions.map((option) => (
+                  <option key={option} value={option}>
+                    {option}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label htmlFor="project-callAt" className={labelClassName}>
+                Call / meet
+              </label>
+              <input
+                id="project-callAt"
+                name="callAt"
+                defaultValue={project.callAt}
+                className={fieldClassName}
+                placeholder="When to talk"
+                disabled={fieldsLocked}
+              />
+            </div>
+          </>
+        ) : (
+          <>
+            <div>
+              <label htmlFor="project-budgetNote" className={labelClassName}>
+                Budget note
+              </label>
+              <input
+                id="project-budgetNote"
+                name="budgetNote"
+                defaultValue={project.budgetNote}
+                className={fieldClassName}
+              />
+            </div>
+            <div>
+              <label htmlFor="project-deadlineNote" className={labelClassName}>
+                Deadline note
+              </label>
+              <input
+                id="project-deadlineNote"
+                name="deadlineNote"
+                defaultValue={project.deadlineNote}
+                className={fieldClassName}
+                placeholder="Target date or window"
+              />
+            </div>
+          </>
+        )}
+        <div className={showQualify ? "sm:col-span-3" : undefined}>
           <label htmlFor="project-status" className={labelClassName}>
             Status
           </label>
@@ -148,6 +367,7 @@ export function ProjectDetailsForm({
             name="status"
             defaultValue={project.status}
             className={fieldClassName}
+            disabled={fieldsLocked}
           >
             {PROJECT_STATUSES.map((status) => (
               <option key={status} value={status}>
@@ -157,6 +377,23 @@ export function ProjectDetailsForm({
           </select>
         </div>
       </div>
+
+      {showQualify ? (
+        <div>
+          <label htmlFor="project-qualifyNotes" className={labelClassName}>
+            Notes
+          </label>
+          <textarea
+            id="project-qualifyNotes"
+            name="qualifyNotes"
+            rows={3}
+            defaultValue={project.qualifyNotes}
+            className={fieldClassName}
+            placeholder="Anything else from the screen or /start"
+            disabled={fieldsLocked}
+          />
+        </div>
+      ) : null}
 
       <FormError>{state.error}</FormError>
       <Button type="submit" disabled={pending}>

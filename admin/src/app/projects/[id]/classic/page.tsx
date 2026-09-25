@@ -35,7 +35,7 @@ import {
   processGateIndex,
   toProcessGate,
 } from "@/lib/gates";
-import { projectStatusLabel, workKindLabel, WANT_BUILT_LABEL } from "@/lib/labels";
+import { projectStatusLabel, qualifyOutcomeLabel, workKindLabel, WANT_BUILT_LABEL } from "@/lib/labels";
 import { linkClassName } from "@/lib/links";
 import {
   deskCopyTemplates,
@@ -163,7 +163,6 @@ export default async function ClassicProjectPage({
   const allTemplates = isProduct
     ? []
     : deskCopyTemplates(project.problemSentence);
-  const qualify = gateWork?.qualify ?? null;
   const intake = gateWork?.intake ?? [];
   const changes = gateWork?.changes ?? delivery?.changes ?? [];
   const demos = gateWork?.demos ?? delivery?.demos ?? [];
@@ -183,8 +182,6 @@ export default async function ClassicProjectPage({
   const salesProps = gateWork
     ? {
         projectId: project.id,
-        qualify: gateWork.qualify,
-        wantBuilt: project.wantBuilt,
         intake: gateWork.intake,
         discovery: gateWork.discovery,
       }
@@ -214,13 +211,10 @@ export default async function ClassicProjectPage({
     return (
       <>
         {salesProps &&
-        gates.some((g) => g === "qualify" || g === "discover") ? (
+        gates.some((g) => g === "discover") ? (
           <SalesWork
             {...salesProps}
-            include={gates.filter(
-              (g): g is "qualify" | "discover" =>
-                g === "qualify" || g === "discover",
-            )}
+            include={gates.filter((g): g is "discover" => g === "discover")}
           />
         ) : null}
         {proposeProps && gates.includes("plan") ? (
@@ -300,7 +294,7 @@ export default async function ClassicProjectPage({
             }}
             people={people}
             hasSelectedOption={hasSelectedOption}
-            qualifyOutcome={qualify?.outcome ?? "undecided"}
+            qualifyOutcome={project.qualifyOutcome}
             intakeProblemAnswer={problemAnswer}
             intakeSuccessAnswer={successAnswer}
           />
@@ -313,13 +307,30 @@ export default async function ClassicProjectPage({
           <InfoList
             items={[
               { label: "Title", value: project.title },
+              ...(isProduct
+                ? []
+                : [
+                    {
+                      label: "Qualify",
+                      value: qualifyOutcomeLabel(project.qualifyOutcome),
+                    },
+                  ]),
               { label: "Problem sentence", value: project.problemSentence },
               ...(isProduct
                 ? []
                 : [{ label: WANT_BUILT_LABEL, value: project.wantBuilt }]),
               { label: "Success looks like", value: project.successLooksLike },
+              ...(isProduct
+                ? []
+                : [{ label: "Who it is for", value: project.whoFor }]),
               { label: "Budget note", value: project.budgetNote },
               { label: "Deadline note", value: project.deadlineNote },
+              ...(isProduct
+                ? []
+                : [
+                    { label: "Call / window", value: project.callAt },
+                    { label: "Notes", value: project.qualifyNotes },
+                  ]),
               { label: "Status", value: projectStatusLabel(project.status) },
             ]}
           />
@@ -332,10 +343,15 @@ export default async function ClassicProjectPage({
               problemSentence: project.problemSentence ?? "",
               wantBuilt: project.wantBuilt ?? "",
               successLooksLike: project.successLooksLike ?? "",
+              whoFor: project.whoFor ?? "",
+              qualifyOutcome: project.qualifyOutcome,
               budgetNote: project.budgetNote ?? "",
               deadlineNote: project.deadlineNote ?? "",
+              callAt: project.callAt ?? "",
+              qualifyNotes: project.qualifyNotes ?? "",
               status: project.status,
             }}
+            showQualify={!isProduct}
             hideWantBuilt={isProduct}
           />
         }

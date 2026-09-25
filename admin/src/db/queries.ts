@@ -19,7 +19,6 @@ import {
   projectMilestones,
   projectNotes,
   projectOptions,
-  projectQualify,
   projects,
   notifications,
   sessions,
@@ -634,10 +633,15 @@ export async function createProject(values: {
   problemSentence: string | null;
   wantBuilt?: string | null;
   successLooksLike: string | null;
+  whoFor?: string | null;
+  qualifyOutcome?: QualifyOutcome;
   workKind?: WorkKind;
   currentGate?: ProjectGate;
   status?: ProjectStatus;
+  budgetNote?: string | null;
   deadlineNote?: string | null;
+  callAt?: string | null;
+  qualifyNotes?: string | null;
 }) {
   const db = getDb();
   const [row] = await db
@@ -648,10 +652,15 @@ export async function createProject(values: {
       problemSentence: values.problemSentence,
       wantBuilt: values.wantBuilt,
       successLooksLike: values.successLooksLike,
+      whoFor: values.whoFor,
+      qualifyOutcome: values.qualifyOutcome ?? "undecided",
       workKind: values.workKind ?? "client",
       currentGate: values.currentGate ?? "qualify",
       status: values.status ?? "active",
+      budgetNote: values.budgetNote,
       deadlineNote: values.deadlineNote,
+      callAt: values.callAt,
+      qualifyNotes: values.qualifyNotes,
     })
     .returning({ id: projects.id });
   if (!row) {
@@ -708,8 +717,12 @@ export async function updateProject(
     problemSentence: string | null;
     wantBuilt: string | null;
     successLooksLike: string | null;
+    whoFor: string | null;
+    qualifyOutcome: QualifyOutcome;
     budgetNote: string | null;
     deadlineNote: string | null;
+    callAt: string | null;
+    qualifyNotes: string | null;
     status: ProjectStatus;
   },
 ) {
@@ -726,8 +739,12 @@ export async function patchProject(
     problemSentence?: string | null;
     wantBuilt?: string | null;
     successLooksLike?: string | null;
+    whoFor?: string | null;
+    qualifyOutcome?: QualifyOutcome;
     budgetNote?: string | null;
     deadlineNote?: string | null;
+    callAt?: string | null;
+    qualifyNotes?: string | null;
     status?: ProjectStatus;
   },
 ) {
@@ -971,24 +988,20 @@ export async function ensureIntakeAnswers(projectId: string) {
   return listIntakeAnswers(projectId);
 }
 
-/** Prefill empty discovery themes from Qualify / Job details (inbound or oral). */
+/** Prefill empty discovery themes from the project brief. */
 export async function seedEmptyDiscoveryAnswers(projectId: string) {
-  const [answers, qualify, project] = await Promise.all([
+  const [answers, project] = await Promise.all([
     ensureIntakeAnswers(projectId),
-    getQualify(projectId),
     getProject(projectId),
   ]);
 
   const seeds: Record<string, string | null> = {
-    Problem: project?.problemSentence ?? qualify?.painToday ?? null,
-    Who: qualify?.whoFor ?? null,
+    Problem: project?.problemSentence ?? null,
+    Who: project?.whoFor ?? null,
     Success: project?.successLooksLike ?? null,
     Constraints: [
-      qualify?.budgetNote ? `Budget: ${qualify.budgetNote}` : null,
-      qualify?.neededBy ? `Needed by: ${qualify.neededBy}` : null,
-      project?.deadlineNote && project.deadlineNote !== qualify?.neededBy
-        ? `Deadline: ${project.deadlineNote}`
-        : null,
+      project?.budgetNote ? `Budget: ${project.budgetNote}` : null,
+      project?.deadlineNote ? `Needed by: ${project.deadlineNote}` : null,
     ]
       .filter(Boolean)
       .join("\n") || null,
@@ -1043,40 +1056,6 @@ export async function saveIntakeAnswers(
       });
     }
   }
-}
-
-export async function getQualify(projectId: string) {
-  const db = getDb();
-  const [row] = await db
-    .select()
-    .from(projectQualify)
-    .where(eq(projectQualify.projectId, projectId))
-    .limit(1);
-  return row ?? null;
-}
-
-export async function upsertQualify(
-  projectId: string,
-  values: {
-    outcome: QualifyOutcome;
-    whoFor: string | null;
-    painToday: string | null;
-    neededBy: string | null;
-    budgetNote: string | null;
-    callAt: string | null;
-    notes: string | null;
-  },
-) {
-  const db = getDb();
-  const existing = await getQualify(projectId);
-  if (existing) {
-    await db
-      .update(projectQualify)
-      .set({ ...values, updatedAt: new Date() })
-      .where(eq(projectQualify.projectId, projectId));
-    return;
-  }
-  await db.insert(projectQualify).values({ projectId, ...values });
 }
 
 export async function listProjectMilestones(projectId: string) {
@@ -1570,9 +1549,8 @@ export async function upsertLaunch(
 }
 
 export async function getProjectGateWork(projectId: string) {
-  const [qualify, intake, discovery, agreement, changes, demos, launch] =
+  const [intake, discovery, agreement, changes, demos, launch] =
     await Promise.all([
-      getQualify(projectId),
       seedEmptyDiscoveryAnswers(projectId),
       getDiscovery(projectId),
       getAgreement(projectId),
@@ -1581,7 +1559,7 @@ export async function getProjectGateWork(projectId: string) {
       getLaunch(projectId),
     ]);
 
-  return { qualify, intake, discovery, agreement, changes, demos, launch };
+  return { intake, discovery, agreement, changes, demos, launch };
 }
 
 export async function addAuditEvent(values: {
@@ -1653,7 +1631,6 @@ export async function exportDesk() {
     noteRows,
     optionRows,
     activityRows,
-    qualifyRows,
     intakeRows,
     discoveryRows,
     agreementRows,
@@ -1669,7 +1646,6 @@ export async function exportDesk() {
     db.select().from(projectNotes).orderBy(desc(projectNotes.createdAt)),
     db.select().from(projectOptions),
     db.select().from(activities).orderBy(desc(activities.createdAt)),
-    db.select().from(projectQualify),
     db.select().from(projectIntakeAnswers),
     db.select().from(projectDiscovery),
     db.select().from(projectAgreements),
@@ -1700,7 +1676,6 @@ export async function exportDesk() {
     notes: noteRows,
     options: optionRows,
     activities: activityRows,
-    qualify: qualifyRows,
     intake: intakeRows,
     discovery: discoveryRows,
     agreements: agreementRows,

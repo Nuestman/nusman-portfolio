@@ -4,7 +4,6 @@ import { notFound } from "next/navigation";
 import {
   getDiscovery,
   getPortalProjectForPerson,
-  getQualify,
   getSelectedOption,
 } from "@/db/queries";
 import { PortalProjectBrief } from "@/components/portal-project-brief";
@@ -59,10 +58,9 @@ export default async function PortalBriefPage({
     notFound();
   }
 
-  const [discovery, selected, qualify, query] = await Promise.all([
+  const [discovery, selected, query] = await Promise.all([
     getDiscovery(project.id),
     getSelectedOption(project.id),
-    getQualify(project.id),
     searchParams,
   ]);
   const inScope = discovery?.inScope?.trim() || selected?.inScope || null;
@@ -97,10 +95,9 @@ export default async function PortalBriefPage({
           outOfScope={outOfScope}
           deadline={project.deadlineNote}
           packageName={selected ? optionKindLabel(selected.kind) : null}
-          whoFor={qualify?.whoFor ?? null}
-          neededBy={qualify?.neededBy ?? null}
-          budgetNote={qualify?.budgetNote ?? null}
-          notes={qualify?.notes ?? null}
+          whoFor={project.whoFor}
+          budgetNote={project.budgetNote}
+          notes={project.qualifyNotes}
         />
       </div>
     </PortalShell>

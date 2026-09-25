@@ -169,6 +169,20 @@
       "when": 1790160000000,
       "tag": "0023_people_portal_onboarding",
       "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "7",
+      "when": 1790170000000,
+      "tag": "0024_people_portal_requested",
+      "breakpoints": true
+    },
+    {
+      "idx": 25,
+      "version": "7",
+      "when": 1790180000000,
+      "tag": "0025_projects_qualify_fold",
+      "breakpoints": true
     }
   ]
 }

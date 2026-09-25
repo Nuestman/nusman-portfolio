@@ -1,8 +1,8 @@
 # Desk status
 
-Checked 24 Sep 2026 against the code in `admin/`. Product version: **2.8.6** (`admin/package.json`). Product rules: [desk-2.0.md](./desk-2.0.md) (wins) and [desk.md](./desk.md). Portal: [portal.md](./portal.md). Archive: [archive/desk-1.1.md](./archive/desk-1.1.md). Visual: [style-guide.md](./style-guide.md). Deploy: [deploy.md](./deploy.md). Update this file when something ships or an open item is closed.
+Checked 25 Sep 2026 against the code in `admin/`. Product version: **2.8.7** (`admin/package.json`). Product rules: [desk-2.0.md](./desk-2.0.md) (wins) and [desk.md](./desk.md). Portal: [portal.md](./portal.md). Archive: [archive/desk-1.1.md](./archive/desk-1.1.md). Visual: [style-guide.md](./style-guide.md). Deploy: [deploy.md](./deploy.md). Update this file when something ships or an open item is closed.
 
-Desk **2.8.6** / Portal **1.8.6** are usable. Public site **4.4.1** posts `/start` into Desk as an **inactive** project; email confirm (or Desk confirm) activates it. Portal sign-in requires a **confirmed** person email. First Portal login runs a short `/welcome` tour (organisation greeting) until completed. Portal surfaces: progress, brief, messages, schedule, profile, **organisation** (edit hiring party; request people with required email), start project → request call (no Questions page). Desk list Edit opens `/projects/[id]/edit`. Pending Portal person requests are flagged on the client people list and person profile. Public `/privacy` and `/terms` load from Desk `GET /api/legal/[slug]` with a static fallback. Profile photos and message attachments use a **private** Vercel Blob store (proxied downloads). Messages nav + conversation list show unread message badges.
+Desk **2.8.7** / Portal **1.8.7** are usable. Public site **4.4.1** posts `/start` into Desk as an **inactive** project; email confirm (or Desk confirm) activates it. Portal sign-in requires a **confirmed** person email. First Portal login runs a short `/welcome` tour (organisation greeting) until completed. Portal surfaces: progress, brief, messages, schedule, profile, **organisation** (edit hiring party; request people with required email), start project → request call (no Questions page). Hiring brief + qualify live on `projects` (one Brief card/form). Desk list Edit opens `/projects/[id]/edit`. Pending Portal person requests are flagged on the client people list and person profile. Public `/privacy` and `/terms` load from Desk `GET /api/legal/[slug]` with a static fallback. Profile photos and message attachments use a **private** Vercel Blob store (proxied downloads). Messages nav + conversation list show unread message badges.
 
 ---
 
@@ -20,7 +20,7 @@ Hiring jobs with gate records, **process milestones**, table-row edit/remove, pl
 | `/audit`, `/audit/[id]` | Live. Row click opens detail |
 | `/clients` … `/clients/[id]/people/[personId]` · `/edit` | Live. Person **profile** on Desk (`/profile` layout: stacked You card + Details, Organisation, Projects, Notes, Portal access). Name in the people list opens the profile; Edit is on the You card and in the row. Organisation lists the hiring party; Projects lists every job on that client. Person `/edit` still has the form + magic link. Portal enable is blocked until the person’s email is confirmed (**Confirm email** / **Resend confirmation**). Unconfirmed emails and **Portal request** badges on the people list; amber banners on profile/edit when a Portal person request is pending. Hiring party shows empty fields. Inactive clients highlighted. Pending-email banner + Desk confirm / resend |
 | `/schedule` | Live. Hub: Cards / Calendar; create/edit still on project |
-| `/projects` … gate records, notes, options, changes, demos, **milestones** · `/projects/[id]/edit` | Live. List Edit → edit page (Brief + Qualify + Portal). Current gate first; earlier stages collapsed; timeline; **Schedule** (`project_events`); portal strip; Qualify Real ↔ qualified milestone. Inactive status + pending-email banner |
+| `/projects` … gate records, notes, options, changes, demos, **milestones** · `/projects/[id]/edit` | Live. List Edit → edit page (one Brief form + Portal). Current gate first; earlier stages collapsed; timeline; **Schedule** (`project_events`); portal strip; Qualify Real ↔ qualified milestone. Inactive status + pending-email banner |
 | `/messages`, `/messages/new`, `/messages/[projectId]` | Live. Chat-style portal conversation inbox; compose/reply with plain or rich (TinyMCE); attachments; unread badges on nav + list; opening a thread clears that project’s message notifications |
 | `/notifications`, `/notifications/new`, `/notifications/[id]/edit` | Live. Feed + table; compose + edit only if you sent it |
 | `/products`, `/products/new` | Live. Own-product records only |
@@ -86,6 +86,7 @@ Migrations on Neon **nusmandotdev** (`sparkling-art-67399165`) only:
 | `0022_people_image_message_attachments` | `people.image_url`; `portal_message_attachments` for private Blob files |
 | `0023_people_portal_onboarding` | `people.portal_onboarding_completed_at` — first-login `/welcome` tour |
 | `0024_people_portal_requested` | `people.portal_requested_at` — Portal “Request person” pending Desk approval |
+| `0025_projects_qualify_fold` | Fold qualify into `projects` (`qualify_outcome`, `who_for`, `call_at`, `qualify_notes`); drop `project_qualify` |
 
 Apply from `admin/` with `npm run db:migrate`. Do not point `DATABASE_URL` at Mineaid, Uventory, church, or any other Neon project.
 

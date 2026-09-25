@@ -8,7 +8,6 @@ import {
   deleteProject,
   markPeopleEmailVerifiedByEmail,
   patchProject,
-  upsertQualify,
 } from "@/db/queries";
 import { recordAuditSafe } from "@/lib/audit";
 import { deskPublicBaseUrl, oneLine } from "@/lib/inbound-http";
@@ -113,18 +112,11 @@ export async function createInboundLead(
       problemSentence: problem,
       wantBuilt,
       successLooksLike,
+      whoFor,
+      budgetNote: budget,
       deadlineNote: timeline,
       status,
-    });
-
-    await upsertQualify(projectId, {
-      outcome: "undecided",
-      whoFor,
-      painToday: problem,
-      neededBy: timeline,
-      budgetNote: budget,
-      callAt: null,
-      notes: [
+      qualifyNotes: [
         status === "inactive"
           ? "Inbound lead — pending email confirmation."
           : "Inbound lead — contact ASAP.",
@@ -259,16 +251,10 @@ export async function refreshInboundProjectBrief(
     problemSentence: payload.problem,
     wantBuilt: payload.wantBuilt,
     successLooksLike: payload.successLooksLike,
-    deadlineNote: payload.timeline,
-  });
-  await upsertQualify(projectId, {
-    outcome: "undecided",
     whoFor: payload.whoFor,
-    painToday: payload.problem,
-    neededBy: payload.timeline,
     budgetNote: payload.budget,
-    callAt: null,
-    notes: [
+    deadlineNote: payload.timeline,
+    qualifyNotes: [
       "Inbound lead — pending email confirmation.",
       payload.phone ? `Phone: ${payload.phone}` : null,
       sourceLine(payload.source, payload.sourceOther),

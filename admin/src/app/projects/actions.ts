@@ -28,7 +28,6 @@ import {
   getPerson,
   getProject,
   getProjectEvent,
-  getQualify,
   ensureProjectMilestones,
   listIntakeAnswers,
   listOptions,
@@ -50,7 +49,6 @@ import {
   upsertAgreement,
   upsertDiscovery,
   upsertLaunch,
-  upsertQualify,
 } from "@/db/queries";
 import {
   deleteWasConfirmed,
@@ -240,18 +238,69 @@ export async function updateProjectAction(
   if (!isProjectStatus(statusRaw)) {
     return { error: "Choose a valid status." };
   }
-  const status: ProjectStatus = statusRaw;
+  let status: ProjectStatus = statusRaw;
+
+  const outcomeRaw = readTrimmed(formData, "qualifyOutcome") || "undecided";
+  if (!isQualifyOutcome(outcomeRaw)) {
+    return { error: "Choose a qualify outcome." };
+  }
 
   const nextValues = {
     title,
     problemSentence: readOptional(formData, "problemSentence"),
     wantBuilt: readOptional(formData, "wantBuilt"),
     successLooksLike: readOptional(formData, "successLooksLike"),
+    whoFor: readOptional(formData, "whoFor"),
+    qualifyOutcome: outcomeRaw,
     budgetNote: readOptional(formData, "budgetNote"),
     deadlineNote: readOptional(formData, "deadlineNote"),
+    callAt: readOptional(formData, "callAt"),
+    qualifyNotes: readOptional(formData, "qualifyNotes"),
     status,
   };
+
+  const previousOutcome = project.qualifyOutcome;
+
+  if (project.workKind === "client") {
+    if (outcomeRaw === "no") {
+      status = "lost";
+      nextValues.status = "lost";
+    } else if (previousOutcome === "no" && project.status === "lost") {
+      status = "active";
+      nextValues.status = "active";
+    }
+  }
+
   await updateProject(id, nextValues);
+
+  if (project.workKind === "client") {
+    if (outcomeRaw === "no" && previousOutcome !== "no") {
+      await addNote(
+        id,
+        "Disqualified at Qualify (not a real project). Pipeline closed.",
+      );
+    } else if (previousOutcome === "no" && outcomeRaw !== "no") {
+      await addNote(
+        id,
+        `Qualify reopened as ${qualifyOutcomeLabel(outcomeRaw)}. Project set back to Active.`,
+      );
+    }
+
+    const milestoneMail = await syncQualifiedMilestoneFromOutcome(
+      id,
+      outcomeRaw,
+    );
+    if (milestoneMail) {
+      await notifyClientsOfMilestone({
+        clientId: project.clientId,
+        projectId: id,
+        projectTitle: title,
+        milestoneLabel: milestoneMail.label,
+        done: milestoneMail.done,
+      });
+    }
+  }
+
   await recordAudit({
     action: "project.update",
     summary: `Updated project “${title}”.`,
@@ -314,10 +363,9 @@ export async function moveGateAction(formData: FormData) {
     redirect("/projects");
   }
 
-  const [people, options, qualify, intake] = await Promise.all([
+  const [people, options, intake] = await Promise.all([
     listPeople(project.clientId),
     listOptions(id),
-    getQualify(id),
     listIntakeAnswers(id),
   ]);
   const problemAnswer =
@@ -332,7 +380,7 @@ export async function moveGateAction(formData: FormData) {
     status: project.status,
     workKind: project.workKind,
     hasSelectedOption: options.some((option) => option.selected),
-    qualifyOutcome: qualify?.outcome ?? "undecided",
+    qualifyOutcome: project.qualifyOutcome,
     intakeProblemAnswer: problemAnswer,
     intakeSuccessAnswer: successAnswer,
   });
@@ -657,89 +705,6 @@ export async function selectOptionAction(formData: FormData) {
 }
 
 const PRODUCTS_SKIP_SALES = "Own products skip sales and discovery forms.";
-
-export async function saveQualifyAction(
-  _previous: FormState,
-  formData: FormData,
-): Promise<FormState> {
-  await requireSessionUser();
-  const projectId = readTrimmed(formData, "projectId");
-  if (!isUuid(projectId)) {
-    return { error: "Project is missing." };
-  }
-
-  const project = await getProject(projectId);
-  if (!project) {
-    return { error: "That project is gone." };
-  }
-  if (project.workKind === "product") {
-    return { error: PRODUCTS_SKIP_SALES };
-  }
-
-  const outcomeRaw = readTrimmed(formData, "outcome");
-  if (!isQualifyOutcome(outcomeRaw)) {
-    return { error: "Choose a qualify outcome." };
-  }
-
-  const nextQualify = {
-    outcome: outcomeRaw,
-    whoFor: readOptional(formData, "whoFor"),
-    painToday: readOptional(formData, "painToday"),
-    neededBy: readOptional(formData, "neededBy"),
-    budgetNote: readOptional(formData, "budgetNote"),
-    callAt: readOptional(formData, "callAt"),
-    notes: readOptional(formData, "notes"),
-  };
-  const previousQualify = await getQualify(projectId);
-  await upsertQualify(projectId, nextQualify);
-  await patchProject(projectId, {
-    wantBuilt: readOptional(formData, "wantBuilt"),
-  });
-
-  if (outcomeRaw === "no") {
-    await patchProject(projectId, { status: "lost" });
-    await addNote(
-      projectId,
-      "Disqualified at Qualify (not a real project). Pipeline closed.",
-    );
-  } else if (
-    previousQualify?.outcome === "no" &&
-    project.status === "lost"
-  ) {
-    await patchProject(projectId, { status: "active" });
-    await addNote(
-      projectId,
-      `Qualify reopened as ${qualifyOutcomeLabel(outcomeRaw)}. Project set back to Active.`,
-    );
-  }
-
-  const milestoneMail = await syncQualifiedMilestoneFromOutcome(
-    projectId,
-    outcomeRaw,
-  );
-
-  await recordAudit({
-    action: "qualify.save",
-    summary: `Saved qualify (${qualifyOutcomeLabel(outcomeRaw)}) on “${project.title}”.`,
-    entityType: "qualify",
-    entityId: projectId,
-    projectId,
-    before: previousQualify,
-    after: nextQualify,
-  });
-  if (milestoneMail && project.workKind === "client") {
-    await notifyClientsOfMilestone({
-      clientId: project.clientId,
-      projectId,
-      projectTitle: project.title,
-      milestoneLabel: milestoneMail.label,
-      done: milestoneMail.done,
-    });
-  }
-  revalidateProject(projectId, project.clientId);
-  const next = readOptional(formData, "next");
-  redirect(next ? safeInternalPath(next) : `/projects/${projectId}`);
-}
 
 export async function saveIntakeAction(
   _previous: FormState,

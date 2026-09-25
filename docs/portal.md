@@ -79,6 +79,7 @@ Magic link rows: hashed token, person_id, expires_at, used_at. One-time use. Ema
 - Migration `0020_person_email_verified`: `people.email_verified_at` plus confirm-token hash/expiry. Portal use requires confirmed email **and** `portal_enabled`. Inbound confirm still activates the project and now also marks matching people verified.
 - Migration `0023_people_portal_onboarding`: `people.portal_onboarding_completed_at` for the `/welcome` tour.
 - Migration `0024_people_portal_requested`: `people.portal_requested_at` when a Portal user requests a new person.
+- Migration `0025_projects_qualify_fold`: qualify fields on `projects`; `project_qualify` dropped.
 - Later Desk migrations also affect Portal surfaces: `0009_project_events` (schedule), `0010`/`0011` (milestones + gate remap), `0012_notifications` (in-app inbox), `0013`/`0014` (heard-about sources incl. social media), `0021`/`0022` (legal + Blob) — see [desk-status.md](./desk-status.md)
 
 ---
@@ -165,6 +166,7 @@ Add domain `portal.nusman.dev` on the same Vercel project as Desk. Magic links u
 19. First-login `/welcome` tour — done (Portal **1.8.1** / Desk **2.8.1**)
 20. Portal Organisation (`/organisation` edit + request person); lean Portal (no Questions); start → schedule call — done (Portal **1.8.5** / Desk **2.8.5**)
 21. Organisation polish (required email; Desk request banners; intake aliases gone) — done (Portal **1.8.6** / Desk **2.8.6**)
+22. Qualify folded into `projects`; Portal brief / start use one brief — done (Portal **1.8.7** / Desk **2.8.7**)
 
 ---
 
