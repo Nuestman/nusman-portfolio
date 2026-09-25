@@ -11,10 +11,8 @@ import {
   getPerson,
   getPortalProjectForPerson,
   getProjectEvent,
-  getQualify,
   patchProject,
   setProjectEventStatus,
-  upsertQualify,
 } from "@/db/queries";
 import { requirePortalPerson } from "@/lib/current-person";
 import { recordAuditSafe } from "@/lib/audit";
@@ -127,17 +125,10 @@ export async function startPortalProjectAction(
     problemSentence: problem.slice(0, 2000),
     wantBuilt: wantBuilt.slice(0, 2000),
     successLooksLike: successLooksLike.slice(0, 2000),
-    deadlineNote: timeline,
-  });
-
-  await upsertQualify(projectId, {
-    outcome: "undecided",
     whoFor: whoFor.slice(0, 500),
-    painToday: problem.slice(0, 2000),
-    neededBy: timeline,
     budgetNote: budget,
-    callAt: null,
-    notes: [
+    deadlineNote: timeline,
+    qualifyNotes: [
       "Requested from client portal by logged-in person.",
       `Contact: ${person.name}${person.email ? ` <${person.email}>` : ""}`,
       `Want built: ${wantBuilt.slice(0, 2000)}`,
@@ -229,7 +220,6 @@ export async function savePortalBriefAction(
   const successLooksLike = readOptional(formData, "successLooksLike");
   const deadline = readOptional(formData, "deadline");
   const whoFor = readOptional(formData, "whoFor");
-  const neededBy = readOptional(formData, "neededBy");
   const budgetNote = readOptional(formData, "budgetNote");
   const notes = readOptional(formData, "notes");
 
@@ -238,31 +228,23 @@ export async function savePortalBriefAction(
     (wantBuilt && wantBuilt.length > 2000) ||
     (successLooksLike && successLooksLike.length > 2000) ||
     (whoFor && whoFor.length > 500) ||
-    (neededBy && neededBy.length > 200) ||
+    (deadline && deadline.length > 200) ||
     (budgetNote && budgetNote.length > 200) ||
     (notes && notes.length > 4000)
   ) {
     return { error: "One of the answers is too long." };
   }
 
-  const previousQualify = await getQualify(projectId);
   const nextValues = {
     problemSentence: problem,
     wantBuilt,
     successLooksLike,
     deadlineNote: deadline,
-  };
-  const nextQualify = {
-    outcome: previousQualify?.outcome ?? ("undecided" as const),
     whoFor,
-    painToday: problem ?? previousQualify?.painToday ?? null,
-    neededBy,
     budgetNote,
-    callAt: previousQualify?.callAt ?? null,
-    notes,
+    qualifyNotes: notes,
   };
   await patchProject(projectId, nextValues);
-  await upsertQualify(projectId, nextQualify);
   await recordAuditSafe({
     action: "portal.brief-save",
     summary: `${person.name} updated the project brief on “${project.title}”.`,
@@ -275,18 +257,11 @@ export async function savePortalBriefAction(
       wantBuilt: project.wantBuilt,
       successLooksLike: project.successLooksLike,
       deadlineNote: project.deadlineNote,
-      whoFor: previousQualify?.whoFor ?? null,
-      neededBy: previousQualify?.neededBy ?? null,
-      budgetNote: previousQualify?.budgetNote ?? null,
-      notes: previousQualify?.notes ?? null,
+      whoFor: project.whoFor,
+      budgetNote: project.budgetNote,
+      qualifyNotes: project.qualifyNotes,
     },
-    after: {
-      ...nextValues,
-      whoFor,
-      neededBy,
-      budgetNote,
-      notes,
-    },
+    after: nextValues,
   });
   revalidatePortalProject(projectId);
   redirect(`/projects/${projectId}/brief?notice=saved`);

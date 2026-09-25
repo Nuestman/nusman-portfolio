@@ -178,7 +178,6 @@ export default async function ProjectDetailPage({
   const noticeRaw = Array.isArray(query.notice) ? query.notice[0] : query.notice;
   const notice = projectNotice(noticeRaw);
   const hasSelectedOption = options.some((option) => option.selected);
-  const qualify = gateWork?.qualify ?? null;
   const intake = gateWork?.intake ?? [];
   const changes = gateWork?.changes ?? delivery?.changes ?? [];
   const demos = gateWork?.demos ?? delivery?.demos ?? [];
@@ -191,14 +190,12 @@ export default async function ProjectDetailPage({
   const processGate = toProcessGate(project.currentGate);
   const guide = gateGuide(project.currentGate);
   const earlier = isProduct ? [] : pastProcessGates(processGate);
-  const disqualified = !isProduct && qualify?.outcome === "no";
+  const disqualified = !isProduct && project.qualifyOutcome === "no";
   const pipelineLocked = disqualified || gatesLocked(project.status);
 
   const salesProps = gateWork
     ? {
         projectId: project.id,
-        qualify: gateWork.qualify,
-        wantBuilt: project.wantBuilt,
         intake: gateWork.intake,
         discovery: gateWork.discovery,
       }
@@ -228,13 +225,10 @@ export default async function ProjectDetailPage({
     return (
       <>
         {salesProps &&
-        gates.some((g) => g === "qualify" || g === "discover") ? (
+        gates.some((g) => g === "discover") ? (
           <SalesWork
             {...salesProps}
-            include={gates.filter(
-              (g): g is "qualify" | "discover" =>
-                g === "qualify" || g === "discover",
-            )}
+            include={gates.filter((g): g is "discover" => g === "discover")}
           />
         ) : null}
         {proposeProps && gates.includes("plan") ? (
@@ -338,7 +332,7 @@ export default async function ProjectDetailPage({
                   }}
                   people={people}
                   hasSelectedOption={hasSelectedOption}
-                  qualifyOutcome={qualify?.outcome ?? "undecided"}
+                  qualifyOutcome={project.qualifyOutcome}
                   intakeProblemAnswer={problemAnswer}
                   intakeSuccessAnswer={successAnswer}
                 />
@@ -349,15 +343,6 @@ export default async function ProjectDetailPage({
 
           {isProduct ? (
             <JobBriefCard isProduct project={project} />
-          ) : processGate === "qualify" || disqualified ? (
-            <>
-              {stagePanels(["qualify"])}
-              <JobBriefCard
-                isProduct={false}
-                project={project}
-                locked={disqualified}
-              />
-            </>
           ) : (
             <JobBriefCard isProduct={false} project={project} />
           )}

@@ -12,7 +12,6 @@ export type DeskExport = {
   notes: unknown[];
   options: unknown[];
   activities: unknown[];
-  qualify: unknown[];
   intake: unknown[];
   discovery: unknown[];
   agreements: unknown[];
@@ -30,7 +29,6 @@ const TABLES = [
   { key: "notes", file: "notes.csv", heading: "Timeline notes" },
   { key: "options", file: "options.csv", heading: "Options" },
   { key: "activities", file: "journal.csv", heading: "Journal" },
-  { key: "qualify", file: "qualify.csv", heading: "Qualify" },
   { key: "intake", file: "intake.csv", heading: "Intake answers" },
   { key: "discovery", file: "discovery.csv", heading: "Discovery" },
   { key: "agreements", file: "agreements.csv", heading: "Agreements" },

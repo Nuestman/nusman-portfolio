@@ -6,7 +6,6 @@ import {
   countPortalMessages,
   getClient,
   getProject,
-  getQualify,
   listProjectEvents,
 } from "@/db/queries";
 import { DeskShell } from "@/components/desk-shell";
@@ -22,7 +21,6 @@ import {
 import { linkClassName } from "@/lib/links";
 import { shouldServePortalUi } from "@/lib/serve-portal";
 import { ProjectDetailsForm } from "../../project-details-form";
-import { QualifyForm } from "../../qualify-form";
 
 export const dynamic = "force-dynamic";
 
@@ -63,14 +61,12 @@ export default async function EditProjectPage({
   }
 
   const isProduct = project.workKind === "product";
-  const [email, client, qualify, portalMessageCount, events] =
-    await Promise.all([
-      getSessionEmail(),
-      getClient(project.clientId),
-      isProduct ? Promise.resolve(null) : getQualify(id),
-      isProduct ? Promise.resolve(0) : countPortalMessages(id),
-      isProduct ? Promise.resolve([]) : listProjectEvents(id),
-    ]);
+  const [email, client, portalMessageCount, events] = await Promise.all([
+    getSessionEmail(),
+    getClient(project.clientId),
+    isProduct ? Promise.resolve(0) : countPortalMessages(id),
+    isProduct ? Promise.resolve([]) : listProjectEvents(id),
+  ]);
 
   if (!client) {
     notFound();
@@ -130,50 +126,24 @@ export default async function EditProjectPage({
                 problemSentence: project.problemSentence ?? "",
                 wantBuilt: project.wantBuilt ?? "",
                 successLooksLike: project.successLooksLike ?? "",
+                whoFor: project.whoFor ?? "",
+                qualifyOutcome: project.qualifyOutcome,
                 budgetNote: project.budgetNote ?? "",
                 deadlineNote: project.deadlineNote ?? "",
+                callAt: project.callAt ?? "",
+                qualifyNotes: project.qualifyNotes ?? "",
                 status: project.status,
               }}
               problemHint={
-                isProduct
-                  ? undefined
-                  : "Needed before you leave Discover."
+                isProduct ? undefined : "Needed before you leave Discover."
               }
-              hideBudget={!isProduct}
+              showQualify={!isProduct}
               hideWantBuilt={isProduct}
               submitLabel={isProduct ? "Save product" : "Save brief"}
               nextPath={editPath}
             />
           </CardContent>
         </Card>
-
-        {!isProduct ? (
-          <Card>
-            <CardHeader>
-              <CardTitle>Qualify</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <p className="text-sm text-gray-600">
-                Hiring screen — outcome, who it is for, timeline, budget, and
-                call window. Stage moves still use the project page.
-              </p>
-              <QualifyForm
-                projectId={project.id}
-                nextPath={editPath}
-                qualify={{
-                  outcome: qualify?.outcome ?? "undecided",
-                  whoFor: qualify?.whoFor ?? "",
-                  painToday: qualify?.painToday ?? "",
-                  wantBuilt: project.wantBuilt ?? "",
-                  neededBy: qualify?.neededBy ?? "",
-                  budgetNote: qualify?.budgetNote ?? "",
-                  callAt: qualify?.callAt ?? "",
-                  notes: qualify?.notes ?? "",
-                }}
-              />
-            </CardContent>
-          </Card>
-        ) : null}
 
         {!isProduct ? (
           <Card>
